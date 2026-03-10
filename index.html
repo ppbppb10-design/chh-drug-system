@@ -72,36 +72,130 @@
         </div>
     </div>
 
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+    import { getDatabase, ref, set, onValue, onConnect } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        // === 1. 角色判斷邏輯 ===
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role'); // ?role=pharmacy 或 ?role=warehouse
-        if (role === 'pharmacy') {
-            document.getElementById('warehouseSection').classList.add('lg:col-span-12');
-            document.getElementById('warehouseSection').classList.remove('lg:col-span-7');
-            document.getElementById('actionArea').classList.add('role-hidden');
-        } else if (role === 'warehouse') {
-            document.getElementById('pharmacySection').classList.add('role-hidden');
-            document.getElementById('warehouseSection').classList.add('lg:col-span-12');
-            document.getElementById('warehouseSection').classList.remove('lg:col-span-7');
+// 1. Firebase 配置 (已根據您的網址核對)
+    const firebaseConfig = {
+        apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+        authDomain: "drug--arrive.firebaseapp.com",
+        databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
+        projectId: "drug--arrive",
+        storageBucket: "drug--arrive.firebasestorage.app",
+        messagingSenderId: "215426668369",
+        appId: "1:215426668369:web:eaa94e83974fcec391a570"
+    };
+
+    // 2. 初始化連線並檢查
+    const app = initializeApp(firebaseConfig);
+    const db = getDatabase(app);
+    const statusRef = ref(db, 'combinedSystemStatus');
+
+    // 偵測連線狀態 (除錯用)
+    const connectedRef = ref(db, ".info/connected");
+    onValue(connectedRef, (snap) => {
+        const label = document.getElementById('statusLabel');
+        if (snap.val() === true) {
+            console.log("✅ Firebase 連線成功");
+        } else {
+            console.log("❌ Firebase 連線中斷，請檢查醫院網路是否封鎖 Firebase");
+            if(label) label.innerText = "⚠️ 網路連線中斷...";
         }
+    });
 
-        // === 2. Firebase 設定 ===
-        const firebaseConfig = {
-            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
-            authDomain: "drug--arrive.firebaseapp.com",
-            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
-            projectId: "drug--arrive",
-            storageBucket: "drug--arrive.firebasestorage.app",
-            messagingSenderId: "215426668369",
-            appId: "1:215426668369:web:eaa94e83974fcec391a570"
-        };
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const statusRef = ref(db, 'combinedSystemStatus');
+    // 3. 角色判斷
+    const urlParams = new URLSearchParams(window.location.search);
+    const role = urlParams.get('role'); 
+    if (role === 'pharmacy') {
+        document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
+        document.getElementById('actionArea').classList.add('role-hidden');
+    } else if (role === 'warehouse') {
+        document.getElementById('pharmacySection').classList.add('role-hidden');
+        document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
+    }
+    // --- 核心功能函數 ---
+
+    window.submitTransfer = function() {
+        if (cart.length === 0) return;
+        // 使用 .then() 確保知道有沒有寫入成功
+        set(statusRef, { 
+            state: "arriving", 
+            items: cart, 
+            time: new Date().getTime() 
+        })
+        .then(() => {
+            alert("✅ 調撥通知已送達藥庫");
+            cart = []; 
+            renderCart();
+        })
+        .catch((error) => {
+            alert("❌ 送出失敗！原因：" + error.message + "\n請檢查 Firebase Rules 是否設為 true");
+        });
+    };
+
+    window.receiveAndDownload = function() {
+        if (pendingItems.length > 0) {
+            const ws = XLSX.utils.json_to_sheet(pendingItems.map(i => ({ "藥碼": i.id, "藥名": i.name, "數量": i.qty, "時間": i.time })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "清單");
+            XLSX.writeFile(wb, `藥局缺藥單_${new Date().getTime()}.xlsx`);
+        }
+        set(statusRef, { state: "preparing" }).catch(e => alert("更新狀態失敗"));
+    };
+
+    window.sendToElevator = function() { 
+        set(statusRef, { state: "in_elevator" }).catch(e => alert("更新狀態失敗")); 
+    };
+
+    window.resetToIdle = function() { 
+        set(statusRef, { state: "idle", items: [] }).catch(e => alert("重設失敗")); 
+    };
+
+    // 監聽變動
+    let alertInterval = null;
+    onValue(statusRef, (snapshot) => {
+        const data = snapshot.val();
+        const body = document.getElementById('bodyTag');
+        const label = document.getElementById('statusLabel');
+        const btnR = document.getElementById('receiveBtn');
+        const btnE = document.getElementById('elevatorBtn');
+        const btnD = document.getElementById('doneBtn');
+
+        if (!btnR || !btnE || !btnD) return;
+
+        [btnR, btnE, btnD].forEach(b => b.classList.add('hidden'));
+        body.className = "bg-slate-100 min-h-screen transition-colors";
+
+        if (!data || data.state === "idle") {
+            label.innerText = "🟢 系統待機中";
+            label.className = "text-center font-bold p-3 mb-2 rounded bg-slate-100 text-slate-500 text-sm";
+            if(alertInterval) { clearInterval(alertInterval); alertInterval = null; }
+            window.speechSynthesis.cancel();
+        } 
+        else if (data.state === "arriving") {
+            pendingItems = data.items || [];
+            label.innerText = "🚨 藥局缺藥調撥申請中！";
+            label.className = "text-center font-bold p-3 mb-2 rounded bg-red-600 text-white";
+            body.classList.add('mode-arriving');
+            btnR.classList.remove('hidden');
+            if(role === 'warehouse') startVoiceLoop("藥局有缺藥調撥申請，請確認清單並簽收");
+        }
+        else if (data.state === "preparing") {
+            label.innerText = "⏳ 藥庫處理中 (請將藥品送至電梯)";
+            label.className = "text-center font-bold p-3 mb-2 rounded bg-blue-100 text-blue-700 text-sm";
+            btnE.classList.remove('hidden');
+            if(alertInterval) { clearInterval(alertInterval); alertInterval = null; }
+            window.speechSynthesis.cancel();
+        }
+        else if (data.state === "in_elevator") {
+            label.innerText = "📦 藥品已在電梯，等候領取";
+            label.className = "text-center font-bold p-3 mb-2 rounded bg-yellow-400 text-yellow-900";
+            body.classList.add('mode-elevator');
+            btnD.classList.remove('hidden');
+            if(role === 'pharmacy') startVoiceLoop("藥品已送達，請至電梯口簽收");
+        }
+    });
 
         { id: 'AKII90', name: 'Bipiden', form: '針劑' },
 { id: 'ALCE91', name: 'Alcaine', form: '外用' },
@@ -1250,3 +1344,4 @@
     </script>
 </body>
 </html>
+
