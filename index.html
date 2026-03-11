@@ -90,7 +90,7 @@
         const db = getDatabase(app);
         const statusRef = ref(db, 'combinedSystemStatus');
 
-        // 2. 藥品清單庫 (僅列出部分，請務必補回您之前的 400 筆)
+        // 2. 藥品清單庫 
         let drugDb = [
 { id: 'AKII90', name: 'Bipiden', form: '針劑' },
 { id: 'ALCE91', name: 'Alcaine', form: '外用' },
@@ -446,10 +446,6 @@
 { id: 'HALO27', name: 'Haldomin', form: '口服' },
 { id: 'HALO29', name: 'Arring', form: '口服' },
 { id: 'HBVI01', name: 'Engerix-B', form: '針劑' },
-{ id: 'HEMI01', name: 'Hemodialysis Conc. 300', form: '針劑' },
-{ id: 'HEMI03', name: 'Hemodialysis Conc. 309', form: '針劑' },
-{ id: 'HEMI05', name: 'Hemodialysis Conc. 319', form: '針劑' },
-{ id: 'HEMI09', name: 'Hemodialysis Conc. 308', form: '針劑' },
 { id: 'HEPE00', name: 'Cividoid', form: '外用' },
 { id: 'HERI01', name: 'Herceptin', form: '針劑' },
 { id: 'HERI02', name: 'Herceptin SC', form: '針劑' },
@@ -1020,22 +1016,6 @@
 { id: 'CYCO10', name: 'Endoxan Sugar-Coated Tablets', form: '口服' },
 { id: 'VERE00', name: 'VeraSeal 1+1', form: '外用' },
 { id: 'ENVI00', name: 'EnVAX-A71', form: '針劑' },
-{ id: 'EXTI00', name: 'Extraneal PD Sol'n with 7.5% Icodextrin 2L (單袋)', form: '針劑' },
-{ id: 'EXTI01', name: 'Extraneal PD Sol'n with 7.5% Icodextrin 2L (雙袋)', form: '針劑' },
-{ id: 'DIAI07', name: 'Dianeal PD-2 Sol'n with 1.5% Dextrose 2L', form: '針劑' },
-{ id: 'DIAI08', name: 'Dianeal PD-2 Sol'n with 2.5% Dextrose 2L', form: '針劑' },
-{ id: 'DIAI11', name: 'Dianeal Low Calcium (2.5mEq/L) PD Sol'n with 1.5% Dextrose 2L (雙袋)', form: '針劑' },
-{ id: 'DIAI10', name: 'Dianeal PD-2 Sol'n with 1.5% Dextrose 5L', form: '針劑' },
-{ id: 'DIAI27', name: 'Dianeal PD-2 Sol'n with 2.5% Dextrose 5L (單袋)', form: '針劑' },
-{ id: 'DIAI15', name: 'Dianeal Low Calcium (2.5mEq/L) PD Sol'n with 1.5% Dextrose 5L (單袋)', form: '針劑' },
-{ id: 'DIAI18', name: 'Dianeal Low Calcium (2.5mEq/L) PD Sol'n with 2.5% Dextrose 5L (單袋)', form: '針劑' },
-{ id: 'DIAI25', name: 'Dianeal PD-2 Sol'n with 2.5% Dextrose 2.5L (單袋)', form: '針劑' },
-{ id: 'DIAI14', name: 'Dianeal Low Calcium (2.5mEq/L) PD Sol'n with 1.5% Dextrose 2.5L(單袋)', form: '針劑' },
-{ id: 'DIAI23', name: 'Dianeal PD-2 Sol'n with 1.5% Dextrose 2.5L (單袋)', form: '針劑' },
-{ id: 'DIAI12', name: 'Dianeal Low Calcium (2.5mEq/L) PD Sol'n with 2.5% Dextrose 2L (雙袋)', form: '針劑' },
-{ id: 'DIAI09', name: 'Dianeal PD-2 Sol'n with 4.25% Dextrose 2L', form: '針劑' },
-{ id: 'DIAI20', name: 'Dianeal Low Calcium (2.5mEq/L) PD Sol'n with Dextrose 4.25% 2L', form: '針劑' },
-{ id: 'DIAI17', name: 'Dianeal Low Calcium (2.5mEq/L) PD Sol'n with 2.5% Dextrose 2.5L (單袋)', form: '針劑' },
 { id: 'AMII28', name: 'Cordarone inj.', form: '針劑' },
 { id: 'HEPI13', name: 'Havrix', form: '針劑' },
 { id: 'KETI02', name: 'Ketalar', form: '針劑' },
@@ -1059,9 +1039,6 @@
 { id: 'AZAO03', name: 'Azaprine', form: '口服' },
 { id: 'BEVI03', name: 'Vegzelma', form: '針劑' },
 { id: 'BREO03', name: 'Rexulti 1', form: '口服' },
-{ id: 'HEMI16', name: 'Hemodialysis Concentrate A-188', form: '針劑' },
-{ id: 'HEMI14', name: 'Hemodialysis Concentrate A-198', form: '針劑' },
-{ id: 'HEMI18', name: 'Hemodialysis Concentrate A-168', form: '針劑' },
 { id: 'CLOO30', name: 'Clopidogrel (SANDOZ)', form: '口服' },
 { id: 'MEDI01', name: 'Surso', form: '針劑' },
 { id: 'DIOO07', name: 'Mikoton', form: '口服' },
@@ -1251,3 +1228,4 @@
     </script>
 </body>
 </html>
+
