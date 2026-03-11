@@ -13,8 +13,6 @@
         .mode-elevator { background: #fff3cd; animation: flashYellow 1.5s infinite; }
         @keyframes flashYellow { 0%, 100% { background: #fff3cd; } 50% { background: #ffeeba; } }
         .role-hidden { display: none !important; }
-        /* 針對手機優化選單高度 */
-        select { -webkit-appearance: none; }
     </style>
 </head>
 <body id="bodyTag" class="bg-slate-100 min-h-screen">
@@ -28,60 +26,37 @@
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-4 rounded-b-xl shadow-lg">
             
             <div id="pharmacySection" class="lg:col-span-5 space-y-4 bg-slate-50 p-4 rounded-lg border">
-                <h2 class="text-sm font-bold text-blue-600 border-b pb-2 italic">1. 填寫申請資訊</h2>
-                
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-500">申請人簽名：</label>
-                    <select id="userSelect" class="w-full p-4 border-2 border-blue-200 rounded-xl bg-white font-bold text-blue-800 shadow-sm outline-none text-lg">
-                        <option value="">請選擇您的姓名...</option>
-                        <option value="陳東錦">陳東錦</option>
-                        <option value="賴錦益">賴錦益</option>
-                        <option value="邱富強">邱富強</option>
-                        <option value="劉孟育">劉孟育</option>
-                        <option value="蘇惠敏">蘇惠敏</option>
-                        <option value="林雅萍">林雅萍</option>
-                        <option value="張幸逢">張幸逢</option>
-                        <option value="洪紹寧">洪紹寧</option>
-                        <option value="黃聖剛">黃聖剛</option>
-                        <option value="陳麗君">陳麗君</option>
-                        <option value="楊德宏">楊德宏</option>
-                        <option value="陳玫君">陳玫君</option>
-                        <option value="馬惠玲">馬惠玲</option>
-                        <option value="吳婉瑄">吳婉瑄</option>
-                        <option value="嚴宗賓">嚴宗賓</option>
-                        <option value="張雨淳">張雨淳</option>
-                        <option value="劉育伶">劉育伶</option>
-                        <option value="邱瑞航">邱瑞航</option>
-                        <option value="吳致寛">吳致寛</option>
-                        <option value="葉儒樺">葉儒樺</option>
-                        <option value="劉子嫣">劉子嫣</option>
-                        <option value="許佳燕">許佳燕</option>
-                        <option value="許藝齡">許藝齡</option>
-                        <option value="劉佳昕">劉佳昕</option>
-                        <option value="黃竹珈">黃竹珈</option>
-                        <option value="胡明哲">胡明哲</option>
-                        <option value="李婉華">李婉華</option>
-                        <option value="邱麒文">邱麒文</option>
+                    <select id="userSelect" class="w-full p-4 border-2 border-blue-200 rounded-xl bg-white font-bold text-blue-800 outline-none text-lg">
+                        <option value="">請選擇姓名...</option>
+                        <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option><option value="劉孟育">劉孟育</option>
+                        <option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option><option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option>
+                        <option value="黃聖剛">黃聖剛</option><option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
+                        <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option><option value="張雨淳">張雨淳</option>
+                        <option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option><option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option>
+                        <option value="劉子嫣">劉子嫣</option><option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
+                        <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option><option value="邱麒文">邱麒文</option>
                     </select>
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
-                    <button onclick="setForm('口服', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold shadow-sm">口服</button>
-                    <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold shadow-sm">針劑</button>
-                    <button onclick="setForm('外用', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold shadow-sm">外用</button>
+                    <button onclick="setForm('口服', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold">口服</button>
+                    <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold">針劑</button>
+                    <button onclick="setForm('外用', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold">外用</button>
                 </div>
 
                 <div class="relative">
-                    <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或藥碼..." class="w-full p-5 border-2 rounded-2xl outline-none focus:border-blue-500 shadow-inner bg-white text-lg">
+                    <input type="text" id="searchInput" placeholder="搜尋藥名或藥碼..." class="w-full p-5 border-2 rounded-2xl outline-none focus:border-blue-500 text-lg">
                     <ul id="suggestList" class="absolute z-50 w-full bg-white border rounded-xl mt-2 shadow-2xl hidden max-h-60 overflow-y-auto"></ul>
                 </div>
 
                 <div id="confirmBox" class="bg-blue-600 p-4 rounded-2xl hidden text-white shadow-lg">
                     <div id="selectedDrugName" class="font-bold text-lg"></div>
-                    <div id="selectedDrugInfo" class="text-xs opacity-80 mb-3"></div>
+                    <div id="selectedDrugInfo" class="text-xs mb-3"></div>
                     <div class="flex gap-3">
                         <input type="number" id="qtyInput" value="1" class="w-20 p-3 rounded-xl font-bold text-center text-blue-900">
-                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow active:scale-95 transition">確認加入清單</button>
+                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow">確認加入</button>
                     </div>
                 </div>
                 
@@ -89,25 +64,19 @@
             </div>
 
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col">
-                <div id="statusLabel" class="text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500">🟢 系統監測中</div>
-                
+                <div id="statusLabel" class="text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500">🟢 系統連線中</div>
                 <div class="flex-grow border rounded-2xl bg-white min-h-[400px] overflow-hidden shadow-inner">
                     <table class="w-full text-sm">
-                        <thead class="bg-slate-800 text-white font-bold">
-                            <tr>
-                                <th class="p-4 text-left">申請人 / 藥品</th>
-                                <th class="p-4 text-center w-20">數量</th>
-                                <th class="p-4 w-12"></th>
-                            </tr>
+                        <thead class="bg-slate-800 text-white">
+                            <tr><th class="p-4 text-left">人員 / 藥品</th><th class="p-4 text-center w-20">數量</th><th class="p-4 w-12"></th></tr>
                         </thead>
                         <tbody id="cartBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-
                 <div id="actionArea" class="pt-6 space-y-4">
-                    <button id="receiveBtn" onclick="receiveAndDownload()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">✅ 簽收調撥 (下載Excel)</button>
-                    <button id="elevatorBtn" onclick="sendToElevator()" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">📦 藥品已入電梯</button>
-                    <button id="doneBtn" onclick="resetToIdle()" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">完成領取</button>
+                    <button id="receiveBtn" onclick="receiveAndDownload()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl">✅ 簽收下載</button>
+                    <button id="elevatorBtn" onclick="sendToElevator()" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl">📦 放入電梯</button>
+                    <button id="doneBtn" onclick="resetToIdle()" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl">完成領取</button>
                 </div>
             </div>
         </div>
@@ -131,11 +100,998 @@
         const db = getDatabase(app);
         const statusRef = ref(db, 'combinedSystemStatus');
 
-        // 藥品資料庫 (此處範例，實際運作建議使用匯入按鈕)
-        let drugDb = JSON.parse(localStorage.getItem('savedDrugDb')) || [
-            { id: 'AKII90', name: 'Bipiden', form: '針劑' },
-            { id: 'ALCE91', name: 'Alcaine', form: '外用' },
-            { id: 'VINO03', name: 'Vinobin 20', form: '口服' }
+        // === 藥品庫 (請在此處貼入您的一千筆資料) ===
+        let drugDb = [
+           { id: 'AKII90', name: 'Bipiden', form: '針劑' },
+           { id: 'ALCE91', name: 'Alcaine', form: '外用' },
+           { id: 'ALCI90', name: 'Alcohol 99.5% 5mL', form: '針劑' },
+           { id: 'ATAO90', name: 'Reyataz 200', form: '口服' },
+           { id: 'ATRO90', name: 'Atripla', form: '口服' },
+           { id: 'AQ-I92', name: 'Aqua Destillata Inj.', form: '針劑' },
+           { id: 'BICI91', name: 'Bicillin LA', form: '針劑' },
+           { id: 'BLEI90', name: 'Bleocin', form: '針劑' },
+           { id: 'CAGI90', name: 'Calglon', form: '針劑' },
+           { id: 'CARI90', name: 'Miostat', form: '針劑' },
+           { id: 'CHLO90', name: 'Leukeran', form: '口服' },
+           { id: 'CITI90', name: 'Citosol', form: '針劑' },
+           { id: 'CODI70', name: 'Codeine Inj.', form: '針劑' },
+           { id: 'FLUI90', name: 'Fluorescite 10% Inj.', form: '針劑' },
+           { id: 'FLUI99', name: 'Flucelvax Quad四價流感疫苗', form: '針劑' },
+           { id: 'HIDI90', name: 'Hidonac', form: '針劑' },
+           { id: 'IFOI90', name: 'Holoxan', form: '針劑' },
+           { id: 'INDI90', name: 'Diagnogreen Inj.', form: '針劑' },
+           { id: 'INFI94', name: 'Fluarix Tetra四價流感疫苗', form: '針劑' },
+           { id: 'LIPI90', name: 'Lipiodol Ultra-Fluide inj.', form: '針劑' },
+           { id: 'MMRI91', name: 'MMR-II', form: '針劑' },
+           { id: 'NALI90', name: 'Naloxone', form: '針劑' },
+           { id: 'OXYE9A', name: '氧氣 0.5米', form: '外用' },
+           { id: 'OXYE9B', name: '氧氣 1.2米', form: '外用' },
+           { id: 'OXYE9C', name: '氧氣 1.5米', form: '外用' },
+           { id: 'OXYE9E', name: '液態氧氣', form: '外用' },
+           { id: 'PAMI90', name: 'Pampara << P.A.M. >>500mg/20ml/Amp.', form: '針劑' },
+           { id: 'PANI91', name: 'Pantogen', form: '針劑' },
+           { id: 'PATI90', name: 'Patent blue V', form: '針劑' },
+           { id: 'PCGI93', name: 'Penicillin G', form: '針劑' },
+           { id: 'POLI90', name: '抗龜殼花及赤尾鮐蛇毒血清凍晶注射劑', form: '針劑' },
+           { id: 'POLI91', name: '抗雨傘節及飯匙倩蛇毒血清凍晶注射劑', form: '針劑' },
+           { id: 'RILO90', name: 'Edurant', form: '口服' },
+           { id: 'ROPI90', name: 'Ropica Inj.', form: '針劑' },
+           { id: 'TESI91', name: 'Testodiol Depot Inj.', form: '針劑' },
+           { id: 'UBII90', name: 'Ubistesin Forty', form: '針劑' },
+           { id: 'XYLI90', name: 'Xylestesin-A', form: '針劑' },
+           { id: 'MORI70', name: '(1IR)Morphine10mg/1mL/Amp.                 ', form: '針劑' },
+           { id: 'MORO72', name: '(1IR)Morphine Sulfate(錠劑)嗎啡 15mg/Tab.', form: '口服' },
+           { id: 'FENE72', name: '(2IR)Durogesic D-Tran transdermal Patch 12mcg', form: '外用' },
+           { id: 'FENE74', name: '(2IR)Fentanyl Transdermal Patch 50μg/hr                 ', form: '外用' },
+           { id: 'FENI71', name: '(2IR)Fentanyl 0.1mg/2mL/Amp.          ', form: '針劑' },
+           { id: 'FENI72', name: '(2IR)針FENTANYL 0.5mg/10mL/Amp.', form: '針劑' },
+           { id: 'OXYO70', name: '(2IR)OxyContin Controlled-Release Tablets', form: '口服' },
+           { id: 'OXYO71', name: '(2IR)Oxynorm Immediate Release Capsules      ', form: '口服' },
+           { id: 'PETI70', name: '(2IR)Pethidine                  ', form: '針劑' },
+           { id: 'ESMI91', name: 'Esmolol', form: '針劑' },
+           { id: 'CO2E90', name: '醫用二氧化碳', form: '外用' },
+           { id: 'FOMI90', name: 'Fomeject', form: '針劑' },
+           { id: 'MORO73', name: '(1IR)Morphine Oral Solution', form: '口服' },
+           { id: 'PAIO90', name: '(2IR)Painkyl', form: '口服' },
+           { id: 'C13E90', name: 'Proto C-13 Urea Kit', form: '外用' },
+           { id: 'MINO91', name: 'Loniten', form: '口服' },
+           { id: 'VARI91', name: 'Verorab', form: '針劑' },
+           { id: 'RI-I90', name: 'Humulin R', form: '針劑' },
+           { id: 'VINI90', name: 'Vincristine', form: '針劑' },
+           { id: 'PARI91', name: 'Paricalcitol', form: '針劑' },
+           { id: 'OSIO90', name: 'Tagrisso', form: '口服' },
+           { id: 'KEYI90', name: 'Keytruda 100', form: '針劑' },
+           { id: 'SHIE90', name: 'Shielin powder', form: '外用' },
+           { id: 'PERE90', name: 'Permethrin 60gm', form: '外用' },
+           { id: 'CYTO90', name: 'Cytotec 200mcg', form: '口服' },
+           { id: 'LOKO90', name: 'Lokelma 5mg', form: '口服' },
+           { id: 'MOUI91', name: 'Mounjaro 10mg', form: '針劑' },
+           { id: 'ALEI01', name: 'Aleviatin Inj.', form: '針劑' },
+           { id: 'MESO90', name: 'Asacol 800', form: '口服' },
+           { id: 'ERGO90', name: 'Ergometrine (永信)', form: '口服' },
+           { id: 'BERE90', name: 'Berotec N', form: '外用' },
+           { id: 'FLUI01', name: 'Fluanxol Depot', form: '針劑' },
+           { id: 'FORE01', name: 'Fortacin', form: '外用' },
+           { id: 'IDAI01', name: 'Praxbind', form: '針劑' },
+           { id: 'INSI91', name: 'Humalog Mix', form: '針劑' },
+           { id: 'MBZO90', name: 'Cowbalin', form: '口服' },
+           { id: 'N09E90', name: 'N.S. Irrigation 2000ml', form: '外用' },
+           { id: 'SAXO90', name: 'Onglyza 5', form: '口服' },
+           { id: 'TISE90', name: 'Tisseel 2ml', form: '外用' },
+           { id: 'WATE91', name: 'Sterile Water For Irrigation 2000ml', form: '外用' },
+           { id: 'WATE90', name: 'Sterile Water For Irrigation 1000ml', form: '外用' },
+           { id: 'MANI05', name: 'Mannitol 100ml', form: '針劑' },
+           { id: 'VARI90', name: 'Varivax', form: '針劑' },
+           { id: 'ACAO16', name: 'Alglutol', form: '口服' },
+           { id: 'NILO91', name: 'Nilemdo', form: '口服' },
+           { id: 'PARI92', name: 'Paracetamol', form: '針劑' },
+           { id: 'HEMI90', name: 'Hemodialysis Concentrate BSR-01', form: '針劑' },
+           { id: 'FLUI95', name: 'Fluarix Trivalent Influenza Vaccine三價流感疫苗', form: '針劑' },
+           { id: '5FUI03', name: '5-FU', form: '針劑' },
+           { id: 'ABAO00', name: 'Ziagen', form: '口服' },
+           { id: 'ABIO01', name: 'Abiratred', form: '口服' },
+           { id: 'ACEO06', name: 'Acetazolamide (人人)', form: '口服' },
+           { id: 'ACEO17', name: 'Anti-Phen', form: '口服' },
+           { id: 'ACEO20', name: 'Tonlief', form: '口服' },
+           { id: 'ACTI03', name: 'Actilyse', form: '針劑' },
+           { id: 'ACTO02', name: 'Peace', form: '口服' },
+           { id: 'ACYE05', name: 'Devirus', form: '外用' },
+           { id: 'ADAE01', name: 'Acure', form: '外用' },
+           { id: 'ADAI00', name: 'Humira', form: '針劑' },
+           { id: 'ADDI00', name: 'Addaven', form: '針劑' },
+           { id: 'ADEI03', name: 'Adenocor', form: '針劑' },
+           { id: 'AFAO01', name: 'Giotrif 40', form: '口服' },
+           { id: 'AFLI00', name: 'Eylea', form: '針劑' },
+           { id: 'ALBI21', name: 'Plasbumin-20', form: '針劑' },
+           { id: 'ALEO02', name: 'Dilantin', form: '口服' },
+           { id: 'ALEO07', name: 'Mosmass', form: '口服' },
+           { id: 'ALLO05', name: 'Allopurinol (生達)', form: '口服' },
+           { id: 'ALLO10', name: 'All-Right', form: '口服' },
+           { id: 'ALOI00', name: 'Aloxi', form: '針劑' },
+           { id: 'ALPO02', name: 'Aprazo', form: '口服' },
+           { id: 'AMAO12', name: 'Amandine', form: '口服' },
+           { id: 'AMBO06', name: 'Ambro SR', form: '口服' },
+           { id: 'AMIO12', name: 'Adarone', form: '口服' },
+           { id: 'AMIO17', name: 'Amillian', form: '口服' },
+           { id: 'AMKI14', name: 'Amikacin', form: '針劑' },
+           { id: 'AMLO07', name: 'Nobar', form: '口服' },
+           { id: 'AMLO30', name: 'Exforge HCT 5', form: '口服' },
+           { id: 'AMPI19', name: 'Amsulber', form: '針劑' },
+           { id: 'AMTO00', name: 'Amtrel', form: '口服' },
+           { id: 'ANAO14', name: 'Agrylin', form: '口服' },
+{ id: 'ANDE00', name: 'Androgel', form: '外用' },
+{ id: 'ANEI03', name: 'Anexate', form: '針劑' },
+{ id: 'ANTE01', name: 'Anti-GI', form: '外用' },
+{ id: 'APRO05', name: 'Emend 125', form: '口服' },
+{ id: 'APRO06', name: 'Emend 80', form: '口服' },
+{ id: 'AQ-I00', name: 'Water For Inj.', form: '針劑' },
+{ id: 'ARII01', name: 'Abilify Maintena 400', form: '針劑' },
+{ id: 'ARIO19', name: 'ApraZ', form: '口服' },
+{ id: 'ARIO21', name: 'Aripizole 20', form: '口服' },
+{ id: 'ARIO22', name: 'Abilify 30', form: '口服' },
+{ id: 'ARTO07', name: 'Partane 5', form: '口服' },
+{ id: 'ASAO07', name: 'Bokey', form: '口服' },
+{ id: 'ATII01', name: 'Anxicam inj.', form: '針劑' },
+{ id: 'ATIO01', name: 'Anxiedin', form: '口服' },
+{ id: 'ATIO12', name: 'Lorazepam (元宙)', form: '口服' },
+{ id: 'ATOO20', name: 'Atorva 40', form: '口服' },
+{ id: 'ATOO27', name: 'Atotin 10', form: '口服' },
+{ id: 'ATRE08', name: 'Ipratran', form: '外用' },
+{ id: 'ATRE14', name: 'Tropine 0.3%', form: '外用' },
+{ id: 'ATRE19', name: 'Cartolol', form: '外用' },
+{ id: 'ATRI06', name: 'Atropine (台裕)', form: '針劑' },
+{ id: 'AUGI02', name: 'Anbicyn 600', form: '針劑' },
+{ id: 'AUGO11', name: 'Curam Susp.', form: '口服' },
+{ id: 'AVEO00', name: 'Avelox', form: '口服' },
+{ id: 'AZEE04', name: 'Azetin', form: '外用' },
+{ id: 'BACO12', name: 'Legafen', form: '口服' },
+{ id: 'BAKO06', name: 'Senfihu', form: '口服' },
+{ id: 'BAMO01', name: 'Baburol', form: '口服' },
+{ id: 'BECE06', name: 'Foster', form: '外用' },
+{ id: 'BECE08', name: 'Xamiol', form: '外用' },
+{ id: 'BECE09', name: 'Calfine', form: '外用' },
+{ id: 'BECE11', name: 'Trimbow', form: '外用' },
+{ id: 'BENE08', name: 'B.B. Lotion 100ml (華盛頓)', form: '外用' },
+{ id: 'BENO15', name: 'Bendopar', form: '口服' },
+{ id: 'PULE11', name: 'Besonin Nasal Spray 64', form: '外用' },
+{ id: 'BETE04', name: 'Eye Betason-N', form: '外用' },
+{ id: 'BETO23', name: 'Harkin', form: '口服' },
+{ id: 'BETO27', name: 'Betmiga PR 25', form: '口服' },
+{ id: 'BETO28', name: 'Betmiga PR 50', form: '口服' },
+{ id: 'BEVE00', name: 'Bevespi', form: '外用' },
+{ id: 'BEVI00', name: 'Avastin', form: '針劑' },
+{ id: 'BICO11', name: 'Abicalutamide', form: '口服' },
+{ id: 'BI-E14', name: 'Sindine 1gal', form: '外用' },
+{ id: 'BI-E17', name: 'Sindine Surgical Scrub', form: '外用' },
+{ id: 'BIKO00', name: 'Biktarvy', form: '口服' },
+{ id: 'BIOO02', name: 'Biotase', form: '口服' },
+{ id: 'BIOO08', name: 'Bio-Cal Plus', form: '口服' },
+{ id: 'BISE01', name: 'Bisadyl Supp.', form: '外用' },
+{ id: 'BISO16', name: 'Bisol 1.25', form: '口服' },
+{ id: 'BISO19', name: 'Bisacodyl', form: '口服' },
+{ id: 'BN-E00', name: 'B. &N. Bacineocin', form: '外用' },
+{ id: 'BOTI01', name: 'Dysport', form: '針劑' },
+{ id: 'BRIE03', name: 'Butanyl', form: '外用' },
+{ id: 'BRIE05', name: 'Alphagan P', form: '外用' },
+{ id: 'BROO19', name: 'Bromazin 3', form: '口服' },
+{ id: 'BROO21', name: 'Liquid Brown Mixture', form: '口服' },
+{ id: 'BUPO07', name: 'Buporin SR', form: '口服' },
+{ id: 'BUPO10', name: 'Desud Plus', form: '口服' },
+{ id: 'BUSI05', name: 'Despas', form: '針劑' },
+{ id: 'BUSO09', name: 'Sepirone', form: '口服' },
+{ id: 'BUTE05', name: 'Udaxen', form: '外用' },
+{ id: 'CABO02', name: 'Dostinex', form: '口服' },
+{ id: 'CAGO00', name: 'Canaglu', form: '口服' },
+{ id: 'CALO34', name: 'Chalian', form: '口服' },
+{ id: 'CANO00', name: 'Blopress', form: '口服' },
+{ id: 'CAPO09', name: 'Ceporin', form: '口服' },
+{ id: 'CAPO37', name: 'Kapetral', form: '口服' },
+{ id: 'CARE07', name: 'Ginsol', form: '外用' },
+{ id: 'CARI02', name: 'Kemocarb', form: '針劑' },
+{ id: 'CARO02', name: 'Carbomix', form: '口服' },
+{ id: 'CB-E00', name: 'C.B. Oint.', form: '外用' },
+{ id: 'CEFI08', name: 'Cefuroxime', form: '針劑' },
+{ id: 'CEFI44', name: 'Yupime', form: '針劑' },
+{ id: 'CEFO17', name: 'Cexime', form: '口服' },
+{ id: 'CEFO18', name: 'Lonfadroxil', form: '口服' },
+{ id: 'CELO01', name: 'Cellcept', form: '口服' },
+{ id: 'CELO08', name: 'Cecolex', form: '口服' },
+{ id: 'CEPO02', name: 'Diphenidol', form: '口服' },
+{ id: 'CERO08', name: 'Ginko', form: '口服' },
+{ id: 'CETI01', name: 'Erbitux', form: '針劑' },
+{ id: 'CEVO00', name: 'Evoxac', form: '口服' },
+{ id: 'CEZI03', name: 'Cefa', form: '針劑' },
+{ id: 'CHLE03', name: 'Antigerm 5L', form: '外用' },
+{ id: 'CHLE08', name: 'Easy Antiseptic Liquid 200ml', form: '外用' },
+{ id: 'CHLE10', name: 'Chloramphenicol (杏輝)', form: '外用' },
+{ id: 'CHLE17', name: 'Steridal 500ml', form: '外用' },
+{ id: 'CHLE25', name: 'Antigerm', form: '外用' },
+{ id: 'CHLO12', name: 'Winsumin', form: '口服' },
+{ id: 'CICE01', name: 'Alvesco', form: '外用' },
+{ id: 'CILO07', name: 'Pletaal 100', form: '口服' },
+{ id: 'CIPI10', name: 'Seforce', form: '針劑' },
+{ id: 'CIPO14', name: 'Citao', form: '口服' },
+{ id: 'CIPO24', name: 'Suxen', form: '口服' },
+{ id: 'CISI03', name: 'Cisplatin', form: '針劑' },
+{ id: 'CLEI02', name: 'Clincin', form: '針劑' },
+{ id: 'CLEI08', name: 'Clexane 6000', form: '針劑' },
+{ id: 'CLOE17', name: 'Multigive', form: '外用' },
+{ id: 'CODO05', name: 'Co-Diovan', form: '口服' },
+{ id: 'COLO00', name: 'Colchicine (東洋)', form: '口服' },
+{ id: 'CONE00', name: 'Confumin', form: '外用' },
+{ id: 'CONO00', name: 'Concor 5', form: '口服' },
+{ id: 'CONO04', name: 'Estromon', form: '口服' },
+{ id: 'COSE02', name: 'Cosopt', form: '外用' },
+{ id: 'CUBI00', name: 'Cubicin', form: '針劑' },
+{ id: 'CURO00', name: 'Curam 625', form: '口服' },
+{ id: 'CYAE01', name: 'Sancoba', form: '外用' },
+{ id: 'CYPO00', name: 'Cypromin', form: '口服' },
+{ id: 'CYPO02', name: 'Synteron', form: '口服' },
+{ id: 'CYPO03', name: 'Pilian', form: '口服' },
+{ id: 'DABO00', name: 'Pradaxa 110', form: '口服' },
+{ id: 'DABO01', name: 'Pradaxa 150', form: '口服' },
+{ id: 'DAPO01', name: 'Forxiga', form: '口服' },
+{ id: 'DARI02', name: 'NESP', form: '針劑' },
+{ id: 'DASO02', name: 'Sprycel 50', form: '口服' },
+{ id: 'DEAO01', name: 'Fluxel', form: '口服' },
+{ id: 'DECE00', name: 'Decason Eye Drops', form: '外用' },
+{ id: 'DELO00', name: 'Delstrigo', form: '口服' },
+{ id: 'DENI00', name: 'Prolia', form: '針劑' },
+{ id: 'DENI01', name: 'Xgeva', form: '針劑' },
+{ id: 'DEPO00', name: 'Depakine', form: '口服' },
+{ id: 'DEPO08', name: 'Depakine Chrono', form: '口服' },
+{ id: 'DERE06', name: 'Vimax', form: '外用' },
+{ id: 'DESE03', name: 'Suprane', form: '外用' },
+{ id: 'DEXI05', name: 'Dexamethasone inj. (台裕)', form: '針劑' },
+{ id: 'DEXO14', name: 'Limeson', form: '口服' },
+{ id: 'DEXO15', name: 'Sodicon', form: '口服' },
+{ id: 'DEXO19', name: 'Demeson', form: '口服' },
+{ id: 'DHAO08', name: 'Alusa', form: '口服' },
+{ id: 'DIAO29', name: 'Diapin', form: '口服' },
+{ id: 'DIFE04', name: 'Qing-hou-yan', form: '外用' },
+{ id: 'DIFO07', name: 'Fluene', form: '口服' },
+{ id: 'DIGI01', name: 'Lanoxin inj.', form: '針劑' },
+{ id: 'DIGO04', name: 'Lanoxin', form: '口服' },
+{ id: 'DILO04', name: 'Syntrend 6.25', form: '口服' },
+{ id: 'DILO05', name: 'Carvedilol HEXAL 25', form: '口服' },
+{ id: 'DIPO05', name: 'Carditonin', form: '口服' },
+{ id: 'DISO02', name: 'Sinclote', form: '口服' },
+{ id: 'DOBI08', name: 'Gendobu', form: '針劑' },
+{ id: 'DOGO32', name: 'Splotin', form: '口服' },
+{ id: 'DOGO34', name: 'Sulpin', form: '口服' },
+{ id: 'DOLO07', name: 'Tivicay', form: '口服' },
+{ id: 'DOMO03', name: 'Domper', form: '口服' },
+{ id: 'DONO00', name: 'Aricept 10', form: '口服' },
+{ id: 'DONO04', name: 'Donepezil', form: '口服' },
+{ id: 'DOPI15', name: 'Dopamin', form: '針劑' },
+{ id: 'DOPI16', name: 'Easydopa 250ml', form: '針劑' },
+{ id: 'DORI05', name: 'Midatin 15', form: '針劑' },
+{ id: 'DORO01', name: 'Dormicum', form: '口服' },
+{ id: 'DOVO00', name: 'Dovato', form: '口服' },
+{ id: 'DOXI00', name: 'Adriamycin', form: '針劑' },
+{ id: 'DOXO18', name: 'Doxycycline (元宙)', form: '口服' },
+{ id: 'DOXO24', name: 'Haxasin XL', form: '口服' },
+{ id: 'DUOE01', name: 'Duotrav', form: '外用' },
+{ id: 'DURE00', name: 'Duratears', form: '外用' },
+{ id: 'DUTO04', name: 'Duta ', form: '口服' },
+{ id: 'DYNI00', name: 'Dynastat', form: '針劑' },
+{ id: 'EDOO02', name: 'Lixiana 60', form: '口服' },
+{ id: 'EFEO03', name: 'Faxine', form: '口服' },
+{ id: 'EMBO02', name: 'E-BUTOL', form: '口服' },
+{ id: 'EM-E04', name: 'Erythrocin Oph. Oint.', form: '外用' },
+{ id: 'ENTO03', name: 'Envir', form: '口服' },
+{ id: 'EPCO00', name: 'Epclusa', form: '口服' },
+{ id: 'EPHI03', name: 'Ephedrin', form: '針劑' },
+{ id: 'EPIE01', name: 'Epirenin', form: '外用' },
+{ id: 'EPII02', name: 'Epicin 10', form: '針劑' },
+{ id: 'ERGI05', name: 'Methylergonovine', form: '針劑' },
+{ id: 'ESCO05', name: 'Citao-S', form: '口服' },
+{ id: 'ESOI03', name: 'Emazole', form: '針劑' },
+{ id: 'ETAI02', name: 'Enbrel 50', form: '針劑' },
+{ id: 'ETHE00', name: 'Cleansing Alcohol 4L', form: '外用' },
+{ id: 'ETHE10', name: 'Estrong 500ml', form: '外用' },
+{ id: 'ETOO02', name: 'Elac', form: '口服' },
+{ id: 'ETOO06', name: 'Vepesid', form: '口服' },
+{ id: 'ETUO00', name: 'Etumine', form: '口服' },
+{ id: 'EUGO04', name: 'Gliben', form: '口服' },
+{ id: 'EURO02', name: 'Kinzolam', form: '口服' },
+{ id: 'EVAE00', name: 'Evac Enema', form: '外用' },
+{ id: 'EVEO01', name: 'Afinitor', form: '口服' },
+{ id: 'EXEE00', name: 'Exelderm Solution', form: '外用' },
+{ id: 'EXEE03', name: 'Exelon Patch 10', form: '外用' },
+{ id: 'EXEO04', name: 'Aromasin', form: '口服' },
+{ id: 'FEBO01', name: 'Febuton 80', form: '口服' },
+{ id: 'FE-I03', name: 'Fe-Back', form: '針劑' },
+{ id: 'FE-O08', name: 'Tedalin Chewable', form: '口服' },
+{ id: 'FEPO00', name: 'Pravafen', form: '口服' },
+{ id: 'FEXO12', name: 'JFS 60', form: '口服' },
+{ id: 'FILI02', name: 'Filgrastim', form: '針劑' },
+{ id: 'FINO04', name: 'LoraPseudo SR', form: '口服' },
+{ id: 'FINO05', name: 'Binfin 5', form: '口服' },
+{ id: 'FLAO02', name: 'Patricin', form: '口服' },
+{ id: 'FLUE03', name: 'Flur Di Fen', form: '外用' },
+{ id: 'FLUE04', name: 'Fluorone 0.1%', form: '外用' },
+{ id: 'FLUI07', name: 'Flucon Inf.', form: '針劑' },
+{ id: 'FLUO06', name: 'Fluzine', form: '口服' },
+{ id: 'FLUO32', name: 'Actein gr.', form: '口服' },
+{ id: 'FLUO34', name: 'Actein Effervescent tab.', form: '口服' },
+{ id: 'FLUO54', name: 'Pentixol', form: '口服' },
+{ id: 'FLUO75', name: 'Fute', form: '口服' },
+{ id: 'FOLI04', name: 'Covorin', form: '針劑' },
+{ id: 'FOSI07', name: 'Ufo 2', form: '針劑' },
+{ id: 'FOSO02', name: 'Monurol', form: '口服' },
+{ id: 'FRAE00', name: 'Pola Gauze Dressing', form: '外用' },
+{ id: 'FURI03', name: 'Rosis inj.', form: '針劑' },
+{ id: 'FUSO03', name: 'Disfect', form: '口服' },
+{ id: 'G05I06', name: 'Dextrose 5% (Bag)', form: '針劑' },
+{ id: 'G10I04', name: '10% Glucose', form: '針劑' },
+{ id: 'G50I00', name: 'Vitagen 50%', form: '針劑' },
+{ id: 'GABI00', name: 'Foy', form: '針劑' },
+{ id: 'GABO00', name: 'Neurontin', form: '口服' },
+{ id: 'GADI00', name: 'Gadovist 7.5ml', form: '針劑' },
+{ id: 'GASO34', name: 'Voker', form: '口服' },
+{ id: 'GEFO07', name: 'Iressa', form: '口服' },
+{ id: 'GELI02', name: 'Gelofusine', form: '針劑' },
+{ id: 'GENE04', name: 'Gentamycin Oph. Oint.', form: '外用' },
+{ id: 'GENE06', name: 'Gentamicin', form: '外用' },
+{ id: 'GESO04', name: 'Gestrin', form: '口服' },
+{ id: 'GI-O01', name: 'GI Klean', form: '口服' },
+{ id: 'GLCE00', name: 'Sumgel Enema', form: '外用' },
+{ id: 'GLIO07', name: 'Minidiab', form: '口服' },
+{ id: 'GLIO11', name: 'Amepiride', form: '口服' },
+{ id: 'GLIO44', name: 'Daycose MR', form: '口服' },
+{ id: 'GLUI04', name: 'Glucagen', form: '針劑' },
+{ id: 'GLUO19', name: 'Deglu', form: '口服' },
+{ id: 'GLYI08', name: 'Glycetose', form: '針劑' },
+{ id: 'GLYI14', name: 'Stronger', form: '針劑' },
+{ id: 'GLYO01', name: 'Glycopyrodyn', form: '口服' },
+{ id: 'GM-I30', name: 'Gentamycin Inj.', form: '針劑' },
+{ id: 'GRAI07', name: 'Setron Inj. 3', form: '針劑' },
+{ id: 'GRAO00', name: 'Crashtone', form: '口服' },
+{ id: 'GRAO02', name: 'Kytril', form: '口服' },
+{ id: 'HALI07', name: 'Binison', form: '針劑' },
+{ id: 'HALI09', name: 'Binin-U Inj.', form: '針劑' },
+{ id: 'HALO22', name: 'Halin', form: '口服' },
+{ id: 'HALO27', name: 'Haldomin', form: '口服' },
+{ id: 'HALO29', name: 'Arring', form: '口服' },
+{ id: 'HBVI01', name: 'Engerix-B', form: '針劑' },
+{ id: 'HEMI01', name: 'Hemodialysis Conc. 300', form: '針劑' },
+{ id: 'HEMI03', name: 'Hemodialysis Conc. 309', form: '針劑' },
+{ id: 'HEMI05', name: 'Hemodialysis Conc. 319', form: '針劑' },
+{ id: 'HEMI09', name: 'Hemodialysis Conc. 308', form: '針劑' },
+{ id: 'HEPE00', name: 'Cividoid', form: '外用' },
+{ id: 'HERI01', name: 'Herceptin', form: '針劑' },
+{ id: 'HERI02', name: 'Herceptin SC', form: '針劑' },
+{ id: 'HERO06', name: 'Herbesser 60', form: '口服' },
+{ id: 'HIVO02', name: 'Prezcobix', form: '口服' },
+{ id: 'HIVO03', name: 'Triumeq', form: '口服' },
+{ id: 'HPVI00', name: 'Gardasil 9', form: '針劑' },
+{ id: 'HYDE03', name: 'Hychine', form: '外用' },
+{ id: 'HYDE12', name: 'Hydrogen Peroxide', form: '外用' },
+{ id: 'HYDI04', name: 'Solu-Cortef', form: '針劑' },
+{ id: 'HYDO01', name: 'Hydrea', form: '口服' },
+{ id: 'HYDO03', name: 'Hodrin', form: '口服' },
+{ id: 'HYTO07', name: 'Conmy', form: '口服' },
+{ id: 'IBAI00', name: 'Keybone', form: '針劑' },
+{ id: 'IBRO00', name: 'Ibrance 125', form: '口服' },
+{ id: 'IMAO00', name: 'Leevk', form: '口服' },
+{ id: 'IMAO03', name: 'Alvotinib', form: '口服' },
+{ id: 'IMIO00', name: 'Tanatril', form: '口服' },
+{ id: 'RHEE11', name: 'Teiria Gel', form: '外用' },
+{ id: 'INDE28', name: 'Ultibro', form: '外用' },
+{ id: 'INSI13', name: 'NovoRapid FlexPen', form: '針劑' },
+{ id: 'INSI14', name: 'Novomix 30 FlexPen', form: '針劑' },
+{ id: 'INSI17', name: 'Tresiba', form: '針劑' },
+{ id: 'IODI00', name: 'Visipaque', form: '針劑' },
+{ id: 'IOPI00', name: 'Iopamiro 370', form: '針劑' },
+{ id: 'IPRE00', name: 'Besmate', form: '外用' },
+{ id: 'ISOI05', name: 'Isocin', form: '針劑' },
+{ id: 'ISOO11', name: 'Coxine', form: '口服' },
+{ id: 'ISOO16', name: 'Sordur CR', form: '口服' },
+{ id: 'ISOO19', name: 'Isoniazide', form: '口服' },
+{ id: 'ITRO01', name: 'Icomein', form: '口服' },
+{ id: 'IVAO00', name: 'Coralan', form: '口服' },
+{ id: 'IVEO00', name: 'Stromectol', form: '口服' },
+{ id: 'JADO00', name: 'Jardiance Duo', form: '口服' },
+{ id: 'JULO00', name: 'Juluca', form: '口服' },
+{ id: 'KBTO00', name: 'K.B.T.', form: '口服' },
+{ id: 'KCLI05', name: 'Potassium Chloride 3000', form: '針劑' },
+{ id: 'KENE03', name: 'Nincort', form: '外用' },
+{ id: 'KENO00', name: 'Kentamin', form: '口服' },
+{ id: 'KETI13', name: 'KOP', form: '針劑' },
+{ id: 'KETO24', name: 'Painoff', form: '口服' },
+{ id: 'KGLO00', name: 'K-Glu', form: '口服' },
+{ id: 'KLAO06', name: 'Klaricid', form: '口服' },
+{ id: 'LABI00', name: 'Chenday', form: '針劑' },
+{ id: 'LACO08', name: 'Lesyn 4', form: '口服' },
+{ id: 'LACO15', name: 'Duphalac', form: '口服' },
+{ id: 'LAMO11', name: 'Latrigine', form: '口服' },
+{ id: 'LAMO17', name: '3TC', form: '口服' },
+{ id: 'LANO01', name: 'Takepron', form: '口服' },
+{ id: 'LEFO00', name: 'Arheuma 20', form: '口服' },
+{ id: 'LENO00', name: 'Lendormin', form: '口服' },
+{ id: 'LENO02', name: 'Revlimid 25', form: '口服' },
+{ id: 'LERO00', name: 'Zanidip', form: '口服' },
+{ id: 'LEUI06', name: 'Eligard', form: '針劑' },
+{ id: 'LEVE00', name: 'Cravit Oph. Sol'n', form: '外用' },
+{ id: 'LEVI02', name: 'Cravit inj. 500', form: '針劑' },
+{ id: 'LEVI21', name: 'Levofloxacin Inj.', form: '針劑' },
+{ id: 'LEVI28', name: 'Keppra inj.', form: '針劑' },
+{ id: 'LEVO06', name: 'Keppra', form: '口服' },
+{ id: 'LEVO09', name: 'Cravit', form: '口服' },
+{ id: 'LEVO14', name: 'Letampin', form: '口服' },
+{ id: 'LEVO17', name: 'Neocetin', form: '口服' },
+{ id: 'LEVO33', name: 'Levofloxacin', form: '口服' },
+{ id: 'LIDE00', name: 'Lido Jelly 2% (人人)', form: '外用' },
+{ id: 'LIDE06', name: 'Medisuper Patch', form: '外用' },
+{ id: 'LIDE11', name: 'Sincaine', form: '外用' },
+{ id: 'LIDI00', name: 'Lidocaine 2% 5ml (利達)', form: '針劑' },
+{ id: 'LINO04', name: 'Trajenta', form: '口服' },
+{ id: 'LINO05', name: 'Zyvox', form: '口服' },
+{ id: 'FENO05', name: 'Fenolip-U', form: '口服' },
+{ id: 'LITO07', name: 'Lidin', form: '口服' },
+{ id: 'LOSO23', name: 'Synzar', form: '口服' },
+{ id: 'LR-I04', name: 'Lactated Ringer's (信東)', form: '針劑' },
+{ id: 'LURO02', name: 'Latuda', form: '口服' },
+{ id: 'LUVO00', name: 'Luvox', form: '口服' },
+{ id: 'MADO01', name: 'Madopar', form: '口服' },
+{ id: 'MAVO00', name: 'Maviret', form: '口服' },
+{ id: 'MEDO01', name: 'Medicon-A', form: '口服' },
+{ id: 'MEGO00', name: 'Megest', form: '口服' },
+{ id: 'MEMO03', name: 'Evy', form: '口服' },
+{ id: 'MEPI01', name: 'Medason 125', form: '針劑' },
+{ id: 'MEPO06', name: 'Trantin', form: '口服' },
+{ id: 'MEPO07', name: 'Exdila', form: '口服' },
+{ id: 'MEPO26', name: 'Mefno', form: '口服' },
+{ id: 'MERE00', name: 'Siruta', form: '外用' },
+{ id: 'MERI10', name: 'Mepenem 500', form: '針劑' },
+{ id: 'METE12', name: 'Free Gel', form: '外用' },
+{ id: 'METO22', name: 'Methimazole', form: '口服' },
+{ id: 'METO36', name: 'C.T.L. XR', form: '口服' },
+{ id: 'METO40', name: 'Henformin 850', form: '口服' },
+{ id: 'METO57', name: 'Mecomin (利達)', form: '口服' },
+{ id: 'METO61', name: 'Glucovance', form: '口服' },
+{ id: 'MEXO02', name: 'Meletin', form: '口服' },
+{ id: 'MGOO01', name: 'Magnesium Oxide (健喬)', form: '口服' },
+{ id: 'MGSI00', name: 'Magnesium Sulfate', form: '針劑' },
+{ id: 'MICE08', name: 'Jophun', form: '外用' },
+{ id: 'MIDO02', name: 'Midorine', form: '口服' },
+{ id: 'MINI01', name: 'Minirin inj.', form: '針劑' },
+{ id: 'MINO11', name: 'Minoline', form: '口服' },
+{ id: 'MIRO15', name: 'Mirzapine', form: '口服' },
+{ id: 'MIYO01', name: 'Miyarisan BM', form: '口服' },
+{ id: 'MOME00', name: 'Elisone', form: '外用' },
+{ id: 'MONO06', name: 'Singulair 4', form: '口服' },
+{ id: 'MONO22', name: 'Monkast 5', form: '口服' },
+{ id: 'MONO26', name: 'Monkast 10', form: '口服' },
+{ id: 'MORI00', name: 'Moriamin-SN', form: '針劑' },
+{ id: 'MOSO04', name: 'Mosapulin', form: '口服' },
+{ id: 'MOTO10', name: 'Sconin', form: '口服' },
+{ id: 'MOXE00', name: 'Vigamox', form: '外用' },
+{ id: 'MTXO01', name: 'Trexan', form: '口服' },
+{ id: 'MUCO28', name: 'Axol', form: '口服' },
+{ id: 'MUCO33', name: 'Soltan', form: '口服' },
+{ id: 'MYCE02', name: 'Mycomb Otic Drops', form: '外用' },
+{ id: 'MYCO04', name: 'Mycobutin', form: '口服' },
+{ id: 'N09E00', name: 'Normal Saline for Wash (濟生)', form: '外用' },
+{ id: 'N09I00', name: 'Isotonic Sodium Chloride', form: '針劑' },
+{ id: 'N09I22', name: 'Sod. Chloride 0.9% 1000ml', form: '針劑' },
+{ id: 'N45I05', name: 'Nacl 0.45% 20ml', form: '針劑' },
+{ id: 'N45I06', name: '0.45% Sodium Chloride', form: '針劑' },
+{ id: 'NABO01', name: 'Nebilet 5', form: '口服' },
+{ id: 'NALI01', name: 'Mutonpain', form: '針劑' },
+{ id: 'NALO06', name: 'Notholic', form: '口服' },
+{ id: 'NEOE00', name: 'Neomycin Oint.', form: '外用' },
+{ id: 'NEOI05', name: 'Neostigmine Inj.', form: '針劑' },
+{ id: 'NICI00', name: 'Nicarpine Inj.', form: '針劑' },
+{ id: 'NICO05', name: 'Sanyl', form: '口服' },
+{ id: 'NICO08', name: 'Nirandil', form: '口服' },
+{ id: 'NIMI03', name: 'Nimotop inf. Sol'n', form: '針劑' },
+{ id: 'NIMO00', name: 'Nimotop', form: '口服' },
+{ id: 'NIVI00', name: 'Opdivo 20', form: '針劑' },
+{ id: 'NOLO00', name: 'Nolvadex', form: '口服' },
+{ id: 'NOOO12', name: 'Syntam', form: '口服' },
+{ id: 'NORI05', name: 'Norepinephrine (中化)', form: '針劑' },
+{ id: 'NOVI00', name: 'Novamin inj.', form: '針劑' },
+{ id: 'NOVO00', name: 'Novamin', form: '口服' },
+{ id: 'NOVO02', name: 'Supernide 1', form: '口服' },
+{ id: 'NTGO00', name: 'Nitrostat', form: '口服' },
+{ id: 'NYSO00', name: 'Nystatin (永信)', form: '口服' },
+{ id: 'ODEO00', name: 'Odefsey', form: '口服' },
+{ id: 'OFLE01', name: 'Ofloxin', form: '外用' },
+{ id: 'OLAO13', name: 'Olzapine', form: '口服' },
+{ id: 'OMAO00', name: 'Omacor', form: '口服' },
+{ id: 'OMEO00', name: 'Omeprotect', form: '口服' },
+{ id: 'OMNI01', name: 'Omnipaque 350', form: '針劑' },
+{ id: 'ONSE00', name: 'O.N.S.D.', form: '外用' },
+{ id: 'OTIO00', name: 'Catilon', form: '口服' },
+{ id: 'OXAI02', name: 'Oxalip', form: '針劑' },
+{ id: 'OXAI11', name: 'Oxacillin (中化)', form: '針劑' },
+{ id: 'OXAO13', name: 'Elinin', form: '口服' },
+{ id: 'OXCO01', name: 'Neurtrol', form: '口服' },
+{ id: 'OXYI03', name: 'Oxocin', form: '針劑' },
+{ id: 'OXYO00', name: 'Oxbu ER', form: '口服' },
+{ id: 'PACI11', name: 'Phyxol 60', form: '針劑' },
+{ id: 'PALO00', name: 'Invega ER 3', form: '口服' },
+{ id: 'PANO14', name: 'Acetal', form: '口服' },
+{ id: 'PANO44', name: 'Paspertase', form: '口服' },
+{ id: 'PARO08', name: 'Seroxat', form: '口服' },
+{ id: 'PASE00', name: 'Pasca', form: '外用' },
+{ id: 'PATE00', name: 'Patear', form: '外用' },
+{ id: 'PEMI06', name: 'Pemetrexed 500', form: '針劑' },
+{ id: 'PEMI08', name: 'Pemetrexed 100', form: '針劑' },
+{ id: 'PERI04', name: 'Perjeta', form: '針劑' },
+{ id: 'PERI05', name: 'Rapiacta', form: '針劑' },
+{ id: 'PERO23', name: 'Sancin', form: '口服' },
+{ id: 'PGEI00', name: 'Promostan', form: '針劑' },
+{ id: 'PHEO13', name: 'Mocolax', form: '口服' },
+{ id: 'PHYI00', name: 'Phytonadione', form: '針劑' },
+{ id: 'PILO01', name: 'Salaflow', form: '口服' },
+{ id: 'PIOO21', name: 'Piotas', form: '口服' },
+{ id: 'PIPI07', name: 'Tapimycin 2.25', form: '針劑' },
+{ id: 'PIPO10', name: 'Pipoxin', form: '口服' },
+{ id: 'PIRE01', name: 'Kary Uni', form: '外用' },
+{ id: 'PLAO04', name: 'Plaquenil', form: '口服' },
+{ id: 'PNEI02', name: 'Prevenar 13', form: '針劑' },
+{ id: 'POLE03', name: 'Polinin', form: '外用' },
+{ id: 'POSE01', name: 'Posuline', form: '外用' },
+{ id: 'POVE04', name: 'Sindine Alc. 1gal', form: '外用' },
+{ id: 'PRAO24', name: 'Apo-Pramipexole', form: '口服' },
+{ id: 'PRAO26', name: 'Mirapex PR', form: '口服' },
+{ id: 'PREE01', name: 'Pred Forte', form: '外用' },
+{ id: 'PREE02', name: 'Premarin', form: '外用' },
+{ id: 'PREO00', name: 'Prednisolone (永信)', form: '口服' },
+{ id: 'PREO16', name: 'Pregabalina', form: '口服' },
+{ id: 'PREO27', name: 'Kidsolone', form: '口服' },
+{ id: 'PRII02', name: 'Primovist', form: '針劑' },
+{ id: 'PRII05', name: 'Metoclopramide', form: '針劑' },
+{ id: 'PRIO25', name: 'Norina', form: '口服' },
+{ id: 'PRIO26', name: 'Promeran', form: '口服' },
+{ id: 'PROI05', name: 'Protamine', form: '針劑' },
+{ id: 'PROI15', name: 'Progesterone 50', form: '針劑' },
+{ id: 'PROO06', name: 'Provera', form: '口服' },
+{ id: 'PROO21', name: 'Juxac', form: '口服' },
+{ id: 'PROO37', name: 'Polupi', form: '口服' },
+{ id: 'PROO49', name: 'Santerol', form: '口服' },
+{ id: 'PROO54', name: 'Cardolol', form: '口服' },
+{ id: 'PRSO00', name: 'Efient', form: '口服' },
+{ id: 'PYRO05', name: 'Antilon', form: '口服' },
+{ id: 'PYRO06', name: 'Beesix', form: '口服' },
+{ id: 'PZAO02', name: 'Pyrazinamide', form: '口服' },
+{ id: 'QTEO00', name: 'Qtern', form: '口服' },
+{ id: 'QUEO23', name: 'Seroquel XR 50', form: '口服' },
+{ id: 'QUEO13', name: 'Quepine 200', form: '口服' },
+{ id: 'RABO00', name: 'Pariet', form: '口服' },
+{ id: 'RALO04', name: 'Raloxy', form: '口服' },
+{ id: 'RASO01', name: 'Azilect', form: '口服' },
+{ id: 'RELE00', name: 'Relvar 92', form: '外用' },
+{ id: 'RENO04', name: 'Sintec 20', form: '口服' },
+{ id: 'REPO01', name: 'Repacin', form: '口服' },
+{ id: 'REVO00', name: 'Revolade', form: '口服' },
+{ id: 'RIBO04', name: 'Kisqali', form: '口服' },
+{ id: 'RIFO22', name: 'Rifampicin (元宙)', form: '口服' },
+{ id: 'RIFO23', name: 'AKuriT-3', form: '口服' },
+{ id: 'RIFO24', name: 'AKuriT-4', form: '口服' },
+{ id: 'RINE02', name: 'Rinderon-VA', form: '外用' },
+{ id: 'RISI01', name: 'Risperdal Consta 37.5', form: '針劑' },
+{ id: 'RISO05', name: 'Seridol', form: '口服' },
+{ id: 'RISO06', name: 'Reosteo', form: '口服' },
+{ id: 'RISO07', name: 'Apa-Risdol', form: '口服' },
+{ id: 'RISO28', name: 'Risperidone', form: '口服' },
+{ id: 'RITI00', name: 'Mabthera', form: '針劑' },
+{ id: 'RITI01', name: 'Mabthera 500', form: '針劑' },
+{ id: 'RITO00', name: 'Ritalin', form: '口服' },
+{ id: 'RITO02', name: 'Concerta ER 36', form: '口服' },
+{ id: 'RITO06', name: 'Ritalin LA 20', form: '口服' },
+{ id: 'RIVO01', name: 'Rivotril', form: '口服' },
+{ id: 'RIVO03', name: 'Clonopam 2', form: '口服' },
+{ id: 'RIZO01', name: 'Rizatan', form: '口服' },
+{ id: 'ROAO00', name: 'Roaccutane', form: '口服' },
+{ id: 'ROCI15', name: 'Rocuronium Kabi', form: '針劑' },
+{ id: 'ROCI17', name: 'Cefin 500', form: '針劑' },
+{ id: 'ROCO02', name: 'Macalol 0.25', form: '口服' },
+{ id: 'ROHO06', name: 'Modipanol 2', form: '口服' },
+{ id: 'ROSO00', name: 'Crestor 10', form: '口服' },
+{ id: 'RYTO03', name: 'Rytmonorm', form: '口服' },
+{ id: 'SACO01', name: 'Entresto 200', form: '口服' },
+{ id: 'SALO11', name: 'Salazine', form: '口服' },
+{ id: 'SANO07', name: 'Sandimmun', form: '口服' },
+{ id: 'SANO08', name: 'Kinax', form: '口服' },
+{ id: 'TACE02', name: 'Protopic Oint. 0.1%', form: '外用' },
+{ id: 'SERE04', name: 'Zalain Gel', form: '外用' },
+{ id: 'SERO05', name: 'Acerine 5', form: '口服' },
+{ id: 'SERO18', name: 'Seroquel', form: '口服' },
+{ id: 'SERO23', name: 'Cenzoft', form: '口服' },
+{ id: 'SERO27', name: 'Seruline', form: '口服' },
+{ id: 'SEVI00', name: 'Sevatrim', form: '針劑' },
+{ id: 'SILE00', name: 'Silvadene', form: '外用' },
+{ id: 'SILE08', name: 'Canflame', form: '外用' },
+{ id: 'SILO29', name: 'Silymarin', form: '口服' },
+{ id: 'SILO53', name: 'Silden', form: '口服' },
+{ id: 'SILO42', name: 'Urief 8', form: '口服' },
+{ id: 'SINE06', name: 'Sinomin', form: '外用' },
+{ id: 'SITO01', name: 'Janumet', form: '口服' },
+{ id: 'SMOI01', name: 'Smofkabiven PI 1904ml', form: '針劑' },
+{ id: 'SODI09', name: 'Rolikan 250ml', form: '針劑' },
+{ id: 'SODI10', name: 'Sod. Bicarbonate', form: '針劑' },
+{ id: 'SOLI08', name: 'Solu-Medrol', form: '針劑' },
+{ id: 'SOLO01', name: 'Sorin', form: '口服' },
+{ id: 'SOMO00', name: 'Soma', form: '口服' },
+{ id: 'SORO13', name: 'Nexavar', form: '口服' },
+{ id: 'SPIE00', name: 'Spiolto', form: '外用' },
+{ id: 'SPIO05', name: 'Aldactin', form: '口服' },
+{ id: 'STEO08', name: 'Flurazin', form: '口服' },
+{ id: 'STII02', name: 'Lyacety', form: '針劑' },
+{ id: 'SUWO00', name: 'Suwell', form: '口服' },
+{ id: 'SYME00', name: 'Symbicort Turbuhaler', form: '外用' },
+{ id: 'TAMO09', name: 'Harnalidge OCAS', form: '口服' },
+{ id: 'TAMO11', name: 'Tamlosin D', form: '口服' },
+{ id: 'TAMO12', name: 'Tamokas PR', form: '口服' },
+{ id: 'TEII04', name: 'Teicod', form: '針劑' },
+{ id: 'TELO19', name: 'Co-Midis', form: '口服' },
+{ id: 'TEOO00', name: 'Vemlidy', form: '口服' },
+{ id: 'TERI04', name: 'Glypressin', form: '針劑' },
+{ id: 'TESI09', name: 'Testosterone', form: '針劑' },
+{ id: 'THAO01', name: 'Thado', form: '口服' },
+{ id: 'THEO20', name: 'Centertheo', form: '口服' },
+{ id: 'THYO01', name: 'Eltroxin 100', form: '口服' },
+{ id: 'TIBO00', name: 'Livial', form: '口服' },
+{ id: 'TINI01', name: 'Innohep', form: '針劑' },
+{ id: 'TIOE01', name: 'Spiriva', form: '外用' },
+{ id: 'TIRI00', name: 'Aggrastat', form: '針劑' },
+{ id: 'TM-E04', name: 'Tetracycline Oph. Oint. (人人)', form: '外用' },
+{ id: 'TOCI00', name: 'Actemra 200', form: '針劑' },
+{ id: 'TOCI01', name: 'Actemra 162 SC', form: '針劑' },
+{ id: 'TOFO04', name: 'Xeljanz', form: '口服' },
+{ id: 'TOLO09', name: 'Terodine', form: '口服' },
+{ id: 'TOPE03', name: 'Topsym Lotion', form: '外用' },
+{ id: 'TOPE04', name: 'Topsym', form: '外用' },
+{ id: 'TRAI11', name: 'Tramtor Inj.', form: '針劑' },
+{ id: 'TRAO09', name: 'Tranexic', form: '口服' },
+{ id: 'TRAO27', name: 'Tramtor', form: '口服' },
+{ id: 'TREE01', name: 'Trelegy', form: '外用' },
+{ id: 'TREO14', name: 'Fylin Retard', form: '口服' },
+{ id: 'TRIE04', name: 'Trisec', form: '外用' },
+{ id: 'TRII16', name: 'Diphereline PR 3.75', form: '針劑' },
+{ id: 'TRIO34', name: 'Tricozide', form: '口服' },
+{ id: 'TRIO35', name: 'Partane', form: '口服' },
+{ id: 'TRNI02', name: 'Tranexamic Acid', form: '針劑' },
+{ id: 'TT2I00', name: 'Taita No.2', form: '針劑' },
+{ id: 'TT5I00', name: 'Taita No.5', form: '針劑' },
+{ id: 'TYGI00', name: 'Tygacil', form: '針劑' },
+{ id: 'UFUO00', name: 'Ufur', form: '口服' },
+{ id: 'UMEE01', name: 'Anoro', form: '外用' },
+{ id: 'UREO03', name: 'Wecoli', form: '口服' },
+{ id: 'URIO03', name: 'Benzon', form: '口服' },
+{ id: 'UROI07', name: 'Urokinase 60000', form: '針劑' },
+{ id: 'URSO08', name: 'Urose', form: '口服' },
+{ id: 'VALI00', name: 'Depavent', form: '針劑' },
+{ id: 'VALO05', name: 'Hecalis', form: '口服' },
+{ id: 'VALO29', name: 'Vosaa 80', form: '口服' },
+{ id: 'VANI10', name: 'Vanlyo 500', form: '針劑' },
+{ id: 'VBII02', name: 'Hydroxocobalamin (大豐)', form: '針劑' },
+{ id: 'VCBI03', name: 'C-B Complex', form: '針劑' },
+{ id: 'VECI00', name: 'Vectibix', form: '針劑' },
+{ id: 'VEDI00', name: 'Entyvio', form: '針劑' },
+{ id: 'VENI13', name: 'Diphenhydramine (台裕)', form: '針劑' },
+{ id: 'VENO10', name: 'Venina', form: '口服' },
+{ id: 'VENO15', name: 'Venfaxime SR', form: '口服' },
+{ id: 'VERI03', name: 'U-Sodin', form: '針劑' },
+{ id: 'VERO04', name: 'Isomil', form: '口服' },
+{ id: 'VIAO20', name: 'Peitil', form: '口服' },
+{ id: 'VILO01', name: 'Galvus Met 500', form: '口服' },
+{ id: 'VINO01', name: 'Navelbine 30', form: '口服' },
+{ id: 'VOLE22', name: 'Votalin', form: '外用' },
+{ id: 'VORO00', name: 'Vfend', form: '口服' },
+{ id: 'X10E02', name: 'Quicaine', form: '外用' },
+{ id: 'XIGO00', name: 'Xigduo XR', form: '口服' },
+{ id: 'XYLI02', name: 'Lidocaine 2% 20ml(台裕)', form: '針劑' },
+{ id: 'YUTO02', name: 'Anpo', form: '口服' },
+{ id: 'ZAVI00', name: 'Zavicefta', form: '針劑' },
+{ id: 'ZEFI01', name: 'Zefotam 2', form: '針劑' },
+{ id: 'ZINE00', name: 'Zinc Oxide Oint.', form: '外用' },
+{ id: 'ZOLI00', name: 'Zoladex', form: '針劑' },
+{ id: 'ZOLI07', name: 'CaKeep', form: '針劑' },
+{ id: 'ZOLO07', name: 'Zolnox', form: '口服' },
+{ id: 'ZONO00', name: 'Zonegran', form: '口服' },
+{ id: 'ZOPO01', name: 'Apo-Zopiclone', form: '口服' },
+{ id: 'ZOTO00', name: 'Zonin', form: '口服' },
+{ id: 'ZOVO08', name: 'Medovir', form: '口服' },
+{ id: 'ZYRO10', name: 'Cetirizine', form: '口服' },
+{ id: 'RIFO06', name: 'Rina', form: '口服' },
+{ id: 'EXEO08', name: 'Ristig ', form: '口服' },
+{ id: 'INSI18', name: 'Soliqua ', form: '針劑' },
+{ id: 'TOPO19', name: 'Trokendi XR 50', form: '口服' },
+{ id: 'BREO01', name: 'Rexulti 4', form: '口服' },
+{ id: 'PITO03', name: 'Zulitor', form: '口服' },
+{ id: 'GLXO00', name: 'Glyxambi ', form: '口服' },
+{ id: 'HEPI24', name: 'T.H Heparin', form: '針劑' },
+{ id: 'RITO12', name: 'Methydur 44', form: '口服' },
+{ id: 'TELO17', name: 'Telsar', form: '口服' },
+{ id: 'PALI00', name: 'Invega Sustenna 150', form: '針劑' },
+{ id: 'GLMO01', name: 'Amamet', form: '口服' },
+{ id: 'FLOI01', name: 'Flomoxef', form: '針劑' },
+{ id: 'AMPI21', name: 'Sulampi 3000', form: '針劑' },
+{ id: 'ROMI00', name: 'Evenity', form: '針劑' },
+{ id: 'TRAO33', name: 'Opicet', form: '口服' },
+{ id: 'MOXI03', name: 'Mosflow inj.', form: '針劑' },
+{ id: 'CHLE21', name: 'Aqua Easy Antiseptic', form: '外用' },
+{ id: 'SEVE04', name: 'SOJOURN', form: '外用' },
+{ id: 'VORI03', name: 'Vaway inj.', form: '針劑' },
+{ id: 'DOMO02', name: 'Wempty 1mg/ml,60mL', form: '口服' },
+{ id: 'CREO00', name: 'Creon 25000', form: '口服' },
+{ id: 'TICO11', name: 'Brilinta', form: '口服' },
+{ id: 'NEFO00', name: 'Panagesic', form: '口服' },
+{ id: 'COLO04', name: 'Colin', form: '口服' },
+{ id: 'DDAO01', name: 'pms-Desmopressin', form: '口服' },
+{ id: 'LATE04', name: 'Latanoprost', form: '外用' },
+{ id: 'ATOO22', name: 'Mixre 25', form: '口服' },
+{ id: 'DIMO10', name: 'Wilcon', form: '口服' },
+{ id: 'KETO03', name: 'Ketosteril', form: '口服' },
+{ id: 'OLMO03', name: 'Olmetec 40', form: '口服' },
+{ id: 'AMLO37', name: 'Sevikar HCT 40', form: '口服' },
+{ id: 'EDOO01', name: 'Lixiana 30', form: '口服' },
+{ id: 'VILO00', name: 'Galvus', form: '口服' },
+{ id: 'ERGO07', name: 'Ergocafe', form: '口服' },
+{ id: 'FLUO29', name: 'Lefenine', form: '口服' },
+{ id: 'CERO26', name: 'Polenin', form: '口服' },
+{ id: 'DDAO02', name: 'Minirin Melt', form: '口服' },
+{ id: 'MELO24', name: 'Somn XR', form: '口服' },
+{ id: 'MESO12', name: 'Trazo', form: '口服' },
+{ id: 'TORO00', name: 'Torsix', form: '口服' },
+{ id: 'MERI35', name: 'Mepenem 1000', form: '針劑' },
+{ id: 'COLI03', name: 'Colistin', form: '針劑' },
+{ id: 'CTXI14', name: 'Loforan 2000', form: '針劑' },
+{ id: 'N09I26', name: 'Saline 0.9% 500ml', form: '針劑' },
+{ id: 'BOSI02', name: 'Epinephrine', form: '針劑' },
+{ id: 'XYLE04', name: 'High-Xylmol', form: '外用' },
+{ id: 'AMLO36', name: 'Sevikar 40', form: '口服' },
+{ id: 'OXOO03', name: 'Oxola', form: '口服' },
+{ id: 'BIPO00', name: 'Akinfree', form: '口服' },
+{ id: 'AMLO35', name: 'Amoten', form: '口服' },
+{ id: 'AMXO12', name: 'Amoxicillin (信東)', form: '口服' },
+{ id: 'ANEO08', name: 'Tolizole', form: '口服' },
+{ id: 'ARIO23', name: 'Aripizole 5', form: '口服' },
+{ id: 'ATRI02', name: 'Nimbex', form: '針劑' },
+{ id: 'BENO25', name: 'Hsiaochih', form: '口服' },
+{ id: 'BORI02', name: 'Velcade ', form: '針劑' },
+{ id: 'CLEE08', name: 'Royalsense Gel 10g', form: '外用' },
+{ id: 'CLIO05', name: 'Damicin', form: '口服' },
+{ id: 'CLOO08', name: 'Clopine 100', form: '口服' },
+{ id: 'CLOO43', name: 'Clomiphene (優生)', form: '口服' },
+{ id: 'DIMO21', name: 'Gasmin', form: '口服' },
+{ id: 'DOCI08', name: 'Tynen', form: '針劑' },
+{ id: 'EMEE01', name: 'Ementin Oph. Sol'n', form: '外用' },
+{ id: 'EM-O14', name: 'Erymycin', form: '口服' },
+{ id: 'ENTO15', name: 'Entigin 1', form: '口服' },
+{ id: 'ERTI01', name: 'Ertacure', form: '針劑' },
+{ id: 'FELE12', name: 'Toricam Gel', form: '外用' },
+{ id: 'FOLO02', name: 'Folic Acid (榮民)', form: '口服' },
+{ id: 'FUSE04', name: 'Conlifu Ointment', form: '外用' },
+{ id: 'GABO04', name: 'Gapatin 600', form: '口服' },
+{ id: 'HERO26', name: 'Diltisser', form: '口服' },
+{ id: 'IMIO06', name: 'Tone 25', form: '口服' },
+{ id: 'LABO00', name: 'Labtal', form: '口服' },
+{ id: 'LETO02', name: 'Lenozole', form: '口服' },
+{ id: 'SMOI04', name: 'SMOFlipid 20%', form: '針劑' },
+{ id: 'LOPO13', name: 'Loperamide (成大)', form: '口服' },
+{ id: 'MEDO14', name: 'Mepro', form: '口服' },
+{ id: 'OLAO07', name: 'Olan OD', form: '口服' },
+{ id: 'ANPO00', name: 'Antiasth SR', form: '口服' },
+{ id: 'PIRO19', name: 'Nocetam', form: '口服' },
+{ id: 'IMIE01', name: 'You Care Cream', form: '外用' },
+{ id: 'POVE01', name: 'Sindine Oint.', form: '外用' },
+{ id: 'SORI01', name: 'Sorlate', form: '針劑' },
+{ id: 'SOLO14', name: 'Meticort', form: '口服' },
+{ id: 'TAMO00', name: 'Tamso SR', form: '口服' },
+{ id: 'TEGO04', name: 'Tegol', form: '口服' },
+{ id: 'THEO21', name: 'Theophy SR', form: '口服' },
+{ id: 'TICO02', name: 'Licodin 100', form: '口服' },
+{ id: 'TRAO16', name: 'Muaction SR', form: '口服' },
+{ id: 'TRIO37', name: 'Inolim', form: '口服' },
+{ id: 'DIVO02', name: 'Apo-Divalproex', form: '口服' },
+{ id: 'NICO12', name: 'Nicotinell 4', form: '口服' },
+{ id: 'NICO11', name: 'Nicotinell 2', form: '口服' },
+{ id: 'WARO08', name: 'Uwarin 5', form: '口服' },
+{ id: 'ZALO04', name: 'Sonaplon', form: '口服' },
+{ id: 'ZITO06', name: 'Ansumycin', form: '口服' },
+{ id: 'N09I36', name: 'Sod. Chloride 0.9% 100ml (台裕-袋)', form: '針劑' },
+{ id: 'PITO10', name: 'Pivas', form: '口服' },
+{ id: 'VYTO00', name: 'Vytorin', form: '口服' },
+{ id: 'ABLI01', name: 'Lipo-AB', form: '針劑' },
+{ id: 'VC-I03', name: 'Vitamin C', form: '針劑' },
+{ id: 'PANI05', name: 'Pane', form: '針劑' },
+{ id: 'SUGI00', name: 'Bridion', form: '針劑' },
+{ id: 'BUPI02', name: 'Marcaine', form: '針劑' },
+{ id: 'DIOO01', name: 'Smecta', form: '口服' },
+{ id: 'APAO00', name: 'Erleada', form: '口服' },
+{ id: 'GLYI17', name: 'Glycopyrodyn inj.', form: '針劑' },
+{ id: 'GOLI00', name: 'Simponi', form: '針劑' },
+{ id: 'MARI02', name: 'Marcaine Spinal', form: '針劑' },
+{ id: 'MARI01', name: 'Marcaine Spinal Heavy', form: '針劑' },
+{ id: 'PNEI00', name: 'Pneumovax 23', form: '針劑' },
+{ id: 'REGO00', name: 'Stivarga', form: '口服' },
+{ id: 'UPAO00', name: 'Rinvoq ER', form: '口服' },
+{ id: 'RUXO02', name: 'Jakavi 20', form: '口服' },
+{ id: 'SMOI03', name: 'SmofKabiven 1477ml', form: '針劑' },
+{ id: 'BICO13', name: 'Sodium Bicarbonate (強生)', form: '口服' },
+{ id: 'USTI02', name: 'Stelara 90', form: '針劑' },
+{ id: 'ULCO06', name: 'Ulstal', form: '口服' },
+{ id: 'VOSO00', name: 'Vosevi', form: '口服' },
+{ id: 'FESE00', name: 'Fespixon cream', form: '外用' },
+{ id: 'LATE07', name: 'Vyzulta Solution', form: '外用' },
+{ id: 'PPCO00', name: 'P.P.C.', form: '口服' },
+{ id: 'CONO07', name: 'Contrave', form: '口服' },
+{ id: 'NUMO01', name: 'Numient ER 48.72/195', form: '口服' },
+{ id: 'INSI19', name: 'Ryzodeg FlexTouch', form: '針劑' },
+{ id: 'KCLO01', name: 'Const-K ER', form: '口服' },
+{ id: 'CREO02', name: 'Cretrol 20', form: '口服' },
+{ id: 'ZOSI01', name: 'Shingrix', form: '針劑' },
+{ id: 'BSSE01', name: 'BSS PLUS Oph. Irrigating Sol'n', form: '外用' },
+{ id: 'AESO00', name: 'Rostan', form: '口服' },
+{ id: 'AGOO00', name: 'Valdoxan', form: '口服' },
+{ id: 'AMLO15', name: 'Exforge 80', form: '口服' },
+{ id: 'EXNO00', name: 'Exnortan 160', form: '口服' },
+{ id: 'STAO04', name: 'Stalevo', form: '口服' },
+{ id: 'CEFI83', name: 'Zinforo', form: '針劑' },
+{ id: 'DIEO00', name: 'Visanne', form: '口服' },
+{ id: 'EZEO03', name: 'Ezeler', form: '口服' },
+{ id: 'METE02', name: 'Artelac Eye Drops', form: '外用' },
+{ id: 'ANTO11', name: 'Antibiophilus', form: '口服' },
+{ id: 'NEPI02', name: 'Nephrosteril', form: '針劑' },
+{ id: 'BEXI00', name: 'Bexsero(必思諾B型腦膜炎雙球菌疫苗)', form: '針劑' },
+{ id: 'NEMO00', name: 'Taigexyn', form: '口服' },
+{ id: 'OLMO02', name: 'Olsaa 20', form: '口服' },
+{ id: 'OXEO01', name: 'Fencaine', form: '口服' },
+{ id: 'PALO04', name: 'Berydone ER 9', form: '口服' },
+{ id: 'PALI04', name: 'Invega Trinza 525', form: '針劑' },
+{ id: 'PANO53', name: 'Pantyl', form: '口服' },
+{ id: 'PITO00', name: 'Livalo', form: '口服' },
+{ id: 'SEMI00', name: 'Ozempic', form: '針劑' },
+{ id: 'ZALE00', name: 'Zalain Cream', form: '外用' },
+{ id: 'SPHO02', name: 'Kremezin(4 tab/Pack)', form: '口服' },
+{ id: 'GOLO00', name: 'Golfer', form: '口服' },
+{ id: 'TERI05', name: 'Alvosteo', form: '針劑' },
+{ id: 'CVVI00', name: 'CVVH sol'n', form: '針劑' },
+{ id: 'SODI05', name: '0.45% Sod. Chloride 2760ml', form: '針劑' },
+{ id: 'DOXO25', name: 'Doxepin', form: '口服' },
+{ id: 'EMPO00', name: 'Jardiance 10', form: '口服' },
+{ id: 'IMMO01', name: 'Cycos', form: '口服' },
+{ id: 'TARO03', name: 'Sinflo 100', form: '口服' },
+{ id: 'DIOO03', name: 'Alvolon', form: '口服' },
+{ id: 'VENO19', name: 'Vena', form: '口服' },
+{ id: 'ALCO00', name: 'Alecensa', form: '口服' },
+{ id: 'ESTE03', name: 'Divigel Gel', form: '外用' },
+{ id: 'ZITO05', name: 'Azithrom Oral Suspension', form: '口服' },
+{ id: 'SEMO01', name: 'Rybelsus 7', form: '口服' },
+{ id: 'SEMO02', name: 'Rybelsus 14', form: '口服' },
+{ id: 'LINO06', name: 'Trajenta Duo', form: '口服' },
+{ id: 'HEPI22', name: 'FUSO Heparin', form: '針劑' },
+{ id: 'KCLI03', name: '0.298%KCl in NS', form: '針劑' },
+{ id: 'GASO28', name: 'Gastine', form: '口服' },
+{ id: 'APIO00', name: 'Eliquis 5', form: '口服' },
+{ id: 'IRBO02', name: 'Irbetan', form: '口服' },
+{ id: 'DULO04', name: 'Duxetine', form: '口服' },
+{ id: 'DARO00', name: 'Nubeqa', form: '口服' },
+{ id: 'LEVI30', name: 'Simdax', form: '針劑' },
+{ id: 'VB1I02', name: 'Thiamine Hydrochloride', form: '針劑' },
+{ id: 'BIME00', name: 'Lumigan PF Eye Drops 0.3%', form: '外用' },
+{ id: 'BRIE06', name: 'Combigan Eye Drops', form: '外用' },
+{ id: 'QUEO52', name: 'Qting', form: '口服' },
+{ id: 'BALO01', name: 'Xofluza', form: '口服' },
+{ id: 'AFAO00', name: 'Giotrif 30mg', form: '口服' },
+{ id: 'NINO01', name: 'Ofev', form: '口服' },
+{ id: 'ATEI00', name: 'Tecentriq', form: '針劑' },
+{ id: 'N3-I00', name: 'Sodium Chloride 3%', form: '針劑' },
+{ id: 'ZOVI00', name: 'Zovirax', form: '針劑' },
+{ id: 'BI-E34', name: 'Good-Iodine', form: '外用' },
+{ id: 'ETOO10', name: 'Etor', form: '口服' },
+{ id: 'ANAO09', name: 'Anazo', form: '口服' },
+{ id: 'ADAO47', name: 'Atanaal', form: '口服' },
+{ id: 'ACYE08', name: 'Aclovir Cream', form: '外用' },
+{ id: 'VOTO03', name: 'Lundbeck Brintellix 10', form: '口服' },
+{ id: 'HYOO07', name: 'Fucon', form: '口服' },
+{ id: 'TADO14', name: 'Cialis 5', form: '口服' },
+{ id: 'CANE09', name: 'Camazole Vag. Tab.', form: '外用' },
+{ id: 'CADO00', name: 'Caduet 10', form: '口服' },
+{ id: 'CYCI00', name: 'Endoxan Injection', form: '針劑' },
+{ id: 'FLUO66', name: 'Flupine', form: '口服' },
+{ id: 'PRPI02', name: 'Fresofol 200', form: '針劑' },
+{ id: 'GEMI06', name: 'Gemphar', form: '針劑' },
+{ id: 'ALBI26', name: 'AlbuRx 20', form: '針劑' },
+{ id: 'TOPI01', name: 'Topotecam BioPro', form: '針劑' },
+{ id: 'IMII05', name: 'Culin', form: '針劑' },
+{ id: 'IRII00', name: 'Irino', form: '針劑' },
+{ id: 'ATIO07', name: 'Larpam', form: '口服' },
+{ id: 'ANEI05', name: 'SABS', form: '針劑' },
+{ id: 'NIVI02', name: 'Opdivo 120', form: '針劑' },
+{ id: 'PARE04', name: 'Parmason gargle', form: '外用' },
+{ id: 'DAPO04', name: 'Dabuxin', form: '口服' },
+{ id: 'FURO00', name: 'Rosis', form: '口服' },
+{ id: 'OSEO03', name: 'Tamiflu', form: '口服' },
+{ id: 'ERLO07', name: 'Alvoceva 150', form: '口服' },
+{ id: 'CEFI38', name: 'Sintum', form: '針劑' },
+{ id: 'OESO05', name: 'Synna', form: '口服' },
+{ id: 'TEMO06', name: 'Tenof ', form: '口服' },
+{ id: 'SENO00', name: 'Sennapur', form: '口服' },
+{ id: 'CALO38', name: 'A-Cal', form: '口服' },
+{ id: 'UREE05', name: 'Fluco-U Cream', form: '外用' },
+{ id: 'VOLO14', name: 'Deflam-K', form: '口服' },
+{ id: 'ENZO03', name: 'Enzuta', form: '口服' },
+{ id: 'CLOE29', name: 'Beclosol Wash Shampoo 125ml', form: '外用' },
+{ id: 'MYDE03', name: 'Mydrin-M Oph. Sol'n', form: '外用' },
+{ id: 'TRII19', name: 'Sivkort', form: '針劑' },
+{ id: 'TT-I00', name: 'Tetanus Toxoid', form: '針劑' },
+{ id: 'BEZO06', name: 'Fizate', form: '口服' },
+{ id: 'NICE06', name: 'Smokquit TDDS 20', form: '外用' },
+{ id: 'NICE07', name: 'Smokquit TDDS 30', form: '外用' },
+{ id: 'UTRO01', name: 'Utrogestan', form: '口服' },
+{ id: 'CYCO10', name: 'Endoxan Sugar-Coated Tablets', form: '口服' },
+{ id: 'VERE00', name: 'VeraSeal 1+1', form: '外用' },
+{ id: 'ENVI00', name: 'EnVAX-A71', form: '針劑' },
+{ id: 'AMII28', name: 'Cordarone inj.', form: '針劑' },
+{ id: 'HEPI13', name: 'Havrix', form: '針劑' },
+{ id: 'KETI02', name: 'Ketalar', form: '針劑' },
+{ id: 'SANI04', name: 'Stilamin', form: '針劑' },
+{ id: 'SUCI01', name: 'Relaxin', form: '針劑' },
+{ id: 'ULEE01', name: 'Ulex Lotion', form: '外用' },
+{ id: 'DURE01', name: 'Tears Naturale', form: '外用' },
+{ id: 'BUDE01', name: 'Breztri Aerosphere', form: '外用' },
+{ id: 'HYDE10', name: 'Cortema Enema', form: '外用' },
+{ id: 'LANO22', name: 'Lanclean', form: '口服' },
+{ id: 'FARI00', name: 'Vabysmo', form: '針劑' },
+{ id: 'FINO07', name: 'Kerendia', form: '口服' },
+{ id: 'ACEO26', name: 'Taneasy gr.', form: '口服' },
+{ id: 'TOPO27', name: 'Trokendi XR 25', form: '口服' },
+{ id: 'VOCI00', name: 'Vocabria', form: '針劑' },
+{ id: 'RILI00', name: 'Rekambys PR', form: '針劑' },
+{ id: 'ESTE05', name: 'Esvatin Vag.', form: '外用' },
+{ id: 'RISI02', name: 'OKEDI PR 75', form: '針劑' },
+{ id: 'MYDE04', name: 'Mydrin-P Oph. Sol'n', form: '外用' },
+{ id: 'ADAI03', name: 'Yuflyma', form: '針劑' },
+{ id: 'AZAO03', name: 'Azaprine', form: '口服' },
+{ id: 'BEVI03', name: 'Vegzelma', form: '針劑' },
+{ id: 'BREO03', name: 'Rexulti 1', form: '口服' },
+{ id: 'HEMI16', name: 'Hemodialysis Concentrate A-188', form: '針劑' },
+{ id: 'HEMI14', name: 'Hemodialysis Concentrate A-198', form: '針劑' },
+{ id: 'HEMI18', name: 'Hemodialysis Concentrate A-168', form: '針劑' },
+{ id: 'CLOO30', name: 'Clopidogrel (SANDOZ)', form: '口服' },
+{ id: 'MEDI01', name: 'Surso', form: '針劑' },
+{ id: 'DIOO07', name: 'Mikoton', form: '口服' },
+{ id: 'ESCE00', name: 'Esecin Gel', form: '外用' },
+{ id: 'ETAI03', name: 'Erelzi', form: '針劑' },
+{ id: 'SOFE02', name: 'Softa-Man', form: '外用' },
+{ id: 'FILI03', name: 'Nivestim', form: '針劑' },
+{ id: 'IMMI01', name: 'Privigen', form: '針劑' },
+{ id: 'INFI03', name: 'Remsima', form: '針劑' },
+{ id: 'VIMO01', name: 'Comide 100', form: '口服' },
+{ id: 'LACO23', name: 'Lac-B 2gm', form: '口服' },
+{ id: 'LEMO01', name: 'Dayvigo', form: '口服' },
+{ id: 'LEUI09', name: 'Eligard 7.5', form: '針劑' },
+{ id: 'LEUI07', name: 'Leuplin Depot 3M', form: '針劑' },
+{ id: 'LEVI36', name: 'Carenephrin', form: '針劑' },
+{ id: 'MEMO07', name: 'Memary', form: '口服' },
+{ id: 'MYCI01', name: 'Myfungin', form: '針劑' },
+{ id: 'MICO03', name: 'Daflon ', form: '口服' },
+{ id: 'PALI07', name: 'Symvaga 100', form: '針劑' },
+{ id: 'BOWO00', name: 'Bowklean Powder', form: '口服' },
+{ id: 'PIOO01', name: 'Diazone', form: '口服' },
+{ id: 'OSEO02', name: 'Oseni', form: '口服' },
+{ id: 'NOOI01', name: 'Noopol 2000', form: '針劑' },
+{ id: 'RITI05', name: 'Rixathon 100', form: '針劑' },
+{ id: 'RITI03', name: 'Rixathon 500', form: '針劑' },
+{ id: 'SAFO00', name: 'Equfina', form: '口服' },
+{ id: 'SILO55', name: 'Viagra Film', form: '口服' },
+{ id: 'SMOI02', name: 'SmofKabiven 493ml', form: '針劑' },
+{ id: 'BICI04', name: 'Bicarbonate Powder Pack', form: '針劑' },
+{ id: 'SOLO20', name: 'Vebacin', form: '口服' },
+{ id: 'TADO18', name: 'Caliberi OD 5', form: '口服' },
+{ id: 'TENO44', name: 'Tenoem', form: '口服' },
+{ id: 'TRAI15', name: 'Herzuma', form: '針劑' },
+{ id: 'VALO38', name: 'Valacyclovir', form: '口服' },
+{ id: 'VANO00', name: 'Vancover', form: '口服' },
+{ id: 'VARO01', name: 'Champix 1', form: '口服' },
+{ id: 'VINO03', name: 'Vinobin 20', form: '口服' }
         ];
 
         let cart = [];
@@ -145,16 +1101,13 @@
         const role = urlParams.get('role');
 
         window.addEventListener('load', () => {
-            if (role === 'pharmacy') {
-                document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
-                document.getElementById('actionArea').classList.add('role-hidden');
-            } else if (role === 'warehouse') {
-                document.getElementById('pharmacySection').classList.add('role-hidden');
-                document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
-            }
+            const ps = document.getElementById('pharmacySection');
+            const ws = document.getElementById('warehouseSection');
+            const aa = document.getElementById('actionArea');
+            if (role === 'pharmacy') { ws.classList.replace('lg:col-span-7', 'lg:col-span-12'); aa.classList.add('role-hidden'); }
+            else if (role === 'warehouse') { ps.classList.add('role-hidden'); ws.classList.replace('lg:col-span-7', 'lg:col-span-12'); }
         });
 
-        // 搜尋邏輯
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
 
@@ -162,11 +1115,11 @@
             const val = searchInput.value.trim().toUpperCase();
             suggestList.innerHTML = '';
             if (!val) return suggestList.classList.add('hidden');
-            const matches = drugDb.filter(d => (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 15);
+            const matches = drugDb.filter(d => (String(d.id).includes(val) || d.name.toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 15);
             matches.forEach(drug => {
                 const li = document.createElement('li');
                 li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between items-center";
-                li.innerHTML = `<span class="font-bold text-slate-700">${drug.name}</span><span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">${drug.id}</span>`;
+                li.innerHTML = `<span class="font-bold">${drug.name}</span><span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">${drug.id}</span>`;
                 li.onclick = () => {
                     currentDrug = drug;
                     document.getElementById('confirmBox').classList.remove('hidden');
@@ -188,8 +1141,7 @@
 
         window.addToCart = () => {
             const user = document.getElementById('userSelect').value;
-            if (!user) return alert("⚠️ 請先選擇您的姓名！");
-            if (!currentDrug) return;
+            if (!user) return alert("⚠️ 請先選擇簽名！");
             cart.push({ ...currentDrug, qty: document.getElementById('qtyInput').value, user: user, time: new Date().toLocaleTimeString() });
             renderCart();
             currentDrug = null; searchInput.value = ''; document.getElementById('confirmBox').classList.add('hidden');
@@ -199,62 +1151,52 @@
             const tbody = document.getElementById('cartBody');
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = cart.length === 0;
-            submitBtn.className = cart.length === 0 ? "w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl" : "w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all";
+            submitBtn.className = cart.length === 0 ? "w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl" : "w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl active:scale-95";
             tbody.innerHTML = cart.map((item, idx) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-4"><span class="text-blue-600 font-black">【${item.user}】</span><br><b class="text-slate-700">${item.name}</b> <small class="text-slate-400">(${item.id})</small></td>
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4"><span class="text-blue-600 font-black">【${item.user}】</span><br><b>${item.name}</b></td>
                     <td class="p-4 text-center font-black text-xl text-red-600">${item.qty}</td>
                     <td class="p-4 text-center text-slate-300" onclick="removeFromCart(${idx})">✕</td>
                 </tr>`).join('');
         }
 
         window.removeFromCart = (idx) => { cart.splice(idx,1); renderCart(); };
-        window.submitTransfer = () => { set(statusRef, { state: "arriving", items: cart, timestamp: Date.now() }); cart = []; renderCart(); alert("✅ 通知已成功送達藥庫！"); };
-        window.resetToIdle = () => { if(confirm("確定要重設系統並清空畫面嗎？")) set(statusRef, { state: "idle", items: [] }); };
-        
+        window.submitTransfer = () => { set(statusRef, { state: "arriving", items: cart }); cart = []; renderCart(); alert("✅ 通知已送達！"); };
+        window.resetToIdle = () => { if(confirm("確定重設？")) set(statusRef, { state: "idle", items: [] }); };
         window.receiveAndDownload = () => {
-            const ws = XLSX.utils.json_to_sheet(cart.map(i => ({ "申請人": i.user, "藥碼": i.id, "藥名": i.name, "數量": i.qty, "申請時間": i.time })));
+            const ws = XLSX.utils.json_to_sheet(cart.map(i => ({ "人員": i.user, "藥碼": i.id, "藥名": i.name, "數量": i.qty, "時間": i.time })));
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "調撥單");
-            XLSX.writeFile(wb, `彰醫調撥單_${new Date().toLocaleTimeString().replace(/:/g,'-')}.xlsx`);
+            XLSX.writeFile(wb, "調撥申請清單.xlsx");
             set(statusRef, { state: "preparing", items: cart });
         };
-        
-        window.sendToElevator = () => {
-            onValue(statusRef, (s) => {
-                const current = s.val();
-                set(statusRef, { ...current, state: "in_elevator" });
-            }, { onlyOnce: true });
-        };
+        window.sendToElevator = () => { onValue(statusRef, (s) => { set(statusRef, { ...s.val(), state: "in_elevator" }); }, { onlyOnce: true }); };
 
-        // Firebase 核心監聽
         onValue(statusRef, (snap) => {
             const data = snap.val();
             const body = document.getElementById('bodyTag');
             const label = document.getElementById('statusLabel');
             const btns = [document.getElementById('receiveBtn'), document.getElementById('elevatorBtn'), document.getElementById('doneBtn')];
             const tbody = document.getElementById('cartBody');
-
             btns.forEach(b => b.classList.add('hidden'));
-            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
-
+            body.className = "bg-slate-100 min-h-screen";
             if (!data || data.state === 'idle') {
-                label.innerText = "🟢 系統監測中";
+                label.innerText = "🟢 系統待機中";
                 label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500";
                 tbody.innerHTML = ""; 
             } else {
                 cart = data.items || [];
                 renderCart();
                 if (data.state === 'arriving') {
-                    label.innerText = "🚨 收到調撥申請，請藥庫簽收！";
+                    label.innerText = "🚨 收到調撥申請！";
                     label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-red-600 text-white shadow-lg";
                     body.classList.add('mode-arriving');
                     btns[0].classList.remove('hidden');
                 } else if (data.state === 'preparing') {
-                    label.innerText = "⏳ 藥庫備藥中 (清單已下載)";
+                    label.innerText = "⏳ 藥庫備藥中";
                     label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-blue-100 text-blue-700";
                     btns[1].classList.remove('hidden');
                 } else if (data.state === 'in_elevator') {
-                    label.innerText = "📦 藥品已在電梯，請藥局領取";
+                    label.innerText = "📦 已入電梯";
                     label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-yellow-400 text-yellow-900 shadow-lg";
                     body.classList.add('mode-elevator');
                     btns[2].classList.remove('hidden');
