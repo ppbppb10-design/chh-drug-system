@@ -3,15 +3,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>彰化醫院藥劑科 - 多筆調撥系統</title>
+    <title>彰醫藥劑科 - 多筆調撥系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .active-form { background-color: #3b82f6 !important; color: white !important; }
         .mode-arriving { background: #fee2e2; animation: flashRed 1.5s infinite; }
+        .mode-elevator { background: #fff3cd; animation: flashYellow 1.5s infinite; }
         @keyframes flashRed { 0%, 100% { background: #fee2e2; } 50% { background: #fecaca; } }
+        @keyframes flashYellow { 0%, 100% { background: #fff3cd; } 50% { background: #ffeeba; } }
         .role-hidden { display: none !important; }
-        .pending-row { background-color: #fffbeb; } /* 未處理的高亮 */
+        .pending-row { background-color: #fffbeb; }
     </style>
 </head>
 <body id="bodyTag" class="bg-slate-100 min-h-screen transition-colors duration-500">
@@ -20,7 +22,7 @@
         <div class="bg-white p-4 rounded-t-xl border-b flex justify-between items-center shadow-sm">
             <h1 class="text-xl font-bold text-slate-700">彰醫藥劑科 🏥 調撥系統</h1>
             <div class="flex gap-2">
-                <button id="voiceBtn" onclick="enableVoice()" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-bold">📢 開啟語音</button>
+                <button id="voiceBtn" onclick="enableVoice()" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-bold active:bg-blue-600 active:text-white">📢 開啟提示音</button>
                 <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold">🔄 重設</button>
             </div>
         </div>
@@ -46,37 +48,46 @@
                 </div>
 
                 <div class="grid grid-cols-3 gap-2">
-                    <button onclick="setForm('口服', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold">口服</button>
-                    <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold">針劑</button>
-                    <button onclick="setForm('外用', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold">外用</button>
+                    <button onclick="setForm('口服', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">口服</button>
+                    <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">針劑</button>
+                    <button onclick="setForm('外用', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">外用</button>
                 </div>
 
                 <div class="relative">
-                    <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或藥碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500 bg-white">
-                    <ul id="suggestList" class="absolute z-50 w-full bg-white border rounded-xl mt-1 shadow-2xl hidden max-h-60 overflow-y-auto"></ul>
+                    <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或藥碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500 bg-white shadow-inner">
+                    <ul id="suggestList" class="absolute z-50 w-full bg-white border rounded-xl mt-1 shadow-2xl hidden max-h-48 overflow-y-auto"></ul>
                 </div>
 
-                <div id="tempListArea" class="bg-white border rounded-xl p-3 min-h-[100px] shadow-inner">
-                    <div class="text-[10px] font-bold text-slate-400 mb-2 uppercase">🛒 待送清單 (可多選)</div>
+                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
+                    <div class="text-[10px] font-black text-blue-400 mb-2">🛒 待送出清單</div>
                     <ul id="tempList" class="space-y-2"></ul>
+                    <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full mt-3 bg-blue-600 text-white py-4 rounded-xl font-black text-lg opacity-20 shadow-lg">一次送出通知</button>
                 </div>
-                
-                <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl transition-all">🚀 一次送出全部通知</button>
+
+                <div class="border-t pt-4">
+                    <div class="text-[10px] font-black text-slate-400 mb-2 italic">📜 今日已申請紀錄 (同步藥庫)</div>
+                    <div class="max-h-64 overflow-y-auto border rounded-xl bg-white">
+                        <table class="w-full text-xs">
+                            <tbody id="pharmacyHistoryBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col">
-                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 今日領藥清單</div>
-                <div class="flex-grow border rounded-2xl bg-white min-h-[450px] overflow-hidden shadow-inner">
+                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 藥庫管理監測中</div>
+                <div class="flex-grow border rounded-2xl bg-white min-h-[500px] overflow-hidden shadow-inner">
                     <table class="w-full text-sm">
                         <thead class="bg-slate-800 text-white">
-                            <tr><th class="p-4 text-left">申請人 / 藥名</th><th class="p-4 text-center w-16">數量</th><th class="p-4 text-right w-20">狀態</th></tr>
+                            <tr><th class="p-4 text-left">人員 / 藥名</th><th class="p-4 text-center w-16">量</th><th class="p-4 text-right w-24">狀態</th></tr>
                         </thead>
                         <tbody id="cartBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
                 <div id="actionArea" class="pt-4 space-y-3">
-                    <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95">📥 下載「新申請」Excel</button>
-                    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95">完成領取</button>
+                    <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📥 下載「新申請」Excel</button>
+                    <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📦 藥品已入電梯</button>
+                    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">完成處理</button>
                 </div>
             </div>
         </div>
@@ -99,6 +110,7 @@
         const listRef = ref(db, 'dailyTransferList');
         const statusRef = ref(db, 'systemStatus');
 
+        // 藥品庫 (保持原本格式)
         let drugDb = [
             { id: 'AKII90', name: 'Bipiden', form: '針劑' },
             { id: 'ALCE91', name: 'Alcaine', form: '外用' },
@@ -1082,13 +1094,24 @@
         let selectedForm = '';
         let voiceEnabled = false;
         let lastCount = 0;
+        let lastStatus = 'idle';
         const urlParams = new URLSearchParams(window.location.search);
         const role = urlParams.get('role');
 
-        window.enableVoice = () => { voiceEnabled = true; document.getElementById('voiceBtn').innerText = "🔊 語音已開啟"; };
-        function speak(text) { if (voiceEnabled) window.speechSynthesis.speak(new SpeechSynthesisUtterance(text)); }
+        window.enableVoice = () => { 
+            voiceEnabled = true; 
+            document.getElementById('voiceBtn').innerText = "🔊 語音已同步";
+            speak("語音功能已啟動");
+        };
+        
+        function speak(text) { 
+            if (!voiceEnabled) return;
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-TW';
+            window.speechSynthesis.speak(msg);
+        }
 
-        // 搜尋與多筆暫存邏輯
+        // 藥局搜尋與暫存
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
 
@@ -1096,13 +1119,14 @@
             const val = searchInput.value.trim().toUpperCase();
             suggestList.innerHTML = '';
             if (!val) return suggestList.classList.add('hidden');
-            const matches = drugDb.filter(d => (d.id.includes(val) || d.name.toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 10);
+            const matches = drugDb.filter(d => (String(d.id).includes(val) || String(d.name).toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 10);
             matches.forEach(drug => {
                 const li = document.createElement('li');
                 li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between";
                 li.innerHTML = `<b>${drug.name}</b><small>${drug.id}</small>`;
                 li.onclick = () => {
-                    addToTemp(drug);
+                    tempCart.push({ ...drug, qty: 1 });
+                    renderTempList();
                     searchInput.value = ''; suggestList.classList.add('hidden');
                 };
                 suggestList.appendChild(li);
@@ -1116,23 +1140,17 @@
             if(selectedForm) btn.classList.add('active-form');
         };
 
-        function addToTemp(drug) {
-            tempCart.push({ ...drug, qty: 1 });
-            renderTempList();
-        }
-
         function renderTempList() {
             const list = document.getElementById('tempList');
             const btn = document.getElementById('submitBtn');
             list.innerHTML = tempCart.map((item, idx) => `
-                <li class="flex items-center justify-between bg-blue-50 p-2 rounded-lg border border-blue-100">
-                    <span class="text-xs font-bold">${item.name}</span>
+                <li class="flex items-center justify-between bg-white p-2 rounded border border-blue-100 text-xs">
+                    <span><b>${item.name}</b></span>
                     <div class="flex items-center gap-2">
-                        <input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-12 p-1 text-center rounded border">
-                        <button onclick="removeFromTemp(${idx})" class="text-red-500 font-bold px-2">×</button>
+                        <input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-10 p-1 text-center border rounded">
+                        <button onclick="removeFromTemp(${idx})" class="text-red-400">✕</button>
                     </div>
-                </li>
-            `).join('');
+                </li>`).join('');
             btn.disabled = tempCart.length === 0;
             btn.classList.toggle('opacity-20', tempCart.length === 0);
         }
@@ -1142,54 +1160,24 @@
 
         window.submitTransfer = () => {
             const user = document.getElementById('userSelect').value;
-            if (!user) return alert("⚠️ 請先選擇簽名人！");
-            
+            if (!user) return alert("⚠️ 請選擇簽名");
             tempCart.forEach(item => {
                 push(listRef, {
                     user: user, name: item.name, id: item.id, qty: item.qty,
-                    status: 'pending', // 標記為新申請
-                    time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+                    status: 'pending', time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
                 });
             });
             set(statusRef, { state: 'arriving' });
             tempCart = []; renderTempList();
-            alert("✅ 多筆通知已送出");
+            alert("✅ 通知已傳送");
         };
 
-        // 藥庫端：下載並處理
-        window.downloadAndProcess = () => {
-            onValue(listRef, (snap) => {
-                const data = snap.val();
-                if (!data) return;
-                
-                const allItems = Object.entries(data);
-                const pendingItems = allItems.filter(([id, val]) => val.status === 'pending');
-                
-                if (pendingItems.length === 0) return alert("沒有新的藥品需要下載");
-
-                // 產出 Excel
-                const ws = XLSX.utils.json_to_sheet(pendingItems.map(i => i[1]));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "新調撥清單");
-                XLSX.writeFile(wb, `彰醫新調撥_${new Date().getTime()}.xlsx`);
-
-                // 更新資料庫狀態為已處理
-                pendingItems.forEach(([id, val]) => {
-                    update(ref(db, `dailyTransferList/${id}`), { status: 'processed' });
-                });
-                
-                set(statusRef, { state: 'preparing' });
-            }, { onlyOnce: true });
-        };
-
-        window.updateStatus = (s) => set(statusRef, { state: s });
-        window.resetToIdle = () => { if(confirm("確定重設？")) { remove(listRef); set(statusRef, {state:'idle'}); }};
-
-        // 監聽介面更新
+        // 藥庫與藥局端同步監聽
         onValue(statusRef, (snap) => {
             const state = snap.val()?.state || 'idle';
             const body = document.getElementById('bodyTag');
-            const btns = [document.getElementById('downloadNewBtn'), document.getElementById('doneBtn')];
+            const btns = [document.getElementById('downloadNewBtn'), document.getElementById('elevatorBtn'), document.getElementById('doneBtn')];
+            
             btns.forEach(b => b.classList.add('hidden'));
             body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
 
@@ -1198,31 +1186,69 @@
                 btns[0].classList.remove('hidden');
             } else if (state === 'preparing') {
                 btns[1].classList.remove('hidden');
+            } else if (state === 'in_elevator') {
+                body.classList.add('mode-elevator');
+                btns[2].classList.remove('hidden');
+                // 藥局端語音提示
+                if (role === 'pharmacy' && lastStatus !== 'in_elevator') {
+                    speak("藥品已放入電梯，請前往領取");
+                }
             }
+            lastStatus = state;
         });
 
         onValue(listRef, (snap) => {
             const data = snap.val();
-            const tbody = document.getElementById('cartBody');
-            if (!data) { tbody.innerHTML = ""; lastCount = 0; return; }
+            const cartBody = document.getElementById('cartBody');
+            const phBody = document.getElementById('pharmacyHistoryBody');
+            if (!data) { cartBody.innerHTML = ""; phBody.innerHTML = "<tr><td class='p-4 text-slate-300 text-center'>尚無紀錄</td></tr>"; lastCount = 0; return; }
+            
             const items = Object.values(data);
-            if (items.length > lastCount && lastCount !== 0) {
-                const last = items[items.length-1];
-                speak(`收到來自${last.user}的調撥`);
+            // 藥庫端語音
+            if (role === 'warehouse' && items.length > lastCount && lastCount !== 0) {
+                speak(`收到來自${items[items.length-1].user}的申請`);
             }
             lastCount = items.length;
-            tbody.innerHTML = Object.values(data).reverse().map(i => `
+
+            const html = Object.values(data).reverse().map(i => `
                 <tr class="${i.status === 'pending' ? 'pending-row' : ''}">
                     <td class="p-4"><b>【${i.user}】</b><br>${i.name}</td>
-                    <td class="p-4 text-center font-bold">${i.qty}</td>
-                    <td class="p-4 text-right text-xs">${i.status === 'pending' ? '🔴 新申請' : '⚪ 已下載'}</td>
+                    <td class="p-4 text-center font-bold text-red-500 text-lg">${i.qty}</td>
+                    <td class="p-4 text-right text-[10px] font-bold text-slate-400">
+                        ${i.status === 'pending' ? '🔴 新申請' : '⚪ 已簽收'}
+                    </td>
                 </tr>`).join('');
+            
+            cartBody.innerHTML = html;
+            phBody.innerHTML = html; // 同步到藥局端的歷史紀錄
         });
 
+        window.downloadAndProcess = () => {
+            onValue(listRef, (snap) => {
+                const data = snap.val();
+                if (!data) return;
+                const entries = Object.entries(data);
+                const pending = entries.filter(e => e[1].status === 'pending');
+                if (pending.length === 0) return alert("無新申請可下載");
+
+                const ws = XLSX.utils.json_to_sheet(pending.map(e => e[1]));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "調撥清單");
+                XLSX.writeFile(wb, `彰醫調撥_${new Date().getTime()}.xlsx`);
+
+                pending.forEach(e => update(ref(db, `dailyTransferList/${e[0]}`), { status: 'processed' }));
+                set(statusRef, { state: 'preparing' });
+            }, { onlyOnce: true });
+        };
+
+        window.updateStatus = (s) => set(statusRef, { state: s });
+        window.resetToIdle = () => { if(confirm("確定重設今日清單？")) { remove(listRef); set(statusRef, {state:'idle'}); }};
+
+        // 介面初始隱藏
         if (role === 'pharmacy') {
-            document.getElementById('warehouseSection').style.display = 'none';
+            document.getElementById('warehouseSection').classList.add('role-hidden');
         } else if (role === 'warehouse') {
-            document.getElementById('pharmacySection').style.display = 'none';
+            document.getElementById('pharmacySection').classList.add('role-hidden');
             document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
         }
     </script>
