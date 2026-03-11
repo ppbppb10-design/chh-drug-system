@@ -17,47 +17,44 @@
         .role-hidden { display: none !important; }
     </style>
 </head>
-<body id="bodyTag" class="bg-slate-100 min-h-screen transition-colors duration-500">
+<body id="bodyTag" class="bg-slate-100 min-h-screen">
 
     <div class="max-w-6xl mx-auto md:p-6 p-2">
         <div class="bg-white p-4 rounded-t-xl border-b flex justify-between items-center shadow-sm">
-            <h1 class="text-xl font-bold text-slate-700">彰化醫院 藥品調撥通知</h1>
+            <h1 class="text-xl font-bold text-slate-700">彰化醫院 藥品調撥系統</h1>
             <div class="flex gap-2">
                 <input type="file" id="fileInput" class="hidden" onchange="importDrugDb(this)">
-                <button onclick="document.getElementById('fileInput').click()" class="text-[10px] border px-2 py-1 rounded bg-slate-50">📁 臨時匯入</button>
-                <button onclick="resetToIdle()" class="text-[10px] bg-white border border-slate-300 px-2 py-1 rounded text-red-500 font-bold">🔄 系統重設</button>
+                <button onclick="document.getElementById('fileInput').click()" class="text-[10px] border px-2 py-1 rounded bg-slate-50">📁 匯入</button>
+                <button onclick="resetToIdle()" class="text-[10px] bg-white border border-slate-300 px-2 py-1 rounded text-red-500 font-bold">🔄 重設</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-4 rounded-b-xl shadow-lg">
-            
             <div id="pharmacySection" class="lg:col-span-5 space-y-4 bg-slate-50 p-4 rounded-lg border">
-                <h2 class="text-sm font-bold text-blue-600 border-b pb-2 italic">藥局端：缺藥填寫</h2>
-                <div class="grid grid-cols-3 gap-2 mb-3">
+                <h2 class="text-sm font-bold text-blue-600 border-b pb-2">1. 藥局搜尋</h2>
+                <div class="grid grid-cols-3 gap-2">
                     <button onclick="setForm('口服', this)" class="form-btn border bg-white py-2 rounded-lg text-xs">口服</button>
                     <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-2 rounded-lg text-xs">針劑</button>
                     <button onclick="setForm('外用', this)" class="form-btn border bg-white py-2 rounded-lg text-xs">外用</button>
                 </div>
-                <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或代碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500 shadow-sm">
+                <input type="text" id="searchInput" autocomplete="off" placeholder="輸入藥名或藥碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500">
                 <ul id="suggestList" class="absolute z-50 w-64 bg-white border rounded-lg mt-1 shadow-2xl hidden max-h-48 overflow-y-auto"></ul>
-
-                <div id="confirmBox" class="bg-blue-100 p-3 rounded-lg border border-blue-200 hidden">
-                    <div id="selectedDrugName" class="font-bold text-blue-900 text-sm"></div>
+                
+                <div id="confirmBox" class="bg-blue-100 p-3 rounded-lg border border-blue-200 hidden text-sm font-bold text-blue-900">
+                    <div id="selectedDrugName"></div>
                     <div id="selectedDrugInfo" class="text-[10px] text-blue-700"></div>
                 </div>
 
                 <div class="flex gap-4">
                     <input type="number" id="qtyInput" value="1" class="w-20 p-3 border rounded-lg font-bold text-center">
-                    <button onclick="addToCart()" class="flex-grow bg-blue-600 text-white font-bold rounded-lg shadow active:scale-95 transition">加入清單</button>
+                    <button onclick="addToCart()" class="flex-grow bg-blue-600 text-white font-bold rounded-lg shadow active:scale-95">加入清單</button>
                 </div>
-                
-                <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-blue-700 text-white py-4 rounded-xl font-bold opacity-30 shadow-lg">🚀 送出通知藥庫</button>
+                <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-blue-700 text-white py-4 rounded-xl font-bold opacity-30">🚀 送出通知</button>
             </div>
 
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col">
-                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded bg-slate-100 text-slate-500 text-sm italic">系統連線中...</div>
-                
-                <div class="flex-grow border rounded-lg bg-slate-50 min-h-[300px] overflow-y-auto mb-4">
+                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded bg-slate-100 text-slate-500 text-sm">🟢 系統待機中</div>
+                <div class="flex-grow border rounded-lg bg-slate-50 min-h-[300px] overflow-y-auto">
                     <table class="w-full text-xs">
                         <thead class="bg-slate-200 sticky top-0">
                             <tr><th class="p-3 text-left">藥名規格</th><th class="p-3 text-center w-16">數量</th><th class="p-3 w-8"></th></tr>
@@ -65,11 +62,10 @@
                         <tbody id="cartBody" class="bg-white divide-y"></tbody>
                     </table>
                 </div>
-
-                <div id="actionArea" class="space-y-3">
-                    <button onclick="receiveAndDownload()" id="receiveBtn" class="hidden w-full bg-red-600 text-white py-6 rounded-2xl font-bold text-xl shadow-xl btn-pulse active:scale-95">✅ 收到藥局缺藥調撥</button>
-                    <button onclick="sendToElevator()" id="elevatorBtn" class="hidden w-full bg-green-600 text-white py-6 rounded-2xl font-bold text-xl shadow-xl active:scale-95">📦 藥品已放入電梯 (通知領貨)</button>
-                    <button onclick="resetToIdle()" id="doneBtn" class="hidden w-full bg-slate-700 text-white py-6 rounded-2xl font-bold text-xl shadow-xl active:scale-95">✅ 已領取藥品 (解除廣播)</button>
+                <div id="actionArea" class="space-y-3 pt-4">
+                    <button onclick="receiveAndDownload()" id="receiveBtn" class="hidden w-full bg-red-600 text-white py-6 rounded-2xl font-bold text-xl btn-pulse">✅ 收到缺藥調撥</button>
+                    <button onclick="sendToElevator()" id="elevatorBtn" class="hidden w-full bg-green-600 text-white py-6 rounded-2xl font-bold text-xl">📦 藥品已入電梯</button>
+                    <button onclick="resetToIdle()" id="doneBtn" class="hidden w-full bg-slate-700 text-white py-6 rounded-2xl font-bold text-xl">✅ 已完成領藥</button>
                 </div>
             </div>
         </div>
@@ -79,7 +75,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        // === 1. Firebase 配置 ===
+        // 1. Firebase 設定
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
             authDomain: "drug--arrive.firebaseapp.com",
@@ -94,7 +90,7 @@
         const db = getDatabase(app);
         const statusRef = ref(db, 'combinedSystemStatus');
 
-        // === 2. 藥品資料庫 (請在此處補回您完整的 400 筆資料) ===
+        // 2. 藥品清單庫 (僅列出部分，請務必補回您之前的 400 筆)
         let drugDb = [
 { id: 'AKII90', name: 'Bipiden', form: '針劑' },
 { id: 'ALCE91', name: 'Alcaine', form: '外用' },
@@ -1106,9 +1102,13 @@
 
         ];
 
-        // === 3. 角色與介面處理 ===
+        // 讀取本地緩存的資料
+        const savedDb = localStorage.getItem('savedDrugDb');
+        if (savedDb) drugDb = JSON.parse(savedDb);
+
+        // 3. 角色判斷
         const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role'); 
+        const role = urlParams.get('role');
         if (role === 'pharmacy') {
             document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
             document.getElementById('actionArea').classList.add('role-hidden');
@@ -1117,112 +1117,53 @@
             document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
         }
 
+        // 4. 變數與搜尋功能
         let cart = [];
         let currentDrug = null;
         let selectedForm = '';
         let pendingItems = [];
         let alertInterval = null;
 
-        // === 4. 功能函數 ===
-        function playVoice(text) {
-            window.speechSynthesis.cancel();
-            let msg = new SpeechSynthesisUtterance(text);
-            msg.lang = 'zh-TW';
-            window.speechSynthesis.speak(msg);
-        }
-
-        function startVoiceLoop(text) {
-            if (alertInterval) clearInterval(alertInterval);
-            playVoice(text);
-            alertInterval = setInterval(() => playVoice(text), 6000);
-        }
-
-        window.submitTransfer = function() {
-            set(statusRef, { state: "arriving", items: cart, time: new Date().getTime() });
-            cart = []; renderCart();
-        };
-
-        window.receiveAndDownload = function() {
-            if (pendingItems.length > 0) {
-                const ws = XLSX.utils.json_to_sheet(pendingItems.map(i => ({ "藥碼": i.id, "藥名": i.name, "數量": i.qty, "時間": i.time })));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "清單");
-                XLSX.writeFile(wb, `藥局缺藥單_${new Date().getTime()}.xlsx`);
-            }
-            set(statusRef, { state: "preparing" });
-        };
-
-        window.sendToElevator = function() { set(statusRef, { state: "in_elevator" }); };
-        window.resetToIdle = function() { set(statusRef, { state: "idle", items: [] }); };
-
-        // === 5. 監聽變動 ===
-        onValue(statusRef, (snapshot) => {
-            const data = snapshot.val();
-            const body = document.getElementById('bodyTag');
-            const label = document.getElementById('statusLabel');
-            const btnR = document.getElementById('receiveBtn');
-            const btnE = document.getElementById('elevatorBtn');
-            const btnD = document.getElementById('doneBtn');
-
-            [btnR, btnE, btnD].forEach(b => b.classList.add('hidden'));
-            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
-
-            if (!data || data.state === "idle") {
-                label.innerText = "🟢 系統待機中";
-                label.className = "text-center font-bold p-3 mb-2 rounded bg-slate-100 text-slate-500 text-sm";
-                if(alertInterval) { clearInterval(alertInterval); alertInterval = null; }
-                window.speechSynthesis.cancel();
-            } 
-            else if (data.state === "arriving") {
-                pendingItems = data.items || [];
-                label.innerText = "🚨 藥局缺藥調撥申請中！";
-                label.className = "text-center font-bold p-3 mb-2 rounded bg-red-600 text-white";
-                body.classList.add('mode-arriving');
-                btnR.classList.remove('hidden');
-                if(role === 'warehouse') startVoiceLoop("藥局有缺藥調撥申請，請確認清單並簽收");
-            }
-            else if (data.state === "preparing") {
-                label.innerText = "⏳ 藥庫處理中 (請將藥品送至電梯)";
-                label.className = "text-center font-bold p-3 mb-2 rounded bg-blue-100 text-blue-700 text-sm";
-                btnE.classList.remove('hidden');
-                if(alertInterval) { clearInterval(alertInterval); alertInterval = null; }
-                window.speechSynthesis.cancel();
-            }
-            else if (data.state === "in_elevator") {
-                label.innerText = "📦 藥品已在電梯，等候領取";
-                label.className = "text-center font-bold p-3 mb-2 rounded bg-yellow-400 text-yellow-900";
-                body.classList.add('mode-elevator');
-                btnD.classList.remove('hidden');
-                if(role === 'pharmacy') startVoiceLoop("藥品已送達，請至電梯口簽收");
-            }
-        });
-
-        // 搜尋邏輯
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
+
         searchInput.addEventListener('input', () => {
             const val = searchInput.value.trim().toUpperCase();
             suggestList.innerHTML = '';
-            if (!val || drugDb.length === 0) return suggestList.classList.add('hidden');
-            const matches = drugDb.filter(d => (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 10);
-            matches.forEach(drug => {
-                const li = document.createElement('li');
-                li.className = "p-3 border-b hover:bg-blue-50 cursor-pointer flex justify-between text-xs";
-                li.innerHTML = `<span>${drug.name}</span><span class="text-slate-400">${drug.id}</span>`;
-                li.onclick = () => {
-                    currentDrug = drug;
-                    document.getElementById('confirmBox').classList.remove('hidden');
-                    document.getElementById('selectedDrugName').innerText = drug.name;
-                    document.getElementById('selectedDrugInfo').innerText = `${drug.id} | ${drug.form}`;
-                    searchInput.value = drug.name; suggestList.classList.add('hidden');
-                };
-                suggestList.appendChild(li);
-            });
-            suggestList.classList.remove('hidden');
+            if (!val || drugDb.length === 0) {
+                suggestList.classList.add('hidden');
+                return;
+            }
+
+            const matches = drugDb.filter(d => 
+                (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) &&
+                (selectedForm ? d.form === selectedForm : true)
+            ).slice(0, 10);
+
+            if (matches.length > 0) {
+                matches.forEach(drug => {
+                    const li = document.createElement('li');
+                    li.className = "p-3 border-b hover:bg-blue-50 cursor-pointer flex justify-between text-xs";
+                    li.innerHTML = `<span>${drug.name}</span><span class="text-slate-400">${drug.id}</span>`;
+                    li.onclick = () => {
+                        currentDrug = drug;
+                        document.getElementById('confirmBox').classList.remove('hidden');
+                        document.getElementById('selectedDrugName').innerText = drug.name;
+                        document.getElementById('selectedDrugInfo').innerText = `${drug.id} | ${drug.form}`;
+                        searchInput.value = drug.name;
+                        suggestList.classList.add('hidden');
+                    };
+                    suggestList.appendChild(li);
+                });
+                suggestList.classList.remove('hidden');
+            } else {
+                suggestList.classList.add('hidden');
+            }
         });
 
+        // 5. 其餘功能函數
         window.addToCart = function() {
-            if (!currentDrug) return alert("請先選擇藥品");
+            if (!currentDrug) return alert("請先搜尋並選擇藥品");
             cart.push({ ...currentDrug, qty: document.getElementById('qtyInput').value, time: new Date().toLocaleTimeString() });
             renderCart();
             currentDrug = null; searchInput.value = ''; document.getElementById('confirmBox').classList.add('hidden');
@@ -1244,8 +1185,58 @@
             if(selectedForm) btn.classList.add('active-form');
             searchInput.dispatchEvent(new Event('input'));
         };
-        
-        // 匯入功能 (僅限該裝置)
+
+        window.submitTransfer = function() {
+            set(statusRef, { state: "arriving", items: cart, time: new Date().getTime() });
+            cart = []; renderCart();
+        };
+
+        window.receiveAndDownload = function() {
+            if (pendingItems.length > 0) {
+                const ws = XLSX.utils.json_to_sheet(pendingItems.map(i => ({ "藥碼": i.id, "藥名": i.name, "數量": i.qty, "時間": i.time })));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "清單");
+                XLSX.writeFile(wb, `藥局缺藥單_${new Date().getTime()}.xlsx`);
+            }
+            set(statusRef, { state: "preparing" });
+        };
+
+        window.sendToElevator = function() { set(statusRef, { state: "in_elevator" }); };
+        window.resetToIdle = function() { set(statusRef, { state: "idle", items: [] }); };
+
+        // 6. 監聽變動
+        onValue(statusRef, (snapshot) => {
+            const data = snapshot.val();
+            const body = document.getElementById('bodyTag');
+            const label = document.getElementById('statusLabel');
+            const btnR = document.getElementById('receiveBtn');
+            const btnE = document.getElementById('elevatorBtn');
+            const btnD = document.getElementById('doneBtn');
+
+            [btnR, btnE, btnD].forEach(b => b.classList.add('hidden'));
+            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
+
+            if (!data || data.state === "idle") {
+                label.innerText = "🟢 系統待機中";
+                label.className = "text-center font-bold p-3 mb-2 rounded bg-slate-100 text-slate-500 text-sm";
+            } else if (data.state === "arriving") {
+                pendingItems = data.items || [];
+                label.innerText = "🚨 藥局缺藥調撥申請中！";
+                label.className = "text-center font-bold p-3 mb-2 rounded bg-red-600 text-white";
+                body.classList.add('mode-arriving');
+                btnR.classList.remove('hidden');
+            } else if (data.state === "preparing") {
+                label.innerText = "⏳ 藥庫處理中 (請將藥品送至電梯)";
+                label.className = "text-center font-bold p-3 mb-2 rounded bg-blue-100 text-blue-700 text-sm";
+                btnE.classList.remove('hidden');
+            } else if (data.state === "in_elevator") {
+                label.innerText = "📦 藥品已在電梯，等候領取";
+                label.className = "text-center font-bold p-3 mb-2 rounded bg-yellow-400 text-yellow-900";
+                body.classList.add('mode-elevator');
+                btnD.classList.remove('hidden');
+            }
+        });
+
         window.importDrugDb = (input) => {
             const reader = new FileReader();
             reader.onload = (e) => {
@@ -1257,12 +1248,6 @@
             };
             reader.readAsArrayBuffer(input.files[0]);
         };
-
-        // 初始化時嘗試讀取本地儲存的資料
-        const savedDb = localStorage.getItem('savedDrugDb');
-        if (savedDb) {
-            drugDb = JSON.parse(savedDb);
-        }
     </script>
 </body>
 </html>
