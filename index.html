@@ -25,11 +25,12 @@
             <div class="flex gap-2">
                 <input type="file" id="fileInput" class="hidden" onchange="importDrugDb(this)">
                 <button onclick="document.getElementById('fileInput').click()" class="text-[10px] border px-2 py-1 rounded bg-slate-50">📁 臨時匯入</button>
-                <button onclick="resetToIdle()" class="text-[10px] bg-white border border-slate-300 px-2 py-1 rounded text-red-500">🔄 系統重設</button>
+                <button onclick="resetToIdle()" class="text-[10px] bg-white border border-slate-300 px-2 py-1 rounded text-red-500 font-bold">🔄 系統重設</button>
             </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-4 rounded-b-xl shadow-lg">
+            
             <div id="pharmacySection" class="lg:col-span-5 space-y-4 bg-slate-50 p-4 rounded-lg border">
                 <h2 class="text-sm font-bold text-blue-600 border-b pb-2 italic">藥局端：缺藥填寫</h2>
                 <div class="grid grid-cols-3 gap-2 mb-3">
@@ -76,7 +77,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        // 1. Firebase 配置
+        // === 1. Firebase 配置 ===
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
             authDomain: "drug--arrive.firebaseapp.com",
@@ -91,7 +92,7 @@
         const db = getDatabase(app);
         const statusRef = ref(db, 'combinedSystemStatus');
 
-        // 2. 藥品資料庫 (此處保留您的 400 筆資料，僅列出頭尾示範)
+        // === 2. 藥品資料庫 (請確保此處包含您之前的 400 筆資料) ===
         let drugDb = [
 { id: 'AKII90', name: 'Bipiden', form: '針劑' },
 { id: 'ALCE91', name: 'Alcaine', form: '外用' },
@@ -1103,7 +1104,7 @@
 
         ];
 
-        // 3. 角色判斷邏輯
+        // === 3. 角色與介面處理 ===
         const urlParams = new URLSearchParams(window.location.search);
         const role = urlParams.get('role'); 
         if (role === 'pharmacy') {
@@ -1114,14 +1115,13 @@
             document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
         }
 
-        // 4. 全域變數
         let cart = [];
         let currentDrug = null;
         let selectedForm = '';
         let pendingItems = [];
         let alertInterval = null;
 
-        // 5. 語音功能
+        // === 4. 功能函數 ===
         function playVoice(text) {
             window.speechSynthesis.cancel();
             let msg = new SpeechSynthesisUtterance(text);
@@ -1135,11 +1135,8 @@
             alertInterval = setInterval(() => playVoice(text), 6000);
         }
 
-        // 6. 核心功能
         window.submitTransfer = function() {
-            set(statusRef, { state: "arriving", items: cart, time: new Date().getTime() })
-            .then(() => alert("✅ 已成功送出通知！"))
-            .catch(e => alert("❌ 送出失敗"));
+            set(statusRef, { state: "arriving", items: cart, time: new Date().getTime() });
             cart = []; renderCart();
         };
 
@@ -1156,7 +1153,7 @@
         window.sendToElevator = function() { set(statusRef, { state: "in_elevator" }); };
         window.resetToIdle = function() { set(statusRef, { state: "idle", items: [] }); };
 
-        // 7. 監聽變動
+        // === 5. 監聽變動 ===
         onValue(statusRef, (snapshot) => {
             const data = snapshot.val();
             const body = document.getElementById('bodyTag');
@@ -1198,7 +1195,7 @@
             }
         });
 
-        // 8. 搜尋邏輯
+        // 搜尋邏輯
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
         searchInput.addEventListener('input', () => {
