@@ -1082,7 +1082,57 @@
         // 讀取本地緩存的資料
         const savedDb = localStorage.getItem('savedDrugDb');
         if (savedDb) drugDb = JSON.parse(savedDb);
+// 確保網頁元素完全加載後再啟動功能
+        window.addEventListener('load', () => {
+            const searchInput = document.getElementById('searchInput');
+            const suggestList = document.getElementById('suggestList');
 
+            if (!searchInput) return;
+
+            // 啟動即時搜尋功能
+            searchInput.addEventListener('input', () => {
+                const val = searchInput.value.trim().toUpperCase();
+                suggestList.innerHTML = '';
+                if (!val || drugDb.length === 0) {
+                    suggestList.classList.add('hidden');
+                    return;
+                }
+
+                // 比對藥名或藥碼 (支援劑型過濾)
+                const matches = drugDb.filter(d => 
+                    (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && 
+                    (selectedForm ? d.form === selectedForm : true)
+                ).slice(0, 10);
+
+                if (matches.length > 0) {
+                    matches.forEach(drug => {
+                        const li = document.createElement('li');
+                        li.className = "p-3 border-b hover:bg-blue-50 cursor-pointer flex justify-between text-xs";
+                        li.innerHTML = `<span>${drug.name}</span><span class="text-slate-400">${drug.id}</span>`;
+                        li.onclick = () => {
+                            currentDrug = drug;
+                            document.getElementById('confirmBox').classList.remove('hidden');
+                            document.getElementById('selectedDrugName').innerText = drug.name;
+                            document.getElementById('selectedDrugInfo').innerText = `${drug.id} | ${drug.form}`;
+                            searchInput.value = drug.name;
+                            suggestList.classList.add('hidden');
+                        };
+                        suggestList.appendChild(li);
+                    });
+                    suggestList.classList.remove('hidden');
+                } else {
+                    suggestList.classList.add('hidden');
+                }
+            });
+        });
+
+        // 定義全域 setForm 功能，確保 HTML 上的按鈕找得到它
+        window.setForm = (form, btn) => {
+            selectedForm = (selectedForm === form) ? '' : form;
+            document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active-form'));
+            if(selectedForm) btn.classList.add('active-form');
+            document.getElementById('searchInput').dispatchEvent(new Event('input'));
+        };
         // 3. 角色判斷
         const urlParams = new URLSearchParams(window.location.search);
         const role = urlParams.get('role');
@@ -1228,4 +1278,5 @@
     </script>
 </body>
 </html>
+
 
