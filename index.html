@@ -10,18 +10,19 @@
         .active-form { background-color: #3b82f6 !important; color: white !important; }
         .mode-arriving { background: #fee2e2; animation: flashRed 1.5s infinite; }
         @keyframes flashRed { 0%, 100% { background: #fee2e2; } 50% { background: #fecaca; } }
-        .mode-elevator { background: #fff3cd; animation: flashYellow 1.5s infinite; }
-        @keyframes flashYellow { 0%, 100% { background: #fff3cd; } 50% { background: #ffeeba; } }
         .role-hidden { display: none !important; }
-        select { -webkit-appearance: none; background-color: white; }
+        select { -webkit-appearance: none; background: white; }
     </style>
 </head>
-<body id="bodyTag" class="bg-slate-100 min-h-screen">
+<body id="bodyTag" class="bg-slate-100 min-h-screen transition-colors duration-500">
 
     <div class="max-w-6xl mx-auto md:p-6 p-2">
         <div class="bg-white p-4 rounded-t-xl border-b flex justify-between items-center shadow-sm">
-            <h1 class="text-xl font-bold text-slate-700">彰醫藥劑科 🏥 調撥通知</h1>
-            <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold active:bg-red-200">🔄 系統重設</button>
+            <h1 class="text-xl font-bold text-slate-700">彰醫藥劑科 🏥 調撥系統</h1>
+            <div class="flex gap-2">
+                <button id="voiceBtn" onclick="enableVoice()" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-bold">📢 開啟語音</button>
+                <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold">🔄 重設</button>
+            </div>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-4 rounded-b-xl shadow-lg">
@@ -44,12 +45,6 @@
                     </select>
                 </div>
 
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="setForm('口服', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold shadow-sm">口服</button>
-                    <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold shadow-sm">針劑</button>
-                    <button onclick="setForm('外用', this)" class="form-btn border bg-white py-3 rounded-xl text-xs font-bold shadow-sm">外用</button>
-                </div>
-
                 <div class="relative">
                     <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或藥碼..." class="w-full p-5 border-2 rounded-2xl outline-none focus:border-blue-500 shadow-inner bg-white text-lg">
                     <ul id="suggestList" class="absolute z-50 w-full bg-white border rounded-xl mt-2 shadow-2xl hidden max-h-60 overflow-y-auto"></ul>
@@ -57,30 +52,28 @@
 
                 <div id="confirmBox" class="bg-blue-600 p-4 rounded-2xl hidden text-white shadow-lg">
                     <div id="selectedDrugName" class="font-bold text-lg"></div>
-                    <div id="selectedDrugInfo" class="text-xs opacity-80 mb-3"></div>
+                    <div id="selectedDrugInfo" class="text-xs mb-3"></div>
                     <div class="flex gap-3">
                         <input type="number" id="qtyInput" value="1" class="w-20 p-3 rounded-xl font-bold text-center text-blue-900">
-                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow active:scale-95 transition">確認加入清單</button>
+                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow active:scale-95 transition">確認加入</button>
                     </div>
                 </div>
                 
-                <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl transition-all">🚀 送出通知藥庫</button>
+                <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl">🚀 送出通知藥庫</button>
             </div>
 
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col">
-                <div id="statusLabel" class="text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500">🟢 系統監測中</div>
-                <div class="flex-grow border rounded-2xl bg-white min-h-[400px] overflow-hidden shadow-inner">
+                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 監測中 (跨日自動清空)</div>
+                <div class="flex-grow border rounded-2xl bg-white min-h-[450px] overflow-hidden shadow-inner">
                     <table class="w-full text-sm">
                         <thead class="bg-slate-800 text-white">
-                            <tr><th class="p-4 text-left">申請人 / 藥品</th><th class="p-4 text-center w-20">數量</th><th class="p-4 w-12"></th></tr>
+                            <tr><th class="p-4 text-left">申請人 / 藥名</th><th class="p-4 text-center w-20">數量</th><th class="p-4 text-right w-24">時間</th></tr>
                         </thead>
-                        <tbody id="cartBody" class="divide-y divide-slate-100 text-[13px]"></tbody>
+                        <tbody id="cartBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="actionArea" class="pt-6 space-y-4">
-                    <button id="receiveBtn" onclick="receiveAndDownload()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">✅ 簽收調撥 (下載Excel)</button>
-                    <button id="elevatorBtn" onclick="sendToElevator()" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">📦 藥品已入電梯</button>
-                    <button id="doneBtn" onclick="resetToIdle()" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">完成領取</button>
+                <div id="actionArea" class="pt-4">
+                    <button id="receiveBtn" onclick="receiveAndDownload()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95">✅ 下載清單並簽收</button>
                 </div>
             </div>
         </div>
@@ -88,22 +81,22 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
             authDomain: "drug--arrive.firebaseapp.com",
             databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
             projectId: "drug--arrive",
-            storageBucket: "drug--arrive.firebasestorage.app",
-            messagingSenderId: "215426668369",
             appId: "1:215426668369:web:eaa94e83974fcec391a570"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        const statusRef = ref(db, 'combinedSystemStatus');
+        const listRef = ref(db, 'dailyTransferList');
+        const metaRef = ref(db, 'systemMeta');
 
+        let drugDb = [
         // === 核心資料：直接埋入藥品庫 ===
         let drugDb = [
             { id: 'AKII90', name: 'Bipiden', form: '針劑' },
@@ -1083,28 +1076,42 @@
             { id: 'VINO03', name: 'Vinobin 20', form: '口服' }
         ];
 
-        // 角色與狀態控制
+
+        let voiceEnabled = false;
+        let lastCount = 0;
         const urlParams = new URLSearchParams(window.location.search);
         const role = urlParams.get('role');
-        let cart = [];
-        let currentDrug = null;
-        let selectedForm = '';
-        let pendingItems = [];
 
-        window.addEventListener('load', () => {
-            const ps = document.getElementById('pharmacySection');
-            const ws = document.getElementById('warehouseSection');
-            const aa = document.getElementById('actionArea');
-            if (role === 'pharmacy') {
-                ws.classList.replace('lg:col-span-7', 'lg:col-span-12');
-                aa.classList.add('role-hidden');
-            } else if (role === 'warehouse') {
-                ps.classList.add('role-hidden');
-                ws.classList.replace('lg:col-span-7', 'lg:col-span-12');
+        // === 語音功能 ===
+        window.enableVoice = () => {
+            voiceEnabled = true;
+            document.getElementById('voiceBtn').innerText = "🔊 語音已開啟";
+            document.getElementById('voiceBtn').classList.replace('bg-blue-50', 'bg-blue-600');
+            document.getElementById('voiceBtn').classList.replace('text-blue-600', 'text-white');
+            speak("語音通知功能已啟動");
+        };
+
+        function speak(text) {
+            if (!voiceEnabled) return;
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = 'zh-TW';
+            window.speechSynthesis.speak(msg);
+        }
+
+        // === 自動跨日清除邏輯 ===
+        onValue(metaRef, (snap) => {
+            const data = snap.val();
+            const today = new Date().toLocaleDateString();
+            if (data && data.lastDate !== today) {
+                remove(listRef); // 清空昨天的清單
+                set(metaRef, { lastDate: today });
+            } else if (!data) {
+                set(metaRef, { lastDate: today });
             }
-        });
+        }, { onlyOnce: true });
 
-        // 搜尋邏輯
+        // === 搜尋與購物車邏輯 ===
+        let currentDrug = null;
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
 
@@ -1112,122 +1119,102 @@
             const val = searchInput.value.trim().toUpperCase();
             suggestList.innerHTML = '';
             if (!val) return suggestList.classList.add('hidden');
-            
-            const matches = drugDb.filter(d => 
-                (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && 
-                (selectedForm ? d.form === selectedForm : true)
-            ).slice(0, 15);
-
+            const matches = drugDb.filter(d => d.id.includes(val) || d.name.toUpperCase().includes(val)).slice(0, 10);
             matches.forEach(drug => {
                 const li = document.createElement('li');
-                li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between items-center text-lg";
-                li.innerHTML = `<span class="font-bold">${drug.name}</span><span class="text-xs text-slate-400 bg-slate-100 px-2 py-1 rounded">${drug.id}</span>`;
+                li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between";
+                li.innerHTML = `<b>${drug.name}</b><span class="text-xs text-slate-400">${drug.id}</span>`;
                 li.onclick = () => {
                     currentDrug = drug;
                     document.getElementById('confirmBox').classList.remove('hidden');
                     document.getElementById('selectedDrugName').innerText = drug.name;
-                    document.getElementById('selectedDrugInfo').innerText = `${drug.id} / ${drug.form}`;
-                    searchInput.value = drug.name;
-                    suggestList.classList.add('hidden');
+                    document.getElementById('selectedDrugInfo').innerText = drug.id;
+                    searchInput.value = drug.name; suggestList.classList.add('hidden');
+                    document.getElementById('submitBtn').disabled = false;
+                    document.getElementById('submitBtn').classList.remove('opacity-20');
                 };
                 suggestList.appendChild(li);
             });
             suggestList.classList.remove('hidden');
         });
 
-        window.setForm = (form, btn) => {
-            selectedForm = (selectedForm === form) ? '' : form;
-            document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active-form'));
-            if(selectedForm) btn.classList.add('active-form');
-            searchInput.dispatchEvent(new Event('input'));
-        };
-
         window.addToCart = () => {
             const user = document.getElementById('userSelect').value;
-            if (!user) return alert("⚠️ 請先選擇簽名！");
-            if (!currentDrug) return;
-            cart.push({ 
-                ...currentDrug, 
-                qty: document.getElementById('qtyInput').value, 
-                user: user, 
-                time: new Date().toLocaleTimeString() 
-            });
-            renderCart();
-            currentDrug = null;
-            searchInput.value = '';
-            document.getElementById('confirmBox').classList.add('hidden');
+            if (!user) return alert("請先選擇簽名");
+            const qty = document.getElementById('qtyInput').value;
+            const newItem = {
+                user: user,
+                name: currentDrug.name,
+                id: currentDrug.id,
+                qty: qty,
+                time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+            };
+            push(listRef, newItem); // 直接推送到 Firebase
+            currentDrug = null; searchInput.value = ''; document.getElementById('confirmBox').classList.add('hidden');
+            alert("✅ 通知已送出");
         };
 
-        function renderCart() {
-            const tbody = document.getElementById('cartBody');
-            const submitBtn = document.getElementById('submitBtn');
-            submitBtn.disabled = cart.length === 0;
-            submitBtn.className = cart.length === 0 ? 
-                "w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl" : 
-                "w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl active:scale-95";
-            
-            tbody.innerHTML = cart.map((item, idx) => `
-                <tr class="hover:bg-slate-50 transition-colors">
-                    <td class="p-4"><span class="text-blue-600 font-black">【${item.user}】</span><br><b class="text-slate-700">${item.name}</b> <small class="text-slate-400">(${item.id})</small></td>
-                    <td class="p-4 text-center font-black text-xl text-red-600">${item.qty}</td>
-                    <td class="p-4 text-center text-slate-300" onclick="removeFromCart(${idx})">✕</td>
-                </tr>`).join('');
-        }
-
-        window.removeFromCart = (idx) => { cart.splice(idx, 1); renderCart(); };
-        window.submitTransfer = () => {
-            set(statusRef, { state: "arriving", items: cart, timestamp: Date.now() });
-            cart = []; renderCart(); alert("✅ 通知已送達藥庫！");
-        };
-        window.resetToIdle = () => { if(confirm("重設系統？")) set(statusRef, { state: "idle", items: [] }); };
-        
-        window.receiveAndDownload = () => {
-            const ws = XLSX.utils.json_to_sheet(cart.map(i => ({ "申請人": i.user, "藥碼": i.id, "藥名": i.name, "數量": i.qty, "申請時間": i.time })));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "調撥單");
-            XLSX.writeFile(wb, `彰醫調撥單_${new Date().getTime()}.xlsx`);
-            set(statusRef, { state: "preparing", items: cart });
-        };
-        
-        window.sendToElevator = () => {
-            onValue(statusRef, (s) => { set(statusRef, { ...s.val(), state: "in_elevator" }); }, { onlyOnce: true });
+        window.resetToIdle = () => {
+            if(confirm("確定要清空今日所有紀錄嗎？")) remove(listRef);
         };
 
-        // Firebase 核心監聽
-        onValue(statusRef, (snap) => {
+        // === 監聽 Firebase 資料並呈現 ===
+        onValue(listRef, (snap) => {
             const data = snap.val();
+            const tbody = document.getElementById('cartBody');
             const body = document.getElementById('bodyTag');
             const label = document.getElementById('statusLabel');
-            const btns = [document.getElementById('receiveBtn'), document.getElementById('elevatorBtn'), document.getElementById('doneBtn')];
-            const tbody = document.getElementById('cartBody');
+            const btnR = document.getElementById('receiveBtn');
 
-            btns.forEach(b => b.classList.add('hidden'));
-            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
-
-            if (!data || data.state === 'idle') {
-                label.innerText = "🟢 系統監測中";
-                label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500";
-                tbody.innerHTML = ""; 
-            } else {
-                cart = data.items || [];
-                renderCart();
-                if (data.state === 'arriving') {
-                    label.innerText = "🚨 收到調撥申請，請簽收！";
-                    label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-red-600 text-white shadow-lg";
-                    body.classList.add('mode-arriving');
-                    btns[0].classList.remove('hidden');
-                } else if (data.state === 'preparing') {
-                    label.innerText = "⏳ 藥庫備藥中";
-                    label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-blue-100 text-blue-700";
-                    btns[1].classList.remove('hidden');
-                } else if (data.state === 'in_elevator') {
-                    label.innerText = "📦 藥品已入電梯，請通知領取";
-                    label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-yellow-400 text-yellow-900 shadow-lg";
-                    body.classList.add('mode-elevator');
-                    btns[2].classList.remove('hidden');
-                }
+            if (!data) {
+                tbody.innerHTML = "";
+                label.innerText = "🟢 今日尚無調撥申請";
+                body.classList.remove('mode-arriving');
+                btnR.classList.add('hidden');
+                lastCount = 0;
+                return;
             }
+
+            const items = Object.values(data);
+            // 如果數量增加，觸發語音
+            if (items.length > lastCount && lastCount !== 0) {
+                const lastItem = items[items.length - 1];
+                speak(`收到來自${lastItem.user}的調撥單`);
+                body.classList.add('mode-arriving');
+                setTimeout(() => body.classList.remove('mode-arriving'), 5000);
+            }
+            lastCount = items.length;
+
+            label.innerText = `🚨 今日共有 ${items.length} 筆調撥`;
+            btnR.classList.remove('hidden');
+
+            tbody.innerHTML = items.reverse().map(item => `
+                <tr class="hover:bg-slate-50">
+                    <td class="p-4"><span class="text-blue-600 font-black">【${item.user}】</span><br><b>${item.name}</b></td>
+                    <td class="p-4 text-center font-black text-red-500 text-lg">${item.qty}</td>
+                    <td class="p-4 text-right text-slate-400 text-xs">${item.time}</td>
+                </tr>
+            `).join('');
         });
+
+        window.receiveAndDownload = () => {
+            onValue(listRef, (snap) => {
+                const data = Object.values(snap.val());
+                const ws = XLSX.utils.json_to_sheet(data);
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "今日調撥");
+                XLSX.writeFile(wb, `彰醫調撥單_${new Date().toLocaleDateString()}.xlsx`);
+            }, { onlyOnce: true });
+        };
+
+        // 介面切換
+        if (role === 'pharmacy') {
+            document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
+            document.getElementById('actionArea').classList.add('role-hidden');
+        } else if (role === 'warehouse') {
+            document.getElementById('pharmacySection').classList.add('role-hidden');
+            document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
+        }
     </script>
 </body>
 </html>
