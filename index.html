@@ -31,13 +31,13 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-4 rounded-b-xl shadow-lg">
             <div id="pharmacySection" class="lg:col-span-5 space-y-4 bg-slate-50 p-4 rounded-lg border">
-                <h2 class="text-sm font-bold text-blue-600 border-b pb-2 italic">藥局搜尋</h2>
+                <h2 class="text-sm font-bold text-blue-600 border-b pb-2 italic">1. 藥局搜尋</h2>
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="setForm('口服', this)" class="form-btn border bg-white py-2 rounded-lg text-xs">口服</button>
                     <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-2 rounded-lg text-xs">針劑</button>
                     <button onclick="setForm('外用', this)" class="form-btn border bg-white py-2 rounded-lg text-xs">外用</button>
                 </div>
-                <input type="text" id="searchInput" autocomplete="off" placeholder="輸入藥名或藥碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500 shadow-sm">
+                <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或代碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500">
                 <ul id="suggestList" class="absolute z-50 w-64 bg-white border rounded-lg mt-1 shadow-2xl hidden max-h-48 overflow-y-auto"></ul>
 
                 <div id="confirmBox" class="bg-blue-100 p-3 rounded-lg border border-blue-200 hidden">
@@ -53,8 +53,8 @@
             </div>
 
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col">
-                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded bg-slate-100 text-slate-500 text-sm">🟢 系統待機中</div>
-                <div class="flex-grow border rounded-lg bg-slate-50 min-h-[300px] overflow-y-auto mb-4">
+                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded bg-slate-100 text-slate-500 text-sm italic">系統連線中...</div>
+                <div class="flex-grow border rounded-lg bg-slate-50 min-h-[350px] overflow-y-auto">
                     <table class="w-full text-xs">
                         <thead class="bg-slate-200 sticky top-0">
                             <tr><th class="p-3 text-left">藥名規格</th><th class="p-3 text-center w-16">數量</th><th class="p-3 w-8"></th></tr>
@@ -62,10 +62,10 @@
                         <tbody id="cartBody" class="bg-white divide-y"></tbody>
                     </table>
                 </div>
-                <div id="actionArea" class="space-y-3">
-                    <button onclick="receiveAndDownload()" id="receiveBtn" class="hidden w-full bg-red-600 text-white py-6 rounded-2xl font-bold text-xl shadow-xl btn-pulse active:scale-95">✅ 收到調撥單</button>
+                <div id="actionArea" class="space-y-3 pt-4">
+                    <button onclick="receiveAndDownload()" id="receiveBtn" class="hidden w-full bg-red-600 text-white py-6 rounded-2xl font-bold text-xl shadow-xl btn-pulse active:scale-95">✅ 收到調撥</button>
                     <button onclick="sendToElevator()" id="elevatorBtn" class="hidden w-full bg-green-600 text-white py-6 rounded-2xl font-bold text-xl shadow-xl active:scale-95">📦 藥品已入電梯</button>
-                    <button onclick="resetToIdle()" id="doneBtn" class="hidden w-full bg-slate-700 text-white py-6 rounded-2xl font-bold text-xl shadow-xl active:scale-95">✅ 完成領藥</button>
+                    <button onclick="resetToIdle()" id="doneBtn" class="hidden w-full bg-slate-700 text-white py-6 rounded-2xl font-bold text-xl shadow-xl active:scale-95">✅ 完成領貨</button>
                 </div>
             </div>
         </div>
@@ -75,7 +75,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        // 1. Firebase 配置
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
             authDomain: "drug--arrive.firebaseapp.com",
@@ -90,27 +89,21 @@
         const db = getDatabase(app);
         const statusRef = ref(db, 'combinedSystemStatus');
 
-        // 2. 藥品清單 (請在此處貼上你那幾百筆資料，範例僅列三筆)
-        let drugDb = [
+        // 藥品清單 (優先讀取匯入的資料)
+        let drugDb = JSON.parse(localStorage.getItem('savedDrugDb')) || [
             { id: 'AKII90', name: 'Bipiden', form: '針劑' },
             { id: 'ALCE91', name: 'Alcaine', form: '外用' },
             { id: 'VINO03', name: 'Vinobin 20', form: '口服' }
         ];
 
-        // 讀取本地儲存資料
-        const savedDb = localStorage.getItem('savedDrugDb');
-        if (savedDb) drugDb = JSON.parse(savedDb);
-
-        // 3. 角色與全域變數
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role');
         let cart = [];
         let currentDrug = null;
         let selectedForm = '';
         let pendingItems = [];
-        let alertInterval = null;
 
-        // 初始化角色介面
+        // 角色判斷
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get('role');
         if (role === 'pharmacy') {
             document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
             document.getElementById('actionArea').classList.add('role-hidden');
@@ -119,33 +112,102 @@
             document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
         }
 
-        // 4. 搜尋功能
+        // 搜尋功能
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
+        searchInput.addEventListener('input', () => {
+            const val = searchInput.value.trim().toUpperCase();
+            suggestList.innerHTML = '';
+            if (!val) return suggestList.classList.add('hidden');
+            const matches = drugDb.filter(d => (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 10);
+            matches.forEach(drug => {
+                const li = document.createElement('li');
+                li.className = "p-3 border-b hover:bg-blue-50 cursor-pointer flex justify-between text-xs";
+                li.innerHTML = `<span>${drug.name}</span><span class="text-slate-400">${drug.id}</span>`;
+                li.onclick = () => {
+                    currentDrug = drug;
+                    document.getElementById('confirmBox').classList.remove('hidden');
+                    document.getElementById('selectedDrugName').innerText = drug.name;
+                    document.getElementById('selectedDrugInfo').innerText = `${drug.id} | ${drug.form}`;
+                    searchInput.value = drug.name;
+                    suggestList.classList.add('hidden');
+                };
+                suggestList.appendChild(li);
+            });
+            suggestList.classList.remove('hidden');
+        });
 
-        if(searchInput) {
-            searchInput.addEventListener('input', () => {
-                const val = searchInput.value.trim().toUpperCase();
-                suggestList.innerHTML = '';
-                if (!val) return suggestList.classList.add('hidden');
-                
-                const matches = drugDb.filter(d => 
-                    (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && 
-                    (selectedForm ? d.form === selectedForm : true)
-                ).slice(0, 10);
+        // 按鈕功能掛載
+        window.setForm = (form, btn) => {
+            selectedForm = (selectedForm === form) ? '' : form;
+            document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active-form'));
+            if(selectedForm) btn.classList.add('active-form');
+            searchInput.dispatchEvent(new Event('input'));
+        };
 
-                matches.forEach(drug => {
-                    const li = document.createElement('li');
-                    li.className = "p-3 border-b hover:bg-blue-50 cursor-pointer flex justify-between text-xs";
-                    li.innerHTML = `<span>${drug.name}</span><span class="text-slate-400">${drug.id}</span>`;
-                    li.onclick = () => {
-                        currentDrug = drug;
-                        document.getElementById('confirmBox').classList.remove('hidden');
-                        document.getElementById('selectedDrugName').innerText = drug.name;
-                        document.getElementById('selectedDrugInfo').innerText = `${drug.id} | ${drug.form}`;
-                        searchInput.value = drug.name;
-                        suggestList.classList.add('hidden');
-                    };
-                    suggestList.appendChild(li);
-                });
-                suggestList.
+        window.addToCart = () => {
+            if (!currentDrug) return alert("請先選擇藥品");
+            cart.push({ ...currentDrug, qty: document.getElementById('qtyInput').value });
+            renderCart();
+            currentDrug = null; searchInput.value = ''; document.getElementById('confirmBox').classList.add('hidden');
+        };
+
+        function renderCart() {
+            const tbody = document.getElementById('cartBody');
+            const btn = document.getElementById('submitBtn');
+            btn.disabled = cart.length === 0;
+            btn.classList.toggle('opacity-30', cart.length === 0);
+            btn.classList.toggle('opacity-100', cart.length > 0);
+            tbody.innerHTML = cart.map((item, index) => `<tr class="text-[10px]"><td class="p-3"><b>${item.name}</b><br>${item.id}</td><td class="p-3 text-center">${item.qty}</td><td class="p-3 text-red-500" onclick="removeFromCart(${index})">✕</td></tr>`).join('');
+        }
+
+        window.removeFromCart = (idx) => { cart.splice(idx,1); renderCart(); };
+        window.submitTransfer = () => { set(statusRef, { state: "arriving", items: cart }); cart = []; renderCart(); };
+        window.receiveAndDownload = () => { 
+            const ws = XLSX.utils.json_to_sheet(pendingItems);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "清單");
+            XLSX.writeFile(wb, "藥局申請單.xlsx");
+            set(statusRef, { state: "preparing" }); 
+        };
+        window.sendToElevator = () => { set(statusRef, { state: "in_elevator" }); };
+        window.resetToIdle = () => { set(statusRef, { state: "idle", items: [] }); };
+
+        // 監聽 Firebase 狀態
+        onValue(statusRef, (snapshot) => {
+            const data = snapshot.val();
+            const label = document.getElementById('statusLabel');
+            const btnR = document.getElementById('receiveBtn');
+            const btnE = document.getElementById('elevatorBtn');
+            const btnD = document.getElementById('doneBtn');
+            [btnR, btnE, btnD].forEach(b => b.classList.add('hidden'));
+
+            if (!data || data.state === "idle") {
+                label.innerText = "🟢 系統待機中";
+            } else if (data.state === "arriving") {
+                pendingItems = data.items || [];
+                label.innerText = "🚨 藥局缺藥調撥申請中！";
+                btnR.classList.remove('hidden');
+            } else if (data.state === "preparing") {
+                label.innerText = "⏳ 藥庫處理中";
+                btnE.classList.remove('hidden');
+            } else if (data.state === "in_elevator") {
+                label.innerText = "📦 藥品已在電梯";
+                btnD.classList.remove('hidden');
+            }
+        });
+
+        window.importDrugDb = (input) => {
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const workbook = XLSX.read(new Uint8Array(e.target.result), {type: 'array'});
+                const json = XLSX.utils.sheet_to_json(workbook.Sheets[workbook.SheetNames[0]]);
+                drugDb = json.map(i => ({ id: i['藥碼']||i['ID'], name: i['藥名']||i['Name'], form: i['劑型']||i['Form'] }));
+                localStorage.setItem('savedDrugDb', JSON.stringify(drugDb));
+                location.reload();
+            };
+            reader.readAsArrayBuffer(input.files[0]);
+        };
+    </script>
+</body>
+</html>
