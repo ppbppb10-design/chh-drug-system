@@ -13,37 +13,55 @@
         .mode-elevator { background: #fff3cd; animation: flashYellow 1.5s infinite; }
         @keyframes flashYellow { 0%, 100% { background: #fff3cd; } 50% { background: #ffeeba; } }
         .role-hidden { display: none !important; }
+        /* 針對手機優化選單高度 */
+        select { -webkit-appearance: none; }
     </style>
 </head>
 <body id="bodyTag" class="bg-slate-100 min-h-screen">
 
     <div class="max-w-6xl mx-auto md:p-6 p-2">
         <div class="bg-white p-4 rounded-t-xl border-b flex justify-between items-center shadow-sm">
-            <h1 class="text-xl font-bold text-slate-700">彰醫藥劑科 🏥 調撥系統</h1>
+            <h1 class="text-xl font-bold text-slate-700">彰醫藥劑科 🏥 調撥通知</h1>
             <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold">重設系統</button>
         </div>
 
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-4 rounded-b-xl shadow-lg">
             
             <div id="pharmacySection" class="lg:col-span-5 space-y-4 bg-slate-50 p-4 rounded-lg border">
-                <h2 class="text-sm font-bold text-blue-600 border-b pb-2 italic">1. 填寫調撥申請</h2>
+                <h2 class="text-sm font-bold text-blue-600 border-b pb-2 italic">1. 填寫申請資訊</h2>
                 
                 <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-500">申請單位 / 人員：</label>
-                    <select id="userSelect" class="w-full p-4 border-2 border-blue-200 rounded-xl bg-white font-bold text-blue-700 shadow-sm focus:border-blue-500 outline-none">
-                        <option value="">--- 請選擇您的身份 ---</option>
-                        <optgroup label="門診區">
-                            <option value="門診藥局-人員A">門診藥局-人員A</option>
-                            <option value="門診藥局-人員B">門診藥局-人員B</option>
-                        </optgroup>
-                        <optgroup label="住院/急診區">
-                            <option value="住院藥局-人員C">住院藥局-人員C</option>
-                            <option value="急診藥局-人員D">急診藥局-人員D</option>
-                        </optgroup>
-                        <optgroup label="其他">
-                            <option value="中藥局">中藥局</option>
-                            <option value="藥庫人員">藥庫人員</option>
-                        </optgroup>
+                    <label class="text-[10px] font-bold text-slate-500">申請人簽名：</label>
+                    <select id="userSelect" class="w-full p-4 border-2 border-blue-200 rounded-xl bg-white font-bold text-blue-800 shadow-sm outline-none text-lg">
+                        <option value="">請選擇您的姓名...</option>
+                        <option value="陳東錦">陳東錦</option>
+                        <option value="賴錦益">賴錦益</option>
+                        <option value="邱富強">邱富強</option>
+                        <option value="劉孟育">劉孟育</option>
+                        <option value="蘇惠敏">蘇惠敏</option>
+                        <option value="林雅萍">林雅萍</option>
+                        <option value="張幸逢">張幸逢</option>
+                        <option value="洪紹寧">洪紹寧</option>
+                        <option value="黃聖剛">黃聖剛</option>
+                        <option value="陳麗君">陳麗君</option>
+                        <option value="楊德宏">楊德宏</option>
+                        <option value="陳玫君">陳玫君</option>
+                        <option value="馬惠玲">馬惠玲</option>
+                        <option value="吳婉瑄">吳婉瑄</option>
+                        <option value="嚴宗賓">嚴宗賓</option>
+                        <option value="張雨淳">張雨淳</option>
+                        <option value="劉育伶">劉育伶</option>
+                        <option value="邱瑞航">邱瑞航</option>
+                        <option value="吳致寛">吳致寛</option>
+                        <option value="葉儒樺">葉儒樺</option>
+                        <option value="劉子嫣">劉子嫣</option>
+                        <option value="許佳燕">許佳燕</option>
+                        <option value="許藝齡">許藝齡</option>
+                        <option value="劉佳昕">劉佳昕</option>
+                        <option value="黃竹珈">黃竹珈</option>
+                        <option value="胡明哲">胡明哲</option>
+                        <option value="李婉華">李婉華</option>
+                        <option value="邱麒文">邱麒文</option>
                     </select>
                 </div>
 
@@ -54,7 +72,7 @@
                 </div>
 
                 <div class="relative">
-                    <input type="text" id="searchInput" autocomplete="off" placeholder="點此搜尋藥名或藥碼..." class="w-full p-5 border-2 rounded-2xl outline-none focus:border-blue-500 shadow-inner bg-white text-lg">
+                    <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或藥碼..." class="w-full p-5 border-2 rounded-2xl outline-none focus:border-blue-500 shadow-inner bg-white text-lg">
                     <ul id="suggestList" class="absolute z-50 w-full bg-white border rounded-xl mt-2 shadow-2xl hidden max-h-60 overflow-y-auto"></ul>
                 </div>
 
@@ -63,21 +81,21 @@
                     <div id="selectedDrugInfo" class="text-xs opacity-80 mb-3"></div>
                     <div class="flex gap-3">
                         <input type="number" id="qtyInput" value="1" class="w-20 p-3 rounded-xl font-bold text-center text-blue-900">
-                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow active:scale-95 transition">確認加入</button>
+                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow active:scale-95 transition">確認加入清單</button>
                     </div>
                 </div>
                 
-                <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-lg opacity-20 shadow-xl">🚀 送出通知藥庫</button>
+                <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl">🚀 送出通知藥庫</button>
             </div>
 
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col">
-                <div id="statusLabel" class="text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500">🟢 系統待機中</div>
+                <div id="statusLabel" class="text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500">🟢 系統監測中</div>
                 
                 <div class="flex-grow border rounded-2xl bg-white min-h-[400px] overflow-hidden shadow-inner">
                     <table class="w-full text-sm">
-                        <thead class="bg-slate-800 text-white">
+                        <thead class="bg-slate-800 text-white font-bold">
                             <tr>
-                                <th class="p-4 text-left font-medium">申請人 / 藥品資訊</th>
+                                <th class="p-4 text-left">申請人 / 藥品</th>
                                 <th class="p-4 text-center w-20">數量</th>
                                 <th class="p-4 w-12"></th>
                             </tr>
@@ -87,7 +105,7 @@
                 </div>
 
                 <div id="actionArea" class="pt-6 space-y-4">
-                    <button id="receiveBtn" onclick="receiveAndDownload()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">✅ 簽收清單 (下載Excel)</button>
+                    <button id="receiveBtn" onclick="receiveAndDownload()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">✅ 簽收調撥 (下載Excel)</button>
                     <button id="elevatorBtn" onclick="sendToElevator()" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">📦 藥品已入電梯</button>
                     <button id="doneBtn" onclick="resetToIdle()" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-2xl active:scale-95">完成領取</button>
                 </div>
@@ -113,12 +131,11 @@
         const db = getDatabase(app);
         const statusRef = ref(db, 'combinedSystemStatus');
 
-        // 藥品資料庫
-        let drugDb = [
+        // 藥品資料庫 (此處範例，實際運作建議使用匯入按鈕)
+        let drugDb = JSON.parse(localStorage.getItem('savedDrugDb')) || [
             { id: 'AKII90', name: 'Bipiden', form: '針劑' },
             { id: 'ALCE91', name: 'Alcaine', form: '外用' },
             { id: 'VINO03', name: 'Vinobin 20', form: '口服' }
-            // 這裡可以繼續增加到 400 筆
         ];
 
         let cart = [];
@@ -127,7 +144,6 @@
         const urlParams = new URLSearchParams(window.location.search);
         const role = urlParams.get('role');
 
-        // 初始化介面
         window.addEventListener('load', () => {
             if (role === 'pharmacy') {
                 document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
@@ -146,7 +162,7 @@
             const val = searchInput.value.trim().toUpperCase();
             suggestList.innerHTML = '';
             if (!val) return suggestList.classList.add('hidden');
-            const matches = drugDb.filter(d => (d.id.includes(val) || d.name.toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 15);
+            const matches = drugDb.filter(d => (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 15);
             matches.forEach(drug => {
                 const li = document.createElement('li');
                 li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between items-center";
@@ -172,7 +188,7 @@
 
         window.addToCart = () => {
             const user = document.getElementById('userSelect').value;
-            if (!user) return alert("⚠️ 請先選擇申請人！");
+            if (!user) return alert("⚠️ 請先選擇您的姓名！");
             if (!currentDrug) return;
             cart.push({ ...currentDrug, qty: document.getElementById('qtyInput').value, user: user, time: new Date().toLocaleTimeString() });
             renderCart();
@@ -183,27 +199,34 @@
             const tbody = document.getElementById('cartBody');
             const submitBtn = document.getElementById('submitBtn');
             submitBtn.disabled = cart.length === 0;
-            submitBtn.className = cart.length === 0 ? "w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-lg opacity-20 shadow-xl" : "w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-lg shadow-xl active:scale-95 transition-all";
+            submitBtn.className = cart.length === 0 ? "w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl" : "w-full bg-blue-600 text-white py-5 rounded-2xl font-black text-xl shadow-xl active:scale-95 transition-all";
             tbody.innerHTML = cart.map((item, idx) => `
-                <tr class="hover:bg-slate-50">
-                    <td class="p-4"><span class="text-blue-600 font-black">[${item.user}]</span><br><b class="text-slate-700">${item.name}</b></td>
-                    <td class="p-4 text-center font-bold text-lg text-red-500">${item.qty}</td>
+                <tr class="hover:bg-slate-50 transition-colors">
+                    <td class="p-4"><span class="text-blue-600 font-black">【${item.user}】</span><br><b class="text-slate-700">${item.name}</b> <small class="text-slate-400">(${item.id})</small></td>
+                    <td class="p-4 text-center font-black text-xl text-red-600">${item.qty}</td>
                     <td class="p-4 text-center text-slate-300" onclick="removeFromCart(${idx})">✕</td>
                 </tr>`).join('');
         }
 
         window.removeFromCart = (idx) => { cart.splice(idx,1); renderCart(); };
-        window.submitTransfer = () => { set(statusRef, { state: "arriving", items: cart, timestamp: Date.now() }); cart = []; renderCart(); alert("✅ 已送出通知！"); };
-        window.resetToIdle = () => { if(confirm("確定重設系統？")) set(statusRef, { state: "idle", items: [] }); };
+        window.submitTransfer = () => { set(statusRef, { state: "arriving", items: cart, timestamp: Date.now() }); cart = []; renderCart(); alert("✅ 通知已成功送達藥庫！"); };
+        window.resetToIdle = () => { if(confirm("確定要重設系統並清空畫面嗎？")) set(statusRef, { state: "idle", items: [] }); };
+        
         window.receiveAndDownload = () => {
-            const ws = XLSX.utils.json_to_sheet(cart.map(i => ({ "人員": i.user, "藥碼": i.id, "藥名": i.name, "數量": i.qty, "時間": i.time })));
+            const ws = XLSX.utils.json_to_sheet(cart.map(i => ({ "申請人": i.user, "藥碼": i.id, "藥名": i.name, "數量": i.qty, "申請時間": i.time })));
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "調撥單");
-            XLSX.writeFile(wb, "調撥申請清單.xlsx");
+            XLSX.writeFile(wb, `彰醫調撥單_${new Date().toLocaleTimeString().replace(/:/g,'-')}.xlsx`);
             set(statusRef, { state: "preparing", items: cart });
         };
-        window.sendToElevator = () => set(statusRef, { ...statusRef.data, state: "in_elevator" });
+        
+        window.sendToElevator = () => {
+            onValue(statusRef, (s) => {
+                const current = s.val();
+                set(statusRef, { ...current, state: "in_elevator" });
+            }, { onlyOnce: true });
+        };
 
-        // 核心監聽
+        // Firebase 核心監聽
         onValue(statusRef, (snap) => {
             const data = snap.val();
             const body = document.getElementById('bodyTag');
@@ -212,16 +235,17 @@
             const tbody = document.getElementById('cartBody');
 
             btns.forEach(b => b.classList.add('hidden'));
-            body.className = "bg-slate-100 min-h-screen";
+            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
 
             if (!data || data.state === 'idle') {
-                label.innerText = "🟢 系統待機中";
+                label.innerText = "🟢 系統監測中";
                 label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-slate-100 text-slate-500";
+                tbody.innerHTML = ""; 
             } else {
                 cart = data.items || [];
                 renderCart();
                 if (data.state === 'arriving') {
-                    label.innerText = "🚨 收到新的調撥申請！";
+                    label.innerText = "🚨 收到調撥申請，請藥庫簽收！";
                     label.className = "text-center font-bold p-4 mb-3 rounded-xl bg-red-600 text-white shadow-lg";
                     body.classList.add('mode-arriving');
                     btns[0].classList.remove('hidden');
