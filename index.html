@@ -3,13 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>彰化醫院藥劑科 - 缺藥調撥系統</title>
+    <title>彰化醫院藥劑科 - 調撥系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
         .active-form { background-color: #3b82f6 !important; color: white !important; }
         .mode-arriving { background: #fee2e2; animation: flashRed 1.5s infinite; }
         @keyframes flashRed { 0%, 100% { background: #fee2e2; } 50% { background: #fecaca; } }
+        .mode-elevator { background: #fff3cd; animation: flashYellow 1.5s infinite; }
+        @keyframes flashYellow { 0%, 100% { background: #fff3cd; } 50% { background: #ffeeba; } }
         .role-hidden { display: none !important; }
         select { -webkit-appearance: none; background: white; }
     </style>
@@ -18,10 +20,10 @@
 
     <div class="max-w-6xl mx-auto md:p-6 p-2">
         <div class="bg-white p-4 rounded-t-xl border-b flex justify-between items-center shadow-sm">
-            <h1 class="text-xl font-bold text-slate-700">彰醫藥劑科 🏥 調撥系統</h1>
+            <h1 class="text-xl font-bold text-slate-700">彰醫藥劑科 🏥 調撥通知</h1>
             <div class="flex gap-2">
-                <button id="voiceBtn" onclick="enableVoice()" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-bold active:bg-blue-600 active:text-white">📢 開啟語音</button>
-                <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold active:bg-red-200">🔄 重設</button>
+                <button id="voiceBtn" onclick="enableVoice()" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-bold">📢 開啟語音</button>
+                <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold">🔄 重設</button>
             </div>
         </div>
 
@@ -30,7 +32,7 @@
             <div id="pharmacySection" class="lg:col-span-5 space-y-4 bg-slate-50 p-4 rounded-lg border">
                 <div class="space-y-1">
                     <label class="text-[10px] font-bold text-slate-500">申請人簽名：</label>
-                    <select id="userSelect" class="w-full p-4 border-2 border-blue-200 rounded-xl font-bold text-blue-800 shadow-sm outline-none text-lg">
+                    <select id="userSelect" class="w-full p-4 border-2 border-blue-200 rounded-xl font-bold text-blue-800 outline-none text-lg">
                         <option value="">請選擇姓名...</option>
                         <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
                         <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
@@ -58,28 +60,31 @@
 
                 <div id="confirmBox" class="bg-blue-600 p-4 rounded-2xl hidden text-white shadow-lg">
                     <div id="selectedDrugName" class="font-bold text-lg"></div>
-                    <div id="selectedDrugInfo" class="text-xs opacity-80 mb-3"></div>
+                    <div id="selectedDrugInfo" class="text-xs mb-3"></div>
                     <div class="flex gap-3">
                         <input type="number" id="qtyInput" value="1" class="w-20 p-3 rounded-xl font-bold text-center text-blue-900">
-                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow active:scale-95 transition">確認加入</button>
+                        <button onclick="addToCart()" class="flex-grow bg-white text-blue-600 font-black rounded-xl py-3 shadow">確認加入清單</button>
                     </div>
                 </div>
                 
+                <div id="statusLabelPharmacy" class="text-center p-3 rounded-xl text-sm font-bold bg-slate-100 text-slate-500">🟢 系統待機中</div>
                 <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full bg-slate-800 text-white py-5 rounded-2xl font-black text-xl opacity-20 shadow-xl">🚀 送出通知藥庫</button>
             </div>
 
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col">
-                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 監測中 (跨日自動清空)</div>
-                <div class="flex-grow border rounded-2xl bg-white min-h-[450px] overflow-hidden shadow-inner">
+                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm italic">🟢 監測中 (跨日自動清空)</div>
+                <div class="flex-grow border rounded-2xl bg-white min-h-[400px] overflow-hidden shadow-inner">
                     <table class="w-full text-sm">
                         <thead class="bg-slate-800 text-white">
-                            <tr><th class="p-4 text-left">人員 / 藥名</th><th class="p-4 text-center w-16">量</th><th class="p-4 text-right w-20">時間</th></tr>
+                            <tr><th class="p-4 text-left">申請人 / 藥名</th><th class="p-4 text-center w-16">量</th><th class="p-4 text-right w-20">時間</th></tr>
                         </thead>
                         <tbody id="cartBody" class="divide-y divide-slate-100"></tbody>
                     </table>
                 </div>
-                <div id="actionArea" class="pt-4">
-                    <button id="receiveBtn" onclick="receiveAndDownload()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95">✅ 下載清單並簽收</button>
+                <div id="actionArea" class="pt-4 space-y-3">
+                    <button id="receiveBtn" onclick="updateStatus('preparing')" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95">✅ 簽收下載調撥單</button>
+                    <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95">📦 藥品已入電梯</button>
+                    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-xl active:scale-95">完成領取</button>
                 </div>
             </div>
         </div>
@@ -87,7 +92,7 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
@@ -100,9 +105,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         const listRef = ref(db, 'dailyTransferList');
+        const statusRef = ref(db, 'systemStatus');
         const metaRef = ref(db, 'systemMeta');
 
-                let drugDb = [
+        let drugDb = [
             { id: 'AKII90', name: 'Bipiden', form: '針劑' },
             { id: 'ALCE91', name: 'Alcaine', form: '外用' },
             { id: 'ALCI90', name: 'Alcohol 99.5% 5mL', form: '針劑' },
@@ -1090,8 +1096,6 @@
         window.enableVoice = () => {
             voiceEnabled = true;
             document.getElementById('voiceBtn').innerText = "🔊 語音已開啟";
-            document.getElementById('voiceBtn').classList.replace('bg-blue-50', 'bg-blue-600');
-            document.getElementById('voiceBtn').classList.replace('text-blue-600', 'text-white');
             speak("語音通知已啟動");
         };
 
@@ -1108,10 +1112,12 @@
             const today = new Date().toLocaleDateString();
             if (data && data.lastDate !== today) {
                 remove(listRef);
+                set(statusRef, { state: 'idle' });
                 set(metaRef, { lastDate: today });
             } else if (!data) { set(metaRef, { lastDate: today }); }
         }, { onlyOnce: true });
 
+        // 搜尋邏輯
         let currentDrug = null;
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
@@ -1121,14 +1127,14 @@
             suggestList.innerHTML = '';
             if (!val) return suggestList.classList.add('hidden');
             const matches = drugDb.filter(d => 
-                (String(d.id).toUpperCase().includes(val) || String(d.name).toUpperCase().includes(val)) && 
+                (String(d.id).includes(val) || String(d.name).toUpperCase().includes(val)) &&
                 (selectedForm ? d.form === selectedForm : true)
-            ).slice(0, 15);
+            ).slice(0, 10);
 
             matches.forEach(drug => {
                 const li = document.createElement('li');
                 li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between";
-                li.innerHTML = `<b>${drug.name}</b><span class="text-xs text-slate-400">${drug.id}</span>`;
+                li.innerHTML = `<b>${drug.name}</b><small>${drug.id}</small>`;
                 li.onclick = () => {
                     currentDrug = drug;
                     document.getElementById('confirmBox').classList.remove('hidden');
@@ -1147,7 +1153,7 @@
             selectedForm = (selectedForm === form) ? '' : form;
             document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active-form'));
             if(selectedForm) btn.classList.add('active-form');
-            searchInput.dispatchEvent(new Event('input')); // 觸發重新搜尋
+            searchInput.dispatchEvent(new Event('input'));
         };
 
         window.addToCart = () => {
@@ -1158,50 +1164,76 @@
                 user: user, name: currentDrug.name, id: currentDrug.id, qty: qty,
                 time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
             });
+            set(statusRef, { state: 'arriving' }); // 變更狀態
             currentDrug = null; searchInput.value = ''; document.getElementById('confirmBox').classList.add('hidden');
-            alert("✅ 已傳送至藥庫");
+            alert("✅ 通知已送出");
         };
 
-        window.resetToIdle = () => { if(confirm("確定重設今日清單？")) remove(listRef); };
+        window.updateStatus = (newState) => {
+            if (newState === 'preparing') {
+                receiveAndDownload();
+            }
+            set(statusRef, { state: newState });
+        };
+
+        window.resetToIdle = () => { if(confirm("確定重設今日清單？")) { remove(listRef); set(statusRef, {state:'idle'}); } };
+
+        // 監聽狀態與資料
+        onValue(statusRef, (snap) => {
+            const data = snap.val() || { state: 'idle' };
+            const body = document.getElementById('bodyTag');
+            const labelW = document.getElementById('statusLabel');
+            const labelP = document.getElementById('statusLabelPharmacy');
+            const btns = [document.getElementById('receiveBtn'), document.getElementById('elevatorBtn'), document.getElementById('doneBtn')];
+            
+            btns.forEach(b => b.classList.add('hidden'));
+            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
+
+            if (data.state === 'idle') {
+                labelW.innerText = "🟢 系統監測中";
+                labelP.innerText = "🟢 系統待機中";
+            } else if (data.state === 'arriving') {
+                labelW.innerText = "🚨 收到新的調撥申請！";
+                labelP.innerText = "🚨 調撥單傳送中...";
+                body.classList.add('mode-arriving');
+                btns[0].classList.remove('hidden');
+            } else if (data.state === 'preparing') {
+                labelW.innerText = "⏳ 藥庫備藥中";
+                labelP.innerText = "⏳ 藥庫備藥中...";
+                btns[1].classList.remove('hidden');
+            } else if (data.state === 'in_elevator') {
+                labelW.innerText = "📦 藥品已在電梯";
+                labelP.innerText = "📦 藥品已入電梯，請領取！";
+                body.classList.add('mode-elevator');
+                btns[2].classList.remove('hidden');
+            }
+        });
 
         onValue(listRef, (snap) => {
             const data = snap.val();
             const tbody = document.getElementById('cartBody');
-            const body = document.getElementById('bodyTag');
-            const label = document.getElementById('statusLabel');
-            const btnR = document.getElementById('receiveBtn');
-
-            if (!data) {
-                tbody.innerHTML = ""; label.innerText = "🟢 今日尚無調撥申請";
-                body.classList.remove('mode-arriving'); btnR.classList.add('hidden');
-                lastCount = 0; return;
-            }
-
+            if (!data) { tbody.innerHTML = ""; lastCount = 0; return; }
             const items = Object.values(data);
             if (items.length > lastCount && lastCount !== 0) {
                 const lastItem = items[items.length - 1];
                 speak(`收到來自${lastItem.user}的${lastItem.name}`);
-                body.classList.add('mode-arriving');
-                setTimeout(() => body.classList.remove('mode-arriving'), 8000);
             }
             lastCount = items.length;
-            label.innerText = `🚨 今日共有 ${items.length} 筆調撥紀錄`;
-            btnR.classList.remove('hidden');
             tbody.innerHTML = items.reverse().map(i => `
-                <tr class="hover:bg-slate-50 transition-colors">
+                <tr class="hover:bg-slate-50">
                     <td class="p-4"><span class="text-blue-600 font-black">【${i.user}】</span><br><b>${i.name}</b></td>
                     <td class="p-4 text-center font-black text-red-600 text-lg">${i.qty}</td>
                     <td class="p-4 text-right text-slate-400 text-[10px]">${i.time}</td>
                 </tr>`).join('');
         });
 
-        window.receiveAndDownload = () => {
+        function receiveAndDownload() {
             onValue(listRef, (snap) => {
                 const ws = XLSX.utils.json_to_sheet(Object.values(snap.val()));
                 const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "調撥");
                 XLSX.writeFile(wb, `彰醫調撥單_${new Date().toLocaleDateString()}.xlsx`);
             }, { onlyOnce: true });
-        };
+        }
 
         // 介面切換
         if (role === 'pharmacy') {
