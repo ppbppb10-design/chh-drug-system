@@ -2,13 +2,10 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>工作SOP / Wiki 共編系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
-
     <style>
         body { font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif; }
         .sop-card { transition: all 0.3s ease; }
@@ -43,15 +40,15 @@
                     <div>
                         <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 text-xl mb-4"><i class="fa-solid fa-calendar-check"></i></div>
                         <h3 class="font-bold text-lg text-slate-800 mb-2">請假規定與流程</h3>
-                        <p class="text-slate-500 text-sm line-clamp-2">請假規定與流程。</p>
+                        <p class="text-slate-500 text-sm line-clamp-2">規範科內各班別請假之代理簽核順序與線上排班登錄流程。</p>
                     </div>
                     <span class="text-teal-600 font-medium text-sm mt-4 inline-flex items-center">查看 SOP <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></span>
                 </div>
                 <div onclick="openSOP('sop_controlled_loss')" class="sop-card bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer flex flex-col justify-between">
                     <div>
                         <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500 text-xl mb-4"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <h3 class="font-bold text-lg text-slate-800 mb-2">管制藥品回收</h3>
-                        <p class="text-slate-500 text-sm line-clamp-2">管管制藥品回收流程。</p>
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">管制藥品減損報備</h3>
+                        <p class="text-slate-500 text-sm line-clamp-2">管制藥品若發生破損、調劑殘餘量之申報與衛生局報備標準步驟。</p>
                     </div>
                     <span class="text-teal-600 font-medium text-sm mt-4 inline-flex items-center">查看 SOP <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></span>
                 </div>
@@ -106,4 +103,134 @@
                 </div>
             </div>
 
-            <div class="p-4 border-t border-slate-100 flex justify-between items-center bg-slate-
+            <div class="p-4 border-t border-slate-100 flex justify-between items-center bg-slate-50">
+                <span id="lastUpdated" class="text-xs text-slate-400">更新時間：-</span>
+                <div class="space-x-2">
+                    <button id="btnEdit" onclick="switchMode('edit')" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-4 py-2 rounded-xl font-medium transition text-sm">
+                        <i class="fa-solid fa-pen-to-square mr-1"></i> 進入共編模式
+                    </button>
+                    <button id="btnCancel" onclick="switchMode('view')" class="hidden bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl font-medium transition text-sm">
+                        取消
+                    </button>
+                    <button id="btnSave" id="saveButton" class="hidden bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-xl font-medium transition text-sm shadow-md">
+                        <i class="fa-solid fa-cloud-arrow-up mr-1"></i> 儲存並發佈
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+            authDomain: "drug--arrive.firebaseapp.com",
+            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
+            projectId: "drug--arrive",
+            storageBucket: "drug--arrive.appspot.com",
+            messagingSenderId: "215426668369",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let currentSopId = '';
+
+        const sopMeta = {
+            'sop_leave': { title: '請假規定與流程', bg: 'bg-orange-50', text: 'text-orange-500', icon: 'fa-calendar-check' },
+            'sop_controlled_loss': { title: '管制藥品減損報備', bg: 'bg-red-50', text: 'text-red-500', icon: 'fa-triangle-exclamation' },
+            'sop_drug_arrive': { title: 'Drug Arrive 通知系統說明', bg: 'bg-emerald-50', text: 'text-emerald-500', icon: 'fa-elevator' },
+            'sop_pack_machine': { title: '自動藥包機異常排除', bg: 'bg-purple-50', text: 'text-purple-500', icon: 'fa-gears' }
+        };
+
+        // 綁定到 window，確保 HTML 上的 onclick 絕對點得到
+        window.openSOP = function(sopId) {
+            currentSopId = sopId;
+            const meta = sopMeta[sopId] || { title: '自訂 SOP', bg: 'bg-slate-50', text: 'text-slate-500', icon: 'fa-file-text' };
+            document.getElementById('modalTitle').innerText = meta.title;
+            const iconDiv = document.getElementById('modalIcon');
+            iconDiv.className = `w-10 h-10 rounded-lg flex items-center justify-center text-lg ${meta.bg} ${meta.text}`;
+            iconDiv.innerHTML = `<i class="fa-solid ${meta.icon}"></i>`;
+            
+            window.switchMode('view');
+            document.getElementById('viewMode').innerHTML = '正在從資料庫同步最新 SOP 內容...';
+            document.getElementById('sopModal').classList.remove('hidden');
+
+            const dbRef = ref(db, 'sopList/' + sopId);
+            onValue(dbRef, (snapshot) => {
+                const data = snapshot.val();
+                if (data && data.content) {
+                    document.getElementById('sopTextarea').value = data.content;
+                    document.getElementById('lastUpdated').innerText = '最後更新：' + (data.updatedAt || '未知');
+                    window.parseAndRenderContent(data.content);
+                } else {
+                    document.getElementById('viewMode').innerHTML = `<div>目前尚無詳細操作步驟資料。<br>請點擊右下方「進入共編模式」開始建立。</div>`;
+                    document.getElementById('sopTextarea').value = '';
+                    document.getElementById('lastUpdated').innerText = '最後更新：尚無紀錄';
+                }
+            }, { onlyOnce: true });
+        };
+
+        window.parseAndRenderContent = function(text) {
+            const urlRegex = /(https?:\/\/[^\s]+)/g;
+            let urls = text.match(urlRegex) || [];
+            let html = `<div class="whitespace-pre-line leading-relaxed text-slate-700">${text}</div>`;
+            
+            if (urls.length > 0) {
+                html += `<div class="mt-6 space-y-3 pt-4 border-t border-slate-100">`;
+                urls.forEach((url, index) => {
+                    html += `
+                        <div>
+                            <a href="${url}" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold px-4 py-2.5 rounded-xl shadow transition transform active:scale-95 text-sm">
+                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
+                                <span>🔗 開啟雲端附件：連結 ${index + 1}</span>
+                            </a>
+                        </div>`;
+                });
+                html += `</div>`;
+            }
+            document.getElementById('viewMode').innerHTML = html;
+        };
+
+        // 按下儲存按鈕
+        document.getElementById('btnSave').onclick = function() {
+            const textContent = document.getElementById('sopTextarea').value;
+            const timeString = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
+
+            if (!textContent.trim()) { alert('內容不能為空喔！'); return; }
+
+            const dbRef = ref(db, 'sopList/' + currentSopId);
+            set(dbRef, {
+                content: textContent,
+                updatedAt: timeString
+            }).then(() => {
+                alert('🎉 SOP 已成功儲存發佈！');
+                window.openSOP(currentSopId);
+            });
+        };
+
+        window.switchMode = function(mode) {
+            if (mode === 'edit') {
+                document.getElementById('viewMode').classList.add('hidden');
+                document.getElementById('editMode').classList.remove('hidden');
+                document.getElementById('btnEdit').classList.add('hidden');
+                document.getElementById('btnCancel').classList.remove('hidden');
+                document.getElementById('btnSave').classList.remove('hidden');
+            } else {
+                document.getElementById('viewMode').classList.remove('hidden');
+                document.getElementById('editMode').classList.add('hidden');
+                document.getElementById('btnEdit').classList.remove('hidden');
+                document.getElementById('btnCancel').classList.add('hidden');
+                document.getElementById('btnSave').classList.add('hidden');
+            }
+        };
+
+        window.closeModal = function() { 
+            document.getElementById('sopModal').classList.add('hidden'); 
+        };
+    </script>
+</body>
+</html>
