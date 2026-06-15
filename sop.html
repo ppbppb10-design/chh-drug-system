@@ -10,6 +10,8 @@
         body { font-family: 'PingFang TC', 'Heiti TC', 'Microsoft JhengHei', sans-serif; }
         .sop-card { transition: all 0.3s ease; }
         .sop-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.08); }
+        /* 預覽框容器樣式 */
+        .preview-container { width: 100%; height: 450px; border-radius: 12px; overflow: hidden; border: 1px solid #e2e8f0; }
     </style>
 </head>
 <body class="bg-slate-50 min-h-screen pb-12">
@@ -75,8 +77,8 @@
                         <label class="inline-flex items-center"><input type="radio" name="sopCategory" value="admin" checked class="mr-1"> 行政流程</label>
                         <label class="inline-flex items-center"><input type="radio" name="sopCategory" value="system" class="mr-1"> 系統操作</label>
                     </div>
-                    <label class="block text-sm font-bold text-slate-700">共編內文說明 (可直接貼上 Google Drive 檔案或圖片網址)：</label>
-                    <textarea id="sopTextarea" class="w-full flex-1 min-h-[250px] p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-700 leading-relaxed outline-none" placeholder="請在此輸入詳細的操作步驟說明..."></textarea>
+                    <label class="block text-sm font-bold text-slate-700">共編內文說明 (下方可放說明，貼上雲端連結或圖片網址會自動啟用「預覽框」)：</label>
+                    <textarea id="sopTextarea" class="w-full flex-1 min-h-[250px] p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-700 leading-relaxed outline-none" placeholder="請在此輸入詳細的操作步驟說明...&#10;可以直接把雲端硬碟網址貼在內文中。"></textarea>
                 </div>
             </div>
 
@@ -115,17 +117,15 @@
         const db = getDatabase(app);
 
         let currentSopId = '';
-        let globalSopData = {}; // 存放從 Firebase 抓下來的所有資料
+        let globalSopData = {};
 
-        // 預設的 4 個初始卡片架構
         const defaultSops = {
-            'sop_leave': { title: '請假規定與流程', category: 'admin', content: '', icon: 'fa-calendar-check', iconColor: 'text-orange-500', iconBg: 'bg-orange-50' },
-            'sop_controlled_loss': { title: '管制藥品減損報備', category: 'admin', content: '', icon: 'fa-triangle-exclamation', iconColor: 'text-red-500', iconBg: 'bg-red-50' },
-            'sop_drug_arrive': { title: 'Drug Arrive 通知系統', category: 'system', content: '', icon: 'fa-elevator', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50' },
-            'sop_pack_machine': { title: '自動藥包機異常排除', category: 'system', content: '', icon: 'fa-gears', iconColor: 'text-purple-500', iconBg: 'bg-purple-50' }
+            'sop_leave': { title: '請假規定與流程', category: 'admin', content: '', icon: 'fa-calendar-check', iconColor: 'text-orange-500', iconBg: 'bg-orange-50', desc: '規範科內各班別請假之代理簽核順序與線上排班登錄流程。' },
+            'sop_controlled_loss': { title: '管制藥品減損報備', category: 'admin', content: '', icon: 'fa-triangle-exclamation', iconColor: 'text-red-500', iconBg: 'bg-red-50', desc: '管制藥品若發生破損、調劑殘餘量之申報與衛生局報備標準步驟。' },
+            'sop_drug_arrive': { title: 'Drug Arrive 通知系統說明', category: 'system', content: '', icon: 'fa-elevator', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50', desc: '電梯藥品送達時，即時啟動 Firebase 語音與畫面通知之系統設定。' },
+            'sop_pack_machine': { title: '自動藥包機異常排除', category: 'system', content: '', icon: 'fa-gears', iconColor: 'text-purple-500', iconBg: 'bg-purple-50', desc: '藥包機卡紙、碳帶耗盡、連線異常等常見硬體故障應變指引。' }
         };
 
-        // 一啟動網頁，就即時監聽並生成全院卡片
         onValue(ref(db, 'sopList'), (snapshot) => {
             const data = snapshot.val() || {};
             globalSopData = data;
@@ -134,13 +134,11 @@
             const systemGrid = document.getElementById('systemGrid');
             adminGrid.innerHTML = ''; systemGrid.innerHTML = '';
 
-            // 合併預設基礎卡片與 Firebase 現有資料
             const finalSops = { ...defaultSops };
             Object.keys(data).forEach(id => {
                 finalSops[id] = { ...finalSops[id], ...data[id] };
             });
 
-            // 開始渲染九宮格卡片
             Object.entries(finalSops).forEach(([id, sop]) => {
                 const cardHtml = `
                     <div onclick="openSOP('${id}')" class="sop-card bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer flex flex-col justify-between">
@@ -162,21 +160,20 @@
             });
         });
 
-        // 打開 SOP
         window.openSOP = function(sopId) {
             currentSopId = sopId;
             window.switchMode('view');
             
             const sop = globalSopData[sopId] || defaultSops[sopId] || { title: '全新 SOP', content: '' };
             
-            // 設定標題與打字框的舊資料
             document.getElementById('modalTitle').innerText = sop.title;
             document.getElementById('modalTitleInput').value = sop.title;
             document.getElementById('sopTextarea').value = sop.content || '';
             document.getElementById('lastUpdated').innerText = '最後更新：' + (sop.updatedAt || '尚無紀錄');
 
             if (sop.category) {
-                document.querySelector(`input[name="sopCategory"][value="${sop.category}"]`).checked = true;
+                const radio = document.querySelector(`input[name="sopCategory"][value="${sop.category}"]`);
+                if(radio) radio.checked = true;
             }
 
             if (sop.content) {
@@ -187,7 +184,6 @@
             document.getElementById('sopModal').classList.remove('hidden');
         };
 
-        // 按下建立全新卡片按鈕
         window.createNewSOP = function() {
             const newId = 'sop_' + Date.now();
             currentSopId = newId;
@@ -200,25 +196,70 @@
             document.getElementById('sopModal').classList.remove('hidden');
         };
 
-        // 智慧解析網址連結
+        // 🎯 智慧聯結預覽核心邏輯
         window.parseAndRenderContent = function(text) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             let urls = text.match(urlRegex) || [];
-            let html = `<div class="whitespace-pre-line leading-relaxed text-slate-700">${text}</div>`;
+            
+            // 基礎純文字內容（保留換行）
+            let html = `<div class="whitespace-pre-line leading-relaxed text-slate-700 mb-6">${text}</div>`;
             
             if (urls.length > 0) {
-                html += `<div class="mt-6 space-y-3 pt-4 border-t border-slate-100">`;
+                html += `<div class="mt-6 space-y-6 pt-4 border-t border-slate-100">`;
+                
                 urls.forEach((url, index) => {
+                    let isImage = /\.(jpeg|jpg|gif|png|webp)/i.test(url);
+                    let isGoogleDrive = /drive\.google\.com/i.test(url);
+                    
+                    html += `<div class="bg-slate-50 p-4 rounded-xl border border-slate-200/60 space-y-3">`;
                     html += `
-                        <div>
-                            <a href="${url}" target="_blank" class="inline-flex items-center space-x-2 bg-gradient-to-r from-blue-600 to-cyan-600 text-white font-bold px-4 py-2.5 rounded-xl shadow transition transform active:scale-95 text-sm">
-                                <i class="fa-solid fa-arrow-up-right-from-square"></i>
-                                <span>🔗 開啟雲端附件：連結 ${index + 1}</span>
-                            </a>
+                        <div class="flex justify-between items-center">
+                            <span class="text-xs font-bold bg-slate-200 text-slate-700 px-2 py-1 rounded">附件連結 ${index + 1}</span>
+                            <a href="${url}" target="_blank" class="text-xs text-blue-600 hover:underline font-medium"><i class="fa-solid fa-arrow-up-right-from-square mr-1"></i>在新視窗開啟</a>
                         </div>`;
+                    
+                    // 1. 如果是圖片網址，直接渲染圖片預覽
+                    if (isImage) {
+                        html += `
+                            <div class="mt-2 text-center">
+                                <img src="${url}" class="max-h-[350px] mx-auto rounded-lg shadow-sm border border-slate-200" alt="圖片預覽" onerror="this.onerror=null; this.parentNode.innerHTML='<p class=\"text-xs text-red-500\">圖片無法預覽，請確認網址是否正確或開啟權限</p>';">
+                            </div>`;
+                    } 
+                    // 2. 如果是 Google Drive 雲端網址，智慧轉換成預覽嵌入格式
+                    else if (isGoogleDrive) {
+                        let embedUrl = url;
+                        // 如果是 /view 或 /edit 結尾，自動抽換成官方預覽格式 /preview
+                        if (url.includes('/file/d/')) {
+                            const fileId = url.split('/file/d/')[1].split('/')[0];
+                            embedUrl = `https://drive.google.com/file/d/${fileId}/preview`;
+                        } else if (url.includes('/document/d/')) {
+                            const docId = url.split('/document/d/')[1].split('/')[0];
+                            embedUrl = `https://docs.google.com/document/d/${docId}/preview`;
+                        } else if (url.includes('/spreadsheets/d/')) {
+                            const sheetId = url.split('/spreadsheets/d/')[1].split('/')[0];
+                            embedUrl = `https://docs.google.com/spreadsheets/d/${sheetId}/preview`;
+                        }
+
+                        html += `
+                            <div class="preview-container shadow-inner bg-white">
+                                <iframe src="${embedUrl}" width="100%" height="100%" allow="autoplay" class="border-0"></iframe>
+                            </div>
+                            <p class="text-xs text-slate-400"><i class="fa-solid fa-circle-info mr-1"></i>提示：若顯示「拒絕連線」，請確認該雲端檔案已開啟「知道連結的彰醫同仁（或任何人）均可檢視」權限喔！</p>`;
+                    }
+                    // 3. 一般網址
+                    else {
+                        html += `
+                            <div class="p-2 bg-white rounded border border-slate-100 text-sm truncate text-slate-500">
+                                🔗 <a href="${url}" target="_blank" class="text-blue-600 hover:underline">${url}</a>
+                            </div>`;
+                    }
+                    
+                    html += `</div>`;
                 });
+                
                 html += `</div>`;
             }
+            
             document.getElementById('viewMode').innerHTML = html;
         };
 
@@ -234,7 +275,6 @@
 
             const oldSop = globalSopData[currentSopId] || defaultSops[currentSopId] || {};
 
-            // 寫入 Firebase 
             set(ref(db, 'sopList/' + currentSopId), {
                 title: titleContent,
                 content: textContent,
@@ -244,7 +284,7 @@
                 iconColor: oldSop.iconColor || 'text-teal-500',
                 iconBg: oldSop.iconBg || 'bg-teal-50'
             }).then(() => {
-                alert('🎉 SOP 標題與內文已同步儲存成功！');
+                alert('🎉 SOP 已成功儲存發佈！');
                 window.openSOP(currentSopId);
             });
         };
