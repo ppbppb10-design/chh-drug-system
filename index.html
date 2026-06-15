@@ -37,24 +37,20 @@
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('廢片系統建置中...')">
                     <span class="text-3xl bg-blue-50 p-3 rounded-xl">🩻</span>
-                    <span class="font-bold text-slate-700 text-lg">建置中1</span>
+                    <span class="font-bold text-slate-700 text-lg">Fentanyl 廢片</span>
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="location.href='inventory.html'">
                     <span class="text-3xl bg-indigo-50 p-3 rounded-xl">📋</span>
                     <span class="font-bold text-slate-700 text-lg">盤點系統</span>
-                </div>">
+                </div>
+                <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('處方集載入中...')">
                     <span class="text-3xl bg-cyan-50 p-3 rounded-xl">📘</span>
                     <span class="font-bold text-slate-700 text-lg">院內處方集</span>
-                </div>
-                <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('盤點模組載入中...')">
-                    <span class="text-3xl bg-indigo-50 p-3 rounded-xl">📋</span>
-                    <span class="font-bold text-slate-700 text-lg">盤點系統</span>
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('儲位系統載入中...')">
                     <span class="text-3xl bg-emerald-50 p-3 rounded-xl">🔍</span>
                     <span class="font-bold text-slate-700 text-lg">西藥儲位</span>
                 </div>
-                
                 <div class="portal-card bg-gradient-to-br from-blue-600 to-indigo-600 p-5 rounded-2xl flex items-center gap-4 cursor-pointer shadow-md text-white" onclick="routeToTransfer()">
                     <span class="text-3xl bg-white/20 p-3 rounded-xl shadow-inner">🚑</span>
                     <div>
@@ -62,14 +58,13 @@
                         <span class="text-[10px] opacity-80 font-bold">缺藥調撥即時通知</span>
                     </div>
                 </div>
-
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('UD系統載入中...')">
                     <span class="text-3xl bg-orange-50 p-3 rounded-xl">🍴</span>
-                    <span class="font-bold text-slate-700 text-lg">建置中2</span>
+                    <span class="font-bold text-slate-700 text-lg">UD 點餐單</span>
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('會議系統載入中...')">
                     <span class="text-3xl bg-slate-50 p-3 rounded-xl">📄</span>
-                    <span class="font-bold text-slate-700 text-lg">建置中3</span>
+                    <span class="font-bold text-slate-700 text-lg">科會記錄</span>
                 </div>
             </div>
         </div>
@@ -83,15 +78,15 @@
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('建置中...')">
                     <span class="text-3xl bg-cyan-50 p-3 rounded-xl">🔢</span>
-                    <span class="font-bold text-slate-700 text-lg">建置中4</span>
+                    <span class="font-bold text-slate-700 text-lg">Wegovy 換算器</span>
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('建置中...')">
                     <span class="text-3xl bg-green-50 p-3 rounded-xl">👥</span>
-                    <span class="font-bold text-slate-700 text-lg">建置中5</span>
+                    <span class="font-bold text-slate-700 text-lg">民眾藥品查詢</span>
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('建置中...')">
                     <span class="text-3xl bg-lime-50 p-3 rounded-xl">🍃</span>
-                    <span class="font-bold text-slate-700 text-lg">建置中6</span>
+                    <span class="font-bold text-slate-700 text-lg">保健營養品</span>
                 </div>
             </div>
         </div>
@@ -103,23 +98,4 @@
                     <span class="text-3xl bg-red-50 p-3 rounded-xl">❓</span>
                     <span class="font-bold text-slate-700 text-lg">疑義處方登記</span>
                 </div>
-                <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('建置中...')">
-                    <span class="text-3xl bg-rose-50 p-3 rounded-xl">⚠️</span>
-                    <span class="font-bold text-slate-700 text-lg">調劑錯誤登記</span>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function routeToTransfer() {
-            const choice = confirm("請選擇進入視窗：\n\n【確定】進入 ➡️ 藥局端 (手機點藥)\n【取消】進入 ➡️ 藥庫端 (電腦收單)");
-            if (choice) {
-                window.location.href = "transfer.html?role=pharmacy";
-            } else {
-                window.location.href = "transfer.html?role=warehouse";
-            }
-        }
-    </script>
-</body>
-</html>
+                <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer"
