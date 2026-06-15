@@ -120,10 +120,10 @@
         let globalSopData = {};
 
         const defaultSops = {
-            'sop_leave': { title: '請假規定與流程', category: 'admin', content: '', icon: 'fa-calendar-check', iconColor: 'text-orange-500', iconBg: 'bg-orange-50', desc: '規範科內各班別請假之代理簽核順序與線上排班登錄流程。' },
-            'sop_controlled_loss': { title: '管制藥品減損報備', category: 'admin', content: '', icon: 'fa-triangle-exclamation', iconColor: 'text-red-500', iconBg: 'bg-red-50', desc: '管制藥品若發生破損、調劑殘餘量之申報與衛生局報備標準步驟。' },
-            'sop_drug_arrive': { title: 'Drug Arrive 通知系統說明', category: 'system', content: '', icon: 'fa-elevator', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50', desc: '電梯藥品送達時，即時啟動 Firebase 語音與畫面通知之系統設定。' },
-            'sop_pack_machine': { title: '自動藥包機異常排除', category: 'system', content: '', icon: 'fa-gears', iconColor: 'text-purple-500', iconBg: 'bg-purple-50', desc: '藥包機卡紙、碳帶耗盡、連線異常等常見硬體故障應變指引。' }
+            'sop_leave': { title: '請假規定與流程', category: 'admin', content: '', icon: 'fa-calendar-check', iconColor: 'text-orange-500', iconBg: 'bg-orange-50', desc: ' ' },
+            'sop_controlled_loss': { title: '管制藥品減損報備', category: 'admin', content: '', icon: 'fa-triangle-exclamation', iconColor: 'text-red-500', iconBg: 'bg-red-50', desc: ' ' },
+            'sop_drug_arrive': { title: 'Drug Arrive 通知系統說明', category: 'system', content: '', icon: 'fa-elevator', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50', desc: ' ' },
+            'sop_pack_machine': { title: '自動藥包機異常排除', category: 'system', content: '', icon: 'fa-gears', iconColor: 'text-purple-500', iconBg: 'bg-purple-50', desc: ' ' }
         };
 
         onValue(ref(db, 'sopList'), (snapshot) => {
