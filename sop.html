@@ -19,74 +19,46 @@
             <div class="flex items-center space-x-3">
                 <a href="index.html" class="hover:opacity-80 transition"><i class="fa-solid fa-arrow-left text-xl"></i></a>
                 <h1 class="text-xl font-bold tracking-wide flex items-center">
-                    <i class="fa-solid fa-book-medical mr-2 text-2xl animate-pulse"></i>
-                    藥劑科工作SOP / Wiki 共編系統
+                    <i class="fa-solid fa-book-medical mr-2 text-2xl"></i>
+                    彰醫藥劑科工作SOP / Wiki 共編系統
                 </h1>
             </div>
-            <div class="text-sm bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-sm">
-                <i class="fa-solid fa-hospital mr-1"></i> 彰化醫院藥劑科
-            </div>
+            <button onclick="createNewSOP()" class="bg-white/20 hover:bg-white/30 text-white text-xs font-bold px-4 py-2 rounded-full transition shadow-sm">
+                <i class="fa-solid fa-plus mr-1"></i> 新增全新 SOP
+            </button>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 mt-8">
-        <div class="mb-10">
+    <main class="max-w-7xl mx-auto px-4 mt-8 space-y-10">
+        <div>
             <div class="flex items-center space-x-2 border-b-2 border-teal-500 pb-2 mb-6">
                 <i class="fa-solid fa-folder-open text-teal-600 text-xl"></i>
                 <h2 class="text-xl font-bold text-slate-800">行政流程說明</h2>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div onclick="openSOP('sop_leave')" class="sop-card bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center text-orange-500 text-xl mb-4"><i class="fa-solid fa-calendar-check"></i></div>
-                        <h3 class="font-bold text-lg text-slate-800 mb-2">請假規定與流程</h3>
-                        <p class="text-slate-500 text-sm line-clamp-2">規範科內各班別請假之代理簽核順序與線上排班登錄流程。</p>
-                    </div>
-                    <span class="text-teal-600 font-medium text-sm mt-4 inline-flex items-center">查看 SOP <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></span>
+            <div id="adminGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 </div>
-                <div onclick="openSOP('sop_controlled_loss')" class="sop-card bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-red-50 flex items-center justify-center text-red-500 text-xl mb-4"><i class="fa-solid fa-triangle-exclamation"></i></div>
-                        <h3 class="font-bold text-lg text-slate-800 mb-2">管制藥品回收</h3>
-                        <p class="text-slate-500 text-sm line-clamp-2">管制藥品回收流程。</p>
-                    </div>
-                    <span class="text-teal-600 font-medium text-sm mt-4 inline-flex items-center">查看 SOP <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></span>
-                </div>
-            </div>
         </div>
 
-        <div class="mb-10">
+        <div>
             <div class="flex items-center space-x-2 border-b-2 border-cyan-500 pb-2 mb-6">
                 <i class="fa-solid fa-laptop-code text-cyan-600 text-xl"></i>
                 <h2 class="text-xl font-bold text-slate-800">系統操作說明</h2>
             </div>
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div onclick="openSOP('sop_drug_arrive')" class="sop-card bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-emerald-50 flex items-center justify-center text-emerald-500 text-xl mb-4"><i class="fa-solid fa-elevator"></i></div>
-                        <h3 class="font-bold text-lg text-slate-800 mb-2">Drug Arrive 通知系統</h3>
-                        <p class="text-slate-500 text-sm line-clamp-2">電梯藥品送達時，即時啟動 Firebase 語音與畫面通知之系統設定。</p>
-                    </div>
-                    <span class="text-cyan-600 font-medium text-sm mt-4 inline-flex items-center">查看 SOP <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></span>
+            <div id="systemGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 </div>
-                <div onclick="openSOP('sop_pack_machine')" class="sop-card bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer flex flex-col justify-between">
-                    <div>
-                        <div class="w-12 h-12 rounded-xl bg-purple-50 flex items-center justify-center text-purple-500 text-xl mb-4"><i class="fa-solid fa-gears"></i></div>
-                        <h3 class="font-bold text-lg text-slate-800 mb-2">自動藥包機異常排除</h3>
-                        <p class="text-slate-500 text-sm line-clamp-2">藥包機卡紙、碳帶耗盡、連線異常等常見硬體故障應變指引。</p>
-                    </div>
-                    <span class="text-cyan-600 font-medium text-sm mt-4 inline-flex items-center">查看 SOP <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></span>
-                </div>
-            </div>
         </div>
     </main>
 
     <div id="sopModal" class="fixed inset-0 bg-slate-900/50 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh] overflow-hidden">
+            
             <div class="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <div class="flex items-center space-x-3">
-                    <div id="modalIcon" class="w-10 h-10 rounded-lg flex items-center justify-center text-lg"></div>
-                    <h3 id="modalTitle" class="text-xl font-bold text-slate-800">SOP 標題</h3>
+                <div class="flex items-center space-x-3 w-full mr-4">
+                    <div id="modalIcon" class="w-10 h-10 rounded-lg flex items-center justify-center text-lg bg-teal-50 text-teal-600">
+                        <i class="fa-solid fa-file-lines"></i>
+                    </div>
+                    <h3 id="modalTitle" class="text-xl font-bold text-slate-800 truncate">SOP 標題</h3>
+                    <input type="text" id="modalTitleInput" class="hidden w-full text-xl font-bold text-slate-800 border-2 border-blue-400 px-3 py-1 rounded-xl outline-none bg-white" placeholder="請輸入 SOP 標題...">
                 </div>
                 <button onclick="closeModal()" class="text-slate-400 hover:text-slate-600 p-1 rounded-full hover:bg-slate-200 transition">
                     <i class="fa-solid fa-xmark text-xl"></i>
@@ -98,8 +70,13 @@
                     正在載入 SOP 內容...
                 </div>
                 <div id="editMode" class="hidden h-full flex flex-col space-y-3">
-                    <label class="block text-sm font-medium text-slate-700 font-bold">共編內文說明 (可直接貼上 Google Drive 檔案或圖片網址)：</label>
-                    <textarea id="sopTextarea" class="w-full flex-1 min-h-[320px] p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-700 leading-relaxed outline-none" placeholder="請在此輸入詳細的操作步驟說明...&#10;可以直接把雲端硬碟連結貼在文字的最後面。"></textarea>
+                    <div id="categorySelectArea" class="flex items-center space-x-3 text-sm">
+                        <span class="font-bold text-slate-700">選擇頁面分類：</span>
+                        <label class="inline-flex items-center"><input type="radio" name="sopCategory" value="admin" checked class="mr-1"> 行政流程</label>
+                        <label class="inline-flex items-center"><input type="radio" name="sopCategory" value="system" class="mr-1"> 系統操作</label>
+                    </div>
+                    <label class="block text-sm font-bold text-slate-700">共編內文說明 (可直接貼上 Google Drive 檔案或圖片網址)：</label>
+                    <textarea id="sopTextarea" class="w-full flex-1 min-h-[250px] p-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 text-slate-700 leading-relaxed outline-none" placeholder="請在此輸入詳細的操作步驟說明..."></textarea>
                 </div>
             </div>
 
@@ -112,7 +89,7 @@
                     <button id="btnCancel" onclick="switchMode('view')" class="hidden bg-slate-100 hover:bg-slate-200 text-slate-600 px-4 py-2 rounded-xl font-medium transition text-sm">
                         取消
                     </button>
-                    <button id="btnSave" id="saveButton" class="hidden bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-xl font-medium transition text-sm shadow-md">
+                    <button id="btnSave" class="hidden bg-teal-600 hover:bg-teal-700 text-white px-5 py-2 rounded-xl font-medium transition text-sm shadow-md">
                         <i class="fa-solid fa-cloud-arrow-up mr-1"></i> 儲存並發佈
                     </button>
                 </div>
@@ -138,42 +115,92 @@
         const db = getDatabase(app);
 
         let currentSopId = '';
+        let globalSopData = {}; // 存放從 Firebase 抓下來的所有資料
 
-        const sopMeta = {
-            'sop_leave': { title: '請假規定與流程', bg: 'bg-orange-50', text: 'text-orange-500', icon: 'fa-calendar-check' },
-            'sop_controlled_loss': { title: '管制藥品減損報備', bg: 'bg-red-50', text: 'text-red-500', icon: 'fa-triangle-exclamation' },
-            'sop_drug_arrive': { title: 'Drug Arrive 通知系統說明', bg: 'bg-emerald-50', text: 'text-emerald-500', icon: 'fa-elevator' },
-            'sop_pack_machine': { title: '自動藥包機異常排除', bg: 'bg-purple-50', text: 'text-purple-500', icon: 'fa-gears' }
+        // 預設的 4 個初始卡片架構
+        const defaultSops = {
+            'sop_leave': { title: '請假規定與流程', category: 'admin', content: '', icon: 'fa-calendar-check', iconColor: 'text-orange-500', iconBg: 'bg-orange-50', desc: '規範科內各班別請假之代理簽核順序與線上排班登錄流程。' },
+            'sop_controlled_loss': { title: '管制藥品減損報備', category: 'admin', content: '', icon: 'fa-triangle-exclamation', iconColor: 'text-red-500', iconBg: 'bg-red-50', desc: '管制藥品若發生破損、調劑殘餘量之申報與衛生局報備標準步驟。' },
+            'sop_drug_arrive': { title: 'Drug Arrive 通知系統', category: 'system', content: '', icon: 'fa-elevator', iconColor: 'text-emerald-500', iconBg: 'bg-emerald-50', desc: '電梯藥品送達時，即時啟動 Firebase 語音與畫面通知之系統設定。' },
+            'sop_pack_machine': { title: '自動藥包機異常排除', category: 'system', content: '', icon: 'fa-gears', iconColor: 'text-purple-500', iconBg: 'bg-purple-50', desc: '藥包機卡紙、碳帶耗盡、連線異常等常見硬體故障應變指引。' }
         };
 
-        // 綁定到 window，確保 HTML 上的 onclick 絕對點得到
+        // 一啟動網頁，就即時監聽並生成全院卡片
+        onValue(ref(db, 'sopList'), (snapshot) => {
+            const data = snapshot.val() || {};
+            globalSopData = data;
+            
+            const adminGrid = document.getElementById('adminGrid');
+            const systemGrid = document.getElementById('systemGrid');
+            adminGrid.innerHTML = ''; systemGrid.innerHTML = '';
+
+            // 合併預設基礎卡片與 Firebase 現有資料
+            const finalSops = { ...defaultSops };
+            Object.keys(data).forEach(id => {
+                finalSops[id] = { ...finalSops[id], ...data[id] };
+            });
+
+            // 開始渲染九宮格卡片
+            Object.entries(finalSops).forEach(([id, sop]) => {
+                const cardHtml = `
+                    <div onclick="openSOP('${id}')" class="sop-card bg-white p-6 rounded-2xl border border-slate-100 shadow-sm cursor-pointer flex flex-col justify-between">
+                        <div>
+                            <div class="w-12 h-12 rounded-xl ${sop.iconBg || 'bg-teal-50'} flex items-center justify-center ${sop.iconColor || 'text-teal-500'} text-xl mb-4">
+                                <i class="fa-solid ${sop.icon || 'fa-file-lines'}"></i>
+                            </div>
+                            <h3 class="font-bold text-lg text-slate-800 mb-2 truncate">${sop.title}</h3>
+                            <p class="text-slate-500 text-sm line-clamp-2">${sop.desc || (sop.content ? sop.content.substring(0,60)+'...' : '點擊查看詳細共編步驟內容。')}</p>
+                        </div>
+                        <span class="text-teal-600 font-medium text-sm mt-4 inline-flex items-center">查看 SOP <i class="fa-solid fa-chevron-right ml-1 text-xs"></i></span>
+                    </div>`;
+
+                if (sop.category === 'system') {
+                    systemGrid.innerHTML += cardHtml;
+                } else {
+                    adminGrid.innerHTML += cardHtml;
+                }
+            });
+        });
+
+        // 打開 SOP
         window.openSOP = function(sopId) {
             currentSopId = sopId;
-            const meta = sopMeta[sopId] || { title: '自訂 SOP', bg: 'bg-slate-50', text: 'text-slate-500', icon: 'fa-file-text' };
-            document.getElementById('modalTitle').innerText = meta.title;
-            const iconDiv = document.getElementById('modalIcon');
-            iconDiv.className = `w-10 h-10 rounded-lg flex items-center justify-center text-lg ${meta.bg} ${meta.text}`;
-            iconDiv.innerHTML = `<i class="fa-solid ${meta.icon}"></i>`;
-            
             window.switchMode('view');
-            document.getElementById('viewMode').innerHTML = '正在從資料庫同步最新 SOP 內容...';
-            document.getElementById('sopModal').classList.remove('hidden');
+            
+            const sop = globalSopData[sopId] || defaultSops[sopId] || { title: '全新 SOP', content: '' };
+            
+            // 設定標題與打字框的舊資料
+            document.getElementById('modalTitle').innerText = sop.title;
+            document.getElementById('modalTitleInput').value = sop.title;
+            document.getElementById('sopTextarea').value = sop.content || '';
+            document.getElementById('lastUpdated').innerText = '最後更新：' + (sop.updatedAt || '尚無紀錄');
 
-            const dbRef = ref(db, 'sopList/' + sopId);
-            onValue(dbRef, (snapshot) => {
-                const data = snapshot.val();
-                if (data && data.content) {
-                    document.getElementById('sopTextarea').value = data.content;
-                    document.getElementById('lastUpdated').innerText = '最後更新：' + (data.updatedAt || '未知');
-                    window.parseAndRenderContent(data.content);
-                } else {
-                    document.getElementById('viewMode').innerHTML = `<div>目前尚無詳細操作步驟資料。<br>請點擊右下方「進入共編模式」開始建立。</div>`;
-                    document.getElementById('sopTextarea').value = '';
-                    document.getElementById('lastUpdated').innerText = '最後更新：尚無紀錄';
-                }
-            }, { onlyOnce: true });
+            if (sop.category) {
+                document.querySelector(`input[name="sopCategory"][value="${sop.category}"]`).checked = true;
+            }
+
+            if (sop.content) {
+                window.parseAndRenderContent(sop.content);
+            } else {
+                document.getElementById('viewMode').innerHTML = `<div>目前尚無詳細操作步驟資料。<br>請點擊右下方「進入共編模式」開始建立。</div>`;
+            }
+            document.getElementById('sopModal').classList.remove('hidden');
         };
 
+        // 按下建立全新卡片按鈕
+        window.createNewSOP = function() {
+            const newId = 'sop_' + Date.now();
+            currentSopId = newId;
+            document.getElementById('modalTitle').innerText = '全新 SOP';
+            document.getElementById('modalTitleInput').value = '';
+            document.getElementById('sopTextarea').value = '';
+            document.getElementById('lastUpdated').innerText = '最後更新：全新建立';
+            
+            window.switchMode('edit');
+            document.getElementById('sopModal').classList.remove('hidden');
+        };
+
+        // 智慧解析網址連結
         window.parseAndRenderContent = function(text) {
             const urlRegex = /(https?:\/\/[^\s]+)/g;
             let urls = text.match(urlRegex) || [];
@@ -198,33 +225,55 @@
         // 按下儲存按鈕
         document.getElementById('btnSave').onclick = function() {
             const textContent = document.getElementById('sopTextarea').value;
+            const titleContent = document.getElementById('modalTitleInput').value.trim();
+            const categoryContent = document.querySelector('input[name="sopCategory"]:checked').value;
             const timeString = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' });
 
-            if (!textContent.trim()) { alert('內容不能為空喔！'); return; }
+            if (!titleContent) { alert('SOP 標題不能為空！'); return; }
+            if (!textContent.trim()) { alert('步驟內容不能為空！'); return; }
 
-            const dbRef = ref(db, 'sopList/' + currentSopId);
-            set(dbRef, {
+            const oldSop = globalSopData[currentSopId] || defaultSops[currentSopId] || {};
+
+            // 寫入 Firebase 
+            set(ref(db, 'sopList/' + currentSopId), {
+                title: titleContent,
                 content: textContent,
-                updatedAt: timeString
+                category: categoryContent,
+                updatedAt: timeString,
+                icon: oldSop.icon || 'fa-file-lines',
+                iconColor: oldSop.iconColor || 'text-teal-500',
+                iconBg: oldSop.iconBg || 'bg-teal-50'
             }).then(() => {
-                alert('🎉 SOP 已成功儲存發佈！');
+                alert('🎉 SOP 標題與內文已同步儲存成功！');
                 window.openSOP(currentSopId);
             });
         };
 
         window.switchMode = function(mode) {
+            const titleText = document.getElementById('modalTitle');
+            const titleInput = document.getElementById('modalTitleInput');
+            const viewMode = document.getElementById('viewMode');
+            const editMode = document.getElementById('editMode');
+            const btnEdit = document.getElementById('btnEdit');
+            const btnCancel = document.getElementById('btnCancel');
+            const btnSave = document.getElementById('btnSave');
+
             if (mode === 'edit') {
-                document.getElementById('viewMode').classList.add('hidden');
-                document.getElementById('editMode').classList.remove('hidden');
-                document.getElementById('btnEdit').classList.add('hidden');
-                document.getElementById('btnCancel').classList.remove('hidden');
-                document.getElementById('btnSave').classList.remove('hidden');
+                titleText.classList.add('hidden');
+                titleInput.classList.remove('hidden');
+                viewMode.classList.add('hidden');
+                editMode.classList.remove('hidden');
+                btnEdit.classList.add('hidden');
+                btnCancel.classList.remove('hidden');
+                btnSave.classList.remove('hidden');
             } else {
-                document.getElementById('viewMode').classList.remove('hidden');
-                document.getElementById('editMode').classList.add('hidden');
-                document.getElementById('btnEdit').classList.remove('hidden');
-                document.getElementById('btnCancel').classList.add('hidden');
-                document.getElementById('btnSave').classList.add('hidden');
+                titleText.classList.remove('hidden');
+                titleInput.classList.add('hidden');
+                viewMode.classList.remove('hidden');
+                editMode.classList.add('hidden');
+                btnEdit.classList.remove('hidden');
+                btnCancel.classList.add('hidden');
+                btnSave.classList.add('hidden');
             }
         };
 
