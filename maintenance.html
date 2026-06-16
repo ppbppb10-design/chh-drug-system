@@ -21,9 +21,9 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-folder-tree text-blue-500"></i> 彰醫專屬 Excel 規格：</div>
-                <p>1. 系統已適應首行大標題，精準依據<span class="font-bold text-blue-600">「第二行標頭」</span>定位欄位。</p>
-                <p>2. 🎯 <span class="font-bold text-teal-600">順序鎖定升級</span>：系統會自動記住您 Excel 的上下排列順序，盤點卡片絕不亂跳！</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> 彰醫重複藥碼多儲位解鎖：</div>
+                <p>1. 🎯 <span class="font-bold text-blue-600">多儲位並存</span>：同藥碼若存在不同「位號」，系統將全數保留、不予覆蓋！</p>
+                <p>2. 系統將嚴格比對第二行標頭，完整還原您 Excel 每一橫列的原始行數。</p>
             </div>
 
             <div class="space-y-4">
@@ -47,7 +47,7 @@
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-xl">💉</span>
-                            <span class="font-black text-slate-800 text-sm">針劑/外用 基本庫更新</span>
+                            <span class="font-bold text-slate-800 text-sm">針劑/外用 基本庫更新</span>
                         </div>
                         <span id="status-inject" class="text-[11px] font-bold text-slate-400">尚未上傳</span>
                     </div>
@@ -61,7 +61,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v5.70-order-fixed</span>
+            <span class="text-[10px] text-slate-300 font-mono">v5.80-multi-location</span>
         </div>
     </div>
 
@@ -88,7 +88,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 鎖定排序順序中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在深層解構...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -96,7 +96,7 @@
                 const workbook = XLSX.read(data, { type: 'array' });
                 let newMasterList = {};
                 let parsedCount = 0;
-                let globalIndex = 0; // 用來記錄全域 Excel 的絕對排序行號
+                let globalIndex = 0;
 
                 workbook.SheetNames.forEach(sheetName => {
                     if (sheetName.includes('工作表') || sheetName.includes('UD藍標')) return;
@@ -136,9 +136,12 @@
                             rate1 = 1; unit1 = "盒"; unit2 = "罐";
                         }
 
-                        globalIndex++; // 每多一行，流水號加 1
+                        globalIndex++;
 
-                        newMasterList[drugCode] = {
+                        // 🎯 核心大改裝：使用「藥碼 + 位號」或是「藥碼 + 流水號」建立複合唯一鑰匙，徹底粉碎覆蓋Bug！
+                        const uniquePrimaryKey = `${drugCode}_${locationValue || '0'}_${globalIndex}`;
+
+                        newMasterList[uniquePrimaryKey] = {
                             id: drugCode,
                             name: drugName,
                             subZone: sheetName,
@@ -148,7 +151,8 @@
                             unit2: unit2,
                             desc: `1${unit1} = ${rate1}${unit2}`,
                             mainType: type,
-                            sortOrder: globalIndex // 🎯 把 Excel 的第幾行排序記錄在資料內！
+                            sortOrder: globalIndex,
+                            dbKey: uniquePrimaryKey // 儲存複合鑰匙供手機端識別
                         };
                         parsedCount++;
                     }
@@ -158,13 +162,12 @@
                     const nodePath = (type === 'oral') ? 'masterOralList' : 'masterInjectList';
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
-                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
-                        alert(`🎉 彰醫藥品庫上傳成功！\n已將排序流水號寫入，手機端將自動按 Excel 順序排列！`);
+                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}行)`;
+                        alert(`🎉 彰醫全多儲位基本庫匯入成功！\n本次共完整解開並保留了 ${parsedCount} 行藥品明細！`);
                     });
                 } else {
                     statusLabel.className = "text-[11px] font-bold text-red-500";
                     statusLabel.innerText = "❌ 解析失敗";
-                    alert("匯入失敗！請確認欄位格式。");
                 }
             };
             reader.readAsArrayBuffer(file);
