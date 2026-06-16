@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>藥局盤點系統 - 資料維護分流中心</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Excel 解析引擎 -->
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <!-- 維護卡片主體 -->
+    <div class="bg-white w-full max-w-lg rounded-3xl shadow-xl p-6 md:p-8 border border-slate-100 flex flex-col justify-between min-h-[550px]">
+        <div>
+            <!-- 頂部標題 -->
+            <div class="text-center mt-2 mb-6">
+                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-sm">
+                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                </div>
+                <h1 class="text-2xl font-black text-slate-800 tracking-wide">後台資料維護分流中心</h1>
+                <p class="text-xs font-bold text-slate-400 tracking-widest mt-1 uppercase">Changhua Hospital Pharmacy</p>
+            </div>
+
+            <!-- 說明區 -->
+            <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-folder-tree text-blue-500"></i> 管理員分流功能說明：</div>
+                <p>1. 請根據欲更新的藥品大項，點擊下方對應的獨立區塊。</p>
+                <p>2. 系統會自動解析 Excel 內的「工作表分頁」作為手機端的次區域。</p>
+                <p>3. 獨立更新互不干擾，可有效防止上千筆品項混雜錯亂。</p>
+            </div>
+
+            <!-- 🛠️ 兩大分流匯入控制區 -->
+            <div class="space-y-4">
+                
+                <!-- 分流一：口服藥匯入端 -->
+                <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-teal-400 transition">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">💊</span>
+                            <span class="font-black text-slate-800 text-sm">口服藥品 基本庫更新</span>
+                        </div>
+                        <span id="status-oral" class="text-[11px] font-bold text-slate-400">尚未上傳</span>
+                    </div>
+                    <input type="file" id="excelOral" accept=".xlsx, .xls" class="hidden" onchange="uploadDatabase('oral', this)">
+                    <button onclick="document.getElementById('excelOral').click()" class="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-file-import"></i> 匯入口服藥總表
+                    </button>
+                </div>
+
+                <!-- 分流二：針劑外用匯入端 -->
+                <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-indigo-400 transition">
+                    <div class="flex justify-between items-center mb-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xl">💉</span>
+                            <span class="font-black text-slate-800 text-sm">針劑/外用 基本庫更新</span>
+                        </div>
+                        <span id="status-inject" class="text-[11px] font-bold text-slate-400">尚未上傳</span>
+                    </div>
+                    <input type="file" id="excelInject" accept=".xlsx, .xls" class="hidden" onchange="uploadDatabase('inject', this)">
+                    <button onclick="document.getElementById('excelInject').click()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                        <i class="fa-solid fa-file-import"></i> 匯入針劑外用盤點表
+                    </button>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- 底部返回區 -->
+        <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
+            <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
+            <span class="text-[10px] text-slate-300 font-mono">v5.40-split-db</span>
+        </div>
+    </div>
+
+    <!-- 核心解構與獨立洗庫邏輯 -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+            authDomain: "drug--arrive.firebaseapp.com",
+            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
+            projectId: "drug--arrive",
+            storageBucket: "drug--arrive.appspot.com",
+            messagingSenderId: "215426668369",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        // 智慧分流匯入核心函式
+        window.uploadDatabase = function(type, element) {
+            const file = element.files[0];
+            if (!file) return;
+
+            const statusLabel = document.getElementById(`status-${type}`);
+            statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 解析中...`;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                let newMasterList = {};
+                let parsedCount = 0;
+
+                workbook.SheetNames.forEach(sheetName => {
+                    if (sheetName.includes('工作表')) return; // 剔除預設無效頁籤
+
+                    const worksheet = workbook.Sheets[sheetName];
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+
+                    // 定位欄位標頭
+                    let headerIndex = 0;
+                    for (let i = 0; i < jsonData.length; i++) {
+                        const rowStr = JSON.stringify(jsonData[i]);
+                        if (rowStr.includes('代碼') || rowStr.includes('藥碼')) {
+                            headerIndex = i;
+                            break;
+                        }
+                    }
+
+                    const headers = jsonData[headerIndex] || [];
+                    const codeIdx = headers.findIndex(h => String(h).includes('代碼') || String(h).includes('藥碼'));
+                    const nameIdx = headers.findIndex(h => String(h).includes('名稱') || String(h).includes('藥名'));
+
+                    for (let j = headerIndex + 1; j < jsonData.length; j++) {
+                        const row = jsonData[j];
+                        if (!row || !row[codeIdx]) continue;
+
+                        const drugCode = String(row[codeIdx]).trim();
+                        const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無藥名';
+                        
+                        // 尋找包裝規格
+                        let descStr = "1盒 = 1支";
+                        row.forEach(cell => {
+                            if (String(cell).includes('=')) descStr = String(cell);
+                        });
+
+                        newMasterList[drugCode] = {
+                            name: drugName,
+                            subZone: sheetName, // 以工作表分頁名稱做次儲位分類
+                            desc: descStr,
+                            mainType: type      // 註記大劑型分類 (oral 或 inject)
+                        };
+                        parsedCount++;
+                    }
+                });
+
+                if (parsedCount > 0) {
+                    // 🎯 決定寫入哪一個獨立的 Firebase 節點，實現徹底分流
+                    const nodePath = (type === 'oral') ? 'masterOralList' : 'masterInjectList';
+                    
+                    set(ref(db, nodePath), newMasterList).then(() => {
+                        statusLabel.className = "text-[11px] font-bold text-green-600";
+                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}筆)`;
+                        alert(`🎉 彰醫分流資料庫更新成功！\n已成功將 ${parsedCount} 筆品項存入「${type === 'oral' ? '口服藥基本庫' : '針劑外用基本庫'}」！`);
+                    });
+                } else {
+                    statusLabel.className = "text-[11px] font-bold text-red-500";
+                    statusLabel.innerText = "❌ 格式有誤";
+                    alert("讀取失敗！請檢查 Excel 的第一行有沒有包含「藥品代碼」或「藥品名稱」的標頭喔！");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+    </script>
+</body>
+</html>
