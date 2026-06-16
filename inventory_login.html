@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>藥局盤點系統 - 入口</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link class="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         .zone-card { transition: all 0.2s ease-in-out; }
         .zone-card.active { border-color: #2563eb; background-color: #f0fdf4; box-shadow: 0 0 0 2px #2563eb; }
@@ -16,56 +16,60 @@
     <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-6 md:p-8 border border-slate-100 flex flex-col justify-between min-h-[640px]">
         
         <div>
+            <!-- 系統頂部標題 -->
             <div class="text-center mt-2 mb-6">
                 <h1 class="text-3xl font-black text-blue-900 tracking-wide">藥局盤點系統</h1>
                 <p class="text-xs font-bold text-slate-400 tracking-widest mt-1 uppercase">FIREBASE V5.30 UX</p>
             </div>
 
+            <!-- 表單輸入群組 -->
             <div class="space-y-5">
+                <!-- 1. 盤點人員選單 -->
                 <div class="space-y-1.5">
                     <label class="block text-sm font-bold text-slate-700 tracking-wide">
                         <i class="fa-solid fa-user text-blue-500 mr-1.5"></i> 盤點人員
                     </label>
                     <div class="relative">
                         <select id="userSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold px-4 py-3 rounded-2xl outline-none appearance-none cursor-pointer focus:border-blue-500 focus:bg-white transition">
-                        <option value="李瑞文" class="text-slate-800">李瑞文</option>
-                        <option value="陳東錦" class="text-slate-800">陳東錦</option>
-                        <option value="賴錦益" class="text-slate-800">賴錦益</option>
-                        <option value="邱富強" class="text-slate-800">邱富強</option>
-                        <option value="張幸逢" class="text-slate-800">張幸逢</option>
-                        <option value="洪紹寧" class="text-slate-800">洪紹寧</option>
-                        <option value="劉孟育" class="text-slate-800">劉孟育</option>
-                        <option value="蘇惠敏" class="text-slate-800">蘇惠敏</option>
-                        <option value="林雅萍" class="text-slate-800">林雅萍</option>
-                        <option value="黃聖剛" class="text-slate-800">黃聖剛</option>
-                        <option value="陳麗君" class="text-slate-800">陳麗君</option>
-                        <option value="楊德宏" class="text-slate-800">楊德宏</option>
-                        <option value="陳玫君" class="text-slate-800">陳玫君</option>
-                        <option value="馬惠玲" class="text-slate-800">馬惠玲</option>
-                        <option value="吳婉瑄" class="text-slate-800">吳婉瑄</option>
-                        <option value="嚴宗賓" class="text-slate-800">嚴宗賓</option>                        
-                        <option value="張雨淳" class="text-slate-800">張雨淳</option>
-                        <option value="劉育伶" class="text-slate-800">劉育伶</option>
-                        <option value="邱瑞航" class="text-slate-800">邱瑞航</option>
-                        <option value="吳致寛" class="text-slate-800">吳致寛</option>
-                        <option value="葉儒樺" class="text-slate-800">葉儒樺</option>
-                        <option value="劉子嫣" class="text-slate-800">劉子嫣</option>
-                        <option value="許佳燕" class="text-slate-800">許佳燕</option>
-                        <option value="劉佳昕" class="text-slate-800">劉佳昕</option>
-                        <option value="黃竹珈" class="text-slate-800">黃竹珈</option>
-                        <option value="胡明哲" class="text-slate-800">胡明哲</option>
-                        <option value="李婉華" class="text-slate-800">李婉華</option>
-                        <option value="邱麒文" class="text-slate-800">邱麒文</option>
-                        <option value="陳宜君" class="text-slate-800">陳宜君</option>
-                        <option value="陳舒婷" class="text-slate-800">陳舒婷</option>
-                        <option value="柯宜君" class="text-slate-800">柯宜君</option>                        
-                        <option value="賴達志" class="text-slate-800">賴達志</option>
-                        <option value="莊于靚" class="text-slate-800">莊于靚</option>
+                            <option value="李瑞文" class="text-slate-800">李瑞文</option>
+                            <option value="陳東錦" class="text-slate-800">陳東錦</option>
+                            <option value="賴錦益" class="text-slate-800">賴錦益</option>
+                            <option value="邱富強" class="text-slate-800">邱富強</option>
+                            <option value="張幸逢" class="text-slate-800">張幸逢</option>
+                            <option value="洪紹寧" class="text-slate-800">洪紹寧</option>
+                            <option value="劉孟育" class="text-slate-800">劉孟育</option>
+                            <option value="蘇惠敏" class="text-slate-800">蘇惠敏</option>
+                            <option value="林雅萍" class="text-slate-800">林雅萍</option>
+                            <option value="黃聖剛" class="text-slate-800">黃聖剛</option>
+                            <option value="陳麗君" class="text-slate-800">陳麗君</option>
+                            <option value="楊德宏" class="text-slate-800">楊德宏</option>
+                            <option value="陳玫君" class="text-slate-800">陳玫君</option>
+                            <option value="馬惠玲" class="text-slate-800">馬惠玲</option>
+                            <option value="吳婉瑄" class="text-slate-800">吳婉瑄</option>
+                            <option value="嚴宗賓" class="text-slate-800">嚴宗賓</option>                        
+                            <option value="張雨淳" class="text-slate-800">張雨淳</option>
+                            <option value="劉育伶" class="text-slate-800">劉育伶</option>
+                            <option value="邱瑞航" class="text-slate-800">邱瑞航</option>
+                            <option value="吳致寛" class="text-slate-800">吳致寛</option>
+                            <option value="葉儒樺" class="text-slate-800">葉儒樺</option>
+                            <option value="劉子嫣" class="text-slate-800">劉子嫣</option>
+                            <option value="許佳燕" class="text-slate-800">許佳燕</option>
+                            <option value="劉佳昕" class="text-slate-800">劉佳昕</option>
+                            <option value="黃竹珈" class="text-slate-800">黃竹珈</option>
+                            <option value="胡明哲" class="text-slate-800">胡明哲</option>
+                            <option value="李婉華" class="text-slate-800">李婉華</option>
+                            <option value="邱麒文" class="text-slate-800">邱麒文</option>
+                            <option value="陳宜君" class="text-slate-800">陳宜君</option>
+                            <option value="陳舒婷" class="text-slate-800">陳舒婷</option>
+                            <option value="柯宜君" class="text-slate-800">柯宜君</option>                        
+                            <option value="賴達志" class="text-slate-800">賴達志</option>
+                            <option value="莊于靚" class="text-slate-800">莊于靚</option>
                         </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-4 text-slate-400 pointer-events-none text-sm"></i>
                     </div>
                 </div>
 
+                <!-- 2. 大項選擇 -->
                 <div class="space-y-2">
                     <label class="block text-sm font-bold text-slate-700 tracking-wide">
                         <i class="fa-solid fa-calendar-days text-blue-500 mr-1.5"></i> 盤點大項 (請選擇一項)
@@ -84,18 +88,20 @@
                     </div>
                 </div>
 
+                <!-- 3. 次區域下拉選單 -->
                 <div id="subZoneContainer" class="space-y-1.5 hidden transition-all duration-300">
                     <label class="block text-sm font-bold text-slate-700 tracking-wide">
                         <i class="fa-solid fa-map-pin text-blue-500 mr-1.5"></i> 盤點次區域 (儲位櫃)
                     </label>
                     <div class="relative">
                         <select id="subZoneSelect" onchange="checkForm()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold px-4 py-3 rounded-2xl outline-none appearance-none cursor-pointer focus:border-blue-500 focus:bg-white transition">
-                            </select>
+                        </select>
                         <i class="fa-solid fa-chevron-down absolute right-4 top-4 text-slate-400 pointer-events-none text-sm"></i>
                     </div>
                 </div>
             </div>
 
+            <!-- 4. 開始按鈕 -->
             <div class="mt-6">
                 <button id="btnStart" onclick="startInventory()" disabled class="w-full bg-slate-300 text-white font-black py-3.5 rounded-2xl text-lg shadow-md transition cursor-not-allowed">
                     開始盤點
@@ -103,12 +109,14 @@
             </div>
         </div>
 
+        <!-- 底部管理分流按鈕區 -->
         <div class="mt-6 space-y-4">
             <div class="grid grid-cols-2 gap-3">
                 <button onclick="window.location.href='report.html'" class="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-2xl shadow-sm active:scale-95 transition text-xs md:text-sm">
                     📊 報表中心
                 </button>
-                <button onclick="alert('資料維護建置中...')" class="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-2xl shadow-sm active:scale-95 transition text-xs md:text-sm">
+                <!-- 🎯 獨立串接：直接導向分流維護中心 -->
+                <button onclick="window.location.href='maintenance.html'" class="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3 rounded-2xl shadow-sm active:scale-95 transition text-xs md:text-sm">
                     <i class="fa-solid fa-gear text-slate-400"></i> 資料維護
                 </button>
             </div>
@@ -122,36 +130,29 @@
     <script>
         let selectedMainZone = '';
 
-        // 頁面加載時自動偵測目前月份，並給予對應的單雙月提示
         window.onload = function() {
-            const currentMonth = new Date().getMonth() + 1; // 1~12
+            const currentMonth = new Date().getMonth() + 1;
             if (currentMonth % 2 !== 0) {
-                // 單月
                 document.getElementById('tag-odd').innerText = `本月推薦 (${currentMonth}月)`;
                 document.getElementById('tag-odd').className = "text-[9px] bg-amber-500 text-white rounded px-1 mt-1 inline-block font-bold animate-pulse";
             } else {
-                // 雙月
                 document.getElementById('tag-even').innerText = `本月推薦 (${currentMonth}月)`;
                 document.getElementById('tag-even').className = "text-[9px] bg-amber-500 text-white rounded px-1 mt-1 inline-block font-bold animate-pulse";
             }
         }
 
-        // 選擇主區域邏輯
         function selectMainZone(zone) {
             selectedMainZone = zone;
             
-            // 切換卡片高亮樣式
             document.getElementById('zone-odd').className = "zone-card border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:bg-slate-50 relative overflow-hidden";
             document.getElementById('zone-even').className = "zone-card border-2 border-slate-200 rounded-2xl p-3 text-center cursor-pointer hover:bg-slate-50 relative overflow-hidden";
             
             document.getElementById('zone-' + zone).classList.add('active');
 
-            // 根據選擇的大項，動態注入對應的次區域清單
             const subSelect = document.getElementById('subZoneSelect');
             subSelect.innerHTML = '<option value="">-- 請選擇次區域 --</option>';
 
             if (zone === 'odd') {
-                // 單月口服藥的次區域
                 const oddZones = [
                     { val: '口服A', name: '💊 口服藥區 (調A ~ 調D)' },
                     { val: '口服B', name: '💊 口服藥區 (調E ~ 調H)' },
@@ -162,7 +163,7 @@
                     subSelect.innerHTML += `<option value="${z.val}">${z.name}</option>`;
                 });
             } else if (zone === 'even') {
-                // 雙月針劑&外用的次區域
+                // 完美還原您指定的精美符號清單
                 const evenZones = [
                     { val: '冰箱', name: '❄️ 冰箱冷藏品項' },
                     { val: '針劑調劑區', name: '🧪 針劑調劑區' },
@@ -172,43 +173,34 @@
                     { val: '外用調單三', name: '🧩 外用調單三' },
                     { val: '外用調雙', name: '🎨 外用調雙' },
                     { val: '外用少用區', name: '⚠️ 外用少用區' }
-                    
                 ];
                 evenZones.forEach(z => {
                     subSelect.innerHTML += `<option value="${z.val}">${z.name}</option>`;
                 });
             }
 
-            // 展現次區域區塊
             const container = document.getElementById('subZoneContainer');
             container.classList.remove('hidden');
 
-            // 每次重選大區，都必須重新校正按鈕狀態
             checkForm();
         }
 
-        // 檢查表單完成度以解鎖按鈕
         function checkForm() {
             const subZone = document.getElementById('subZoneSelect').value;
             const btn = document.getElementById('btnStart');
 
             if (selectedMainZone !== '' && subZone !== "") {
-                // 通過驗證 -> 按鈕變藍色
                 btn.disabled = false;
                 btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-3.5 rounded-2xl text-lg shadow-lg shadow-blue-500/20 active:scale-[0.98] transition cursor-pointer";
             } else {
-                // 鎖定狀態 -> 按鈕變灰色
                 btn.disabled = true;
                 btn.className = "w-full bg-slate-300 text-white font-black py-3.5 rounded-2xl text-lg shadow-md transition cursor-not-allowed";
             }
         }
 
-        // 跳轉並攜帶參數
         function startInventory() {
             const user = document.getElementById('userSelect').value;
             const subZone = document.getElementById('subZoneSelect').value;
-            
-            // 跳轉至主盤點卡片頁面
             window.location.href = `inventory.html?user=${encodeURIComponent(user)}&mainZone=${encodeURIComponent(selectedMainZone)}&subZone=${encodeURIComponent(subZone)}`;
         }
     </script>
