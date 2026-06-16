@@ -10,6 +10,7 @@
 </head>
 <body class="bg-slate-50 min-h-screen pb-12">
 
+    <!-- 頂部導航 -->
     <nav class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
@@ -19,42 +20,38 @@
                     盤點數據報表中心
                 </h1>
             </div>
-            <div class="text-xs bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-sm font-bold">
-                彰化醫院藥劑科
-            </div>
+            <div class="text-xs bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-sm font-bold">彰化醫院藥劑科</div>
         </div>
     </nav>
 
+    <!-- 主體內容 -->
     <main class="max-w-7xl mx-auto px-4 mt-8 space-y-6">
-        
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
-                <h2 class="text-xl font-black text-slate-800">📊 雲端盤點數據總覽</h2>
-                <p class="text-xs text-slate-400 font-medium mt-1">目前已連線至 Firebase Database，即時顯示全院最新盤點結果。</p>
+                <h2 class="text-xl font-black text-slate-800">📊 雲端盤點數據明細總覽 (<span id="totalItemsCount">0</span> 品項)</h2>
+                <p class="text-xs text-slate-400 font-medium mt-1">目前已同步口服與針劑外用雙基本庫，即時顯示最新盤點結果。</p>
             </div>
-            
-            <button onclick="downloadExcel()" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-6 py-3 rounded-2xl text-sm shadow-md shadow-green-600/10 active:scale-95 transition flex items-center gap-2">
+            <button onclick="downloadExcel()" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-6 py-3 rounded-2xl text-sm shadow-md active:scale-95 transition flex items-center gap-2">
                 <i class="fa-solid fa-file-excel text-lg"></i>
                 <span>下載 Excel 盤點總報表</span>
             </button>
         </div>
 
+        <!-- 表格 -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
                         <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                            <th class="py-4 px-6">儲位分類</th>
                             <th class="py-4 px-6">藥品代碼</th>
                             <th class="py-4 px-6">藥品名稱</th>
-                            <th class="py-4 px-6 text-center">輸入包裝明細</th>
-                            <th class="py-4 px-6 text-center">系統換算總量</th>
-                            <th class="py-4 px-6 text-center">最後盤點人</th>
+                            <th class="py-4 px-6 text-center">包裝換算規則</th>
+                            <th class="py-4 px-6 text-center">當前盤點總量</th>
                         </tr>
                     </thead>
                     <tbody id="reportTableBody" class="text-slate-700 text-sm divide-y divide-slate-50">
-                        <tr>
-                            <td colspan="5" class="text-center py-8 text-slate-400 font-medium">⏳ 正在自雲端同步最新盤點報表數據...</td>
-                        </tr>
+                        <tr><td colspan="5" class="text-center py-8 text-slate-400 font-medium">⏳ 正在即時整合雙分流基本庫數據...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -78,89 +75,101 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 彰醫種子藥品基底庫 (與盤點頁完全對應)
-        const drugDb = [
-            { id: 'RI-I99', name: 'Humulin R', u1: '束', u2: '支', u3: '' },
-            { id: 'INSI14', name: 'Novomix 30', u1: '盒', u2: '支', u3: '' },
-            { id: 'INSI13', name: 'NovoRapid', u1: '盒', u2: '支', u3: '' },
-            { id: 'INSI19', name: 'Ryzodeg', u1: '盒', u2: '支', u3: '' },
-            { id: 'INSI16', name: 'Toujeo', u1: '盒', u2: '支', u3: '' },
-            { id: 'INSI17', name: 'Tresiba', u1: '盒', u2: '支', u3: '' },
-            { id: 'GLMO01', name: 'Amamet', u1: '盒', u2: '排', u3: '顆' },
-            { id: 'DROO00', name: 'Multaq', u1: '盒', u2: '排', u3: '顆' },
-            { id: 'SITO05', name: 'SitaMet', u1: '盒', u2: '排', u3: '顆' },
-            { id: 'AMIO12', name: 'Adarone', u1: '盒', u2: '排', u3: '顆' },
-            { id: 'API000', name: 'Eliquis', u1: '盒', u2: '排', u3: '顆' },
-            { id: 'EDOO02', name: 'LIXIANA 60', u1: '盒', u2: '排', u3: '顆' }
-        ];
+        let masterOralList = {};
+        let masterInjectList = {};
+        let allCombinedDrugs = []; // 合併後的總藥品基本庫
+        let firebaseRecords = {};  // 全院盤點數據
 
-        let globalRecords = {};
-
-        // 監聽 Firebase 實時動態
+        // 監聽盤點數據紀錄
         onValue(ref(db, 'inventoryRecords'), (snapshot) => {
-            globalRecords = snapshot.val() || {};
-            renderTable();
+            firebaseRecords = snapshot.val() || {};
+            combineAndRender();
         });
 
-        // 在網頁畫面上即時渲染報表
+        // 監聽分流一：口服藥基本庫
+        onValue(ref(db, 'masterOralList'), (snapshot) => {
+            masterOralList = snapshot.val() || {};
+            combineAndRender();
+        });
+
+        // 監聽分流二：針劑外用基本庫
+        onValue(ref(db, 'masterInjectList'), (snapshot) => {
+            masterInjectList = snapshot.val() || {};
+            combineAndRender();
+        });
+
+        // 🎯 核心秘密武器：將口服藥與針劑外用庫完美合併，並按儲位與原始 Excel 順序重新校正！
+        function combineAndRender() {
+            const oralItems = Object.values(masterOralList);
+            const injectItems = Object.values(masterInjectList);
+            
+            // 合併兩大分流基本庫
+            allCombinedDrugs = [...oralItems, ...injectItems];
+            
+            // 依照儲位分頁英文字母排序，相同儲位內則嚴格依照 Excel 的 sortOrder 流水號排序
+            allCombinedDrugs.sort((a, b) => {
+                const zoneCompare = (a.subZone || '').localeCompare(b.subZone || '');
+                if (zoneCompare !== 0) return zoneCompare;
+                return (a.sortOrder || 0) - (b.sortOrder || 0);
+            });
+
+            document.getElementById('totalItemsCount').innerText = allCombinedDrugs.length;
+            renderTable();
+        }
+
+        // 渲染綜合報表畫面
         function renderTable() {
             const tbody = document.getElementById('reportTableBody');
-            tbody.innerHTML = '';
+            if (allCombinedDrugs.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="5" class="text-center py-8 text-slate-400 font-medium">⚠️ 雲端目前無品項資料，請先至「資料維護」匯入 Excel。</td></tr>`;
+                return;
+            }
 
-            drugDb.forEach(drug => {
-                const rec = globalRecords[drug.id] || { u1: 0, u2: 0, u3: 0, total: 0, user: '—' };
-                
-                // 拼接輸入明細 (如：2盒、3排、0顆)
-                let detailStr = `${rec.u1} ${drug.u1} + ${rec.u2} ${drug.u2}`;
-                if (drug.u3) detailStr += ` + ${rec.u3} ${drug.u3}`;
+            tbody.innerHTML = '';
+            allCombinedDrugs.forEach(drug => {
+                // 智慧跨層級搜尋數量 (從 inventoryRecords -> subZone -> drugId 抓取)
+                const zoneRecord = firebaseRecords[drug.subZone] || {};
+                const rec = zoneRecord[drug.id] || { total: 0, user: '未盤' };
 
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition text-slate-600";
                 tr.innerHTML = `
+                    <td class="py-4 px-6"><span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold text-xs">${drug.subZone || '未分類'}</span></td>
                     <td class="py-4 px-6 font-black text-slate-800">${drug.id}</td>
                     <td class="py-4 px-6 font-bold text-slate-700">${drug.name}</td>
-                    <td class="py-4 px-6 text-center font-medium text-slate-400 text-xs">${detailStr}</td>
-                    <td class="py-4 px-6 text-center font-black ${rec.total > 0 ? 'text-green-600 text-base' : 'text-slate-300'}">${rec.total}</td>
-                    <td class="py-4 px-6 text-center"><span class="bg-slate-100 text-slate-600 px-2.5 py-1 rounded-lg font-bold text-xs">${rec.user}</span></td>
+                    <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold">${drug.desc || '1盒=10支'}</td>
+                    <td class="py-4 px-6 text-center font-black ${rec.total > 0 ? 'text-green-600 text-base' : 'text-slate-300'}">${rec.total} <span class="text-[10px] text-slate-400 font-normal">(${rec.user})</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // 🎯 核心秘密武器：將資料打包，全自動生成並導出 Excel 表格
+        // 一鍵下載符合彰醫 ledger 的綜合總報表 Excel
         window.downloadExcel = function() {
             const timeString = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }).replace(/[\/:]/g, '-');
-            
-            // 1. 設定 Excel 的表頭欄位
             const excelRows = [
-                ["彰化醫院藥劑科 - 智慧盤點歷史總報表"],
+                ["彰化醫院藥劑科 - 雲端盤點歷史總報表"],
                 ["匯出時間：" + new Date().toLocaleString('zh-TW')],
-                [], // 空一行
-                ["藥品代碼", "藥品名稱", "輸入包裝數據明細", "全自動換算總顆數/支數", "最終盤點負責藥師"]
+                [],
+                ["儲位分類", "藥品代碼", "藥品名稱", "包裝換算規則", "全自動換算總量", "負責藥師"]
             ];
 
-            // 2. 依序將藥品庫的實時數據塞入列中
-            drugDb.forEach(drug => {
-                const rec = globalRecords[drug.id] || { u1: 0, u2: 0, u3: 0, total: 0, user: '未盤點' };
-                
-                let detailStr = `${rec.u1}${drug.u1} ${rec.u2}${drug.u2}`;
-                if (drug.u3) detailStr += ` ${rec.u3}${drug.u3}`;
-
+            allCombinedDrugs.forEach(drug => {
+                const zoneRecord = firebaseRecords[drug.subZone] || {};
+                const rec = zoneRecord[drug.id] || { total: 0, user: '未盤點' };
                 excelRows.push([
+                    drug.subZone || '未分類',
                     drug.id,
                     drug.name,
-                    detailStr,
+                    drug.desc || '1盒=10支',
                     rec.total,
                     rec.user
                 ]);
             });
 
-            // 3. 呼叫 SheetJS 套件引擎在瀏覽器背景快速建構試算表
             const worksheet = XLSX.utils.aoa_to_sheet(excelRows);
             const workbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(workbook, worksheet, "盤點總明細");
-
-            // 4. 強制瀏覽器啟動下載行為
+            XLSX.utils.book_append_sheet(workbook, worksheet, "盤點數據總明細");
             XLSX.writeFile(workbook, `彰醫藥局盤點報表_${timeString}.xlsx`);
         };
     </script>
