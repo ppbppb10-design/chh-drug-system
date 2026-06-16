@@ -21,12 +21,14 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-folder-tree text-blue-500"></i> 彰醫專屬 Excel 規格：</div>
-                <p>1. 系統已自動對應您的表格標頭：<span class="font-bold text-blue-600">「藥品碼」</span>與<span class="font-bold text-blue-600">「聯標品名」</span>。</p>
-                <p>2. 系統會自動剔除「工作表1、2、9」等排班表，專心抓取儲位分頁。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-folder-tree text-blue-500"></i> 彰醫專屬 Excel 規格已優化：</div>
+                <p>1. 系統已適應首行大標題結構，自動精準定位第二行標頭。</p>
+                <p>2. 已鎖定欄位：<span class="font-bold text-blue-600">「位號」</span>、<span class="font-bold text-blue-600">「藥品碼」</span>、<span class="font-bold text-blue-600">「聯標品名」</span>。</p>
+                <p>3. 自動跳過工作表1、工作表9、UD藍標預包區外用等無效分頁。</p>
             </div>
 
             <div class="space-y-4">
+                <!-- 口服藥匯入端 -->
                 <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-teal-400 transition">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
@@ -41,6 +43,7 @@
                     </button>
                 </div>
 
+                <!-- 針劑外用匯入端 (完美支援 11504 盤點表) -->
                 <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-indigo-400 transition">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
@@ -59,7 +62,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v5.50-chh-spec</span>
+            <span class="text-[10px] text-slate-300 font-mono">v5.60-chh-final</span>
         </div>
     </div>
 
@@ -86,7 +89,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 智慧解析中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在沖刷雲端...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -96,38 +99,42 @@
                 let parsedCount = 0;
 
                 workbook.SheetNames.forEach(sheetName => {
-                    // 🎯 智慧防呆：跳過排班表分頁
-                    if (sheetName.includes('工作表') || sheetName.includes('盤點工作')) return;
+                    // 🎯 智慧篩選：只抓取您指定的實體儲位頁籤
+                    if (sheetName.includes('工作表') || sheetName.includes('UD藍標')) return;
 
                     const worksheet = workbook.Sheets[sheetName];
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
 
-                    // 🎯 完美適應彰醫表頭：尋找包含「藥品碼」或「位號」的那一行
+                    // 🎯 核心修正：主動向下巡迴，尋找「藥品碼」標頭行 (完美解決 Row 1 標題干擾)
                     let headerIndex = -1;
                     for (let i = 0; i < jsonData.length; i++) {
                         const rowStr = JSON.stringify(jsonData[i]);
-                        if (rowStr.includes('藥品碼') || rowStr.includes('藥碼') || rowStr.includes('位號')) {
+                        if (rowStr.includes('藥品碼') || rowStr.includes('藥碼')) {
                             headerIndex = i;
                             break;
                         }
                     }
 
-                    if (headerIndex === -1) headerIndex = 0;
+                    // 如果真的找不到，預設向下抓第二行 (Index 1)
+                    if (headerIndex === -1) headerIndex = 1;
 
                     const headers = jsonData[headerIndex] || [];
-                    const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼') || String(h).includes('代碼'));
-                    const nameIdx = headers.findIndex(h => String(h).includes('品名') || String(h).includes('名稱'));
                     const locIdx = headers.findIndex(h => String(h).includes('位號'));
+                    const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼'));
+                    const nameIdx = headers.findIndex(h => String(h).includes('品名') || String(h).includes('名稱'));
 
+                    // 從標頭行的下一行開始掃描
                     for (let j = headerIndex + 1; j < jsonData.length; j++) {
                         const row = jsonData[j];
-                        if (!row || !row[codeIdx]) continue;
+                        if (!row || !row[codeIdx]) continue; // 沒藥碼就跳過
 
                         const drugCode = String(row[codeIdx]).trim();
-                        const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無藥名';
-                        const location = row[locIdx] ? String(row[locIdx]).trim() : '';
+                        if (drugCode === "undefined" || drugCode === "" || drugCode.includes('藥品碼')) continue;
+
+                        const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥名';
+                        const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
                         
-                        // 智慧單位與換算規則判定 (若是冰箱或針劑預設雙單位換算率 10，其餘 1)
+                        // 自動為口服與針劑設定外觀單位規則
                         let rate1 = 10;
                         let unit1 = "盒", unit2 = "支";
                         if (sheetName.includes('外用') || sheetName.includes('少用')) {
@@ -137,8 +144,8 @@
                         newMasterList[drugCode] = {
                             id: drugCode,
                             name: drugName,
-                            subZone: sheetName, // 次儲位分類
-                            location: location, // 儲位號 (如 冰D1)
+                            subZone: sheetName,       // 分頁名稱 (如：外用庫存區)
+                            location: locationValue,  // 位號 (如：1, 2)
                             rate1: rate1,
                             unit1: unit1,
                             unit2: unit2,
@@ -153,13 +160,13 @@
                     const nodePath = (type === 'oral') ? 'masterOralList' : 'masterInjectList';
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
-                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 成功匯入 (${parsedCount}品項)`;
-                        alert(`🎉 彰醫分流基本庫更新成功！\n共讀取 ${parsedCount} 個品項並自動歸類至各儲位分頁！`);
+                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
+                        alert(`🎉 彰醫專屬基本庫上傳成功！\n系統已完美解析第二行標頭，共匯入 ${parsedCount} 筆藥品數據！`);
                     });
                 } else {
                     statusLabel.className = "text-[11px] font-bold text-red-500";
                     statusLabel.innerText = "❌ 解析失敗";
-                    alert("匯入失敗！請確認 Excel 內有包含「藥品碼」與「聯標品名」的欄位標頭。");
+                    alert("匯入失敗！請確認 Excel 的第二行有包含「藥品碼」與「聯標品名」的標頭。");
                 }
             };
             reader.readAsArrayBuffer(file);
