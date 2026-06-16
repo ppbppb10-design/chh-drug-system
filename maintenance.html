@@ -21,13 +21,14 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> 智慧公式引擎已升級：</div>
-                <p>1. 🎯 <span class="font-bold text-teal-600">中英文全相容</span>：支援全形等號 <span class="font-bold text-blue-600">「＝」</span> 與半形等號 <span class="font-bold text-blue-600">「=」</span>。</p>
-                <p>2. 自動清除公式內的所有空白字元，防止打字手滑導致辨識失敗。</p>
-                <p>3. 只要在備註或任意欄位填寫，即可自動覆蓋預設的 10 支規則！</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> Ｘ光座標掃描引擎已升級：</div>
+                <p>1. 🎯 <span class="font-bold text-teal-600">無視空白欄位阻擋</span>：不論公式寫在 D 欄、E 欄或 F 欄，皆能穿越空白格精準捕捉！</p>
+                <p>2. 完美對應您在 <span class="font-bold text-blue-600">E 欄</span> 填寫的 1盒=30片、1盒=12瓶、1盒=50瓶等規則。</p>
+                <p>3. 重新上傳後，手機端卡片即刻展現全自動公式換總量！</p>
             </div>
 
             <div class="space-y-4">
+                <!-- 口服藥匯入端 -->
                 <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-teal-400 transition">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
@@ -37,11 +38,12 @@
                         <span id="status-oral" class="text-[11px] font-bold text-slate-400">尚未上傳</span>
                     </div>
                     <input type="file" id="excelOral" accept=".xlsx, .xls" class="hidden" onchange="uploadDatabase('oral', this)">
-                    <button onclick="document.getElementById('excelOral').click()" class="w-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer w-full">
+                    <button onclick="document.getElementById('excelOral').click()" class="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-file-import"></i> 匯入口服藥總表
                     </button>
                 </div>
 
+                <!-- 針劑外用匯入端 -->
                 <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-indigo-400 transition">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
@@ -51,7 +53,7 @@
                         <span id="status-inject" class="text-[11px] font-bold text-slate-400">尚未上傳</span>
                     </div>
                     <input type="file" id="excelInject" accept=".xlsx, .xls" class="hidden" onchange="uploadDatabase('inject', this)">
-                    <button onclick="document.getElementById('excelInject').click()" class="w-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer w-full">
+                    <button onclick="document.getElementById('excelInject').click()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
                         <i class="fa-solid fa-file-import"></i> 匯入針劑外用盤點表
                     </button>
                 </div>
@@ -60,7 +62,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v5.90-formula-v2</span>
+            <span class="text-[10px] text-slate-300 font-mono">v6.10-xray-scan</span>
         </div>
     </div>
 
@@ -87,7 +89,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 智慧解構公式...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Ｘ光透視掃描中...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -101,7 +103,9 @@
                     if (sheetName.includes('工作表') || sheetName.includes('UD藍標')) return;
 
                     const worksheet = workbook.Sheets[sheetName];
-                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1 });
+                    
+                    // 1. 先用傳統二維陣列掃描藥品基本資料
+                    const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
                     let headerIndex = -1;
                     for (let i = 0; i < jsonData.length; i++) {
@@ -111,7 +115,6 @@
                             break;
                         }
                     }
-
                     if (headerIndex === -1) headerIndex = 1;
 
                     const headers = jsonData[headerIndex] || [];
@@ -119,6 +122,32 @@
                     const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼') || String(h).includes('代碼'));
                     const nameIdx = headers.findIndex(h => String(h).includes('品名') || String(h).includes('名稱'));
 
+                    // 2. 🎯 秘密武器：啟動 X 光公式/純文字座標定位器，把這張分頁的所有格子全部倒出來
+                    const cellEntries = XLSX.utils.sheet_to_formulae(worksheet);
+                    let sheetFormulasByRow = {}; // 用來記錄這一行有沒有公式
+
+                    cellEntries.forEach(entry => {
+                        // entry 格式類似 "E3=1盒=30片"
+                        const eqIdx = entry.indexOf('=');
+                        if (eqIdx === -1) return;
+                        
+                        const cellCoord = entry.substring(0, eqIdx); // "E3"
+                        const cellContent = entry.substring(eqIdx + 1); // "1盒=30片"
+                        
+                        // 解析出列號 (如 "E3" -> 3)
+                        const rowMatch = cellCoord.match(/\d+/);
+                        if (rowMatch) {
+                            const rowNum = parseInt(rowMatch[0]);
+                            let cleanText = cellContent.replace(/\s+/g, '');
+                            
+                            // 只要內容裡含有全形或半形等號，就判定為換算公式
+                            if (cleanText.includes('=') || cleanText.includes('＝')) {
+                                sheetFormulasByRow[rowNum] = cleanText;
+                            }
+                        }
+                    });
+
+                    // 3. 開始組裝藥品清單，並將黏在行號上的公式無痛合體
                     for (let j = headerIndex + 1; j < jsonData.length; j++) {
                         const row = jsonData[j];
                         if (!row || !row[codeIdx]) continue;
@@ -129,7 +158,7 @@
                         const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥名';
                         const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
                         
-                        // 1. 先設定彰醫預設包裝規則
+                        // 預設包裝
                         let rate1 = 10;
                         let unit1 = "盒", unit2 = "支";
                         if (sheetName.includes('外用') || sheetName.includes('少用')) {
@@ -137,31 +166,26 @@
                         }
                         let descStr = `1${unit1} = ${rate1}${unit2}`;
 
-                        // 2. 🎯 核心升級：智慧公式抽取大腦 (同時支援 = 與 ＝，且自動濾除空白)
-                        row.forEach(cell => {
-                            let cellText = String(cell).replace(/\s+/g, ''); // 拔掉所有空格
+                        // 🎯 拿真實 Excel 行號（J + 1）去剛才的Ｘ光地圖裡撈 E 欄公式！
+                        const excelRealRowNum = j + 1;
+                        if (sheetFormulasByRow[excelRealRowNum]) {
+                            let cellText = sheetFormulasByRow[excelRealRowNum];
+                            let splitChar = cellText.includes('=') ? '=' : '＝';
+                            let parts = cellText.split(splitChar);
                             
-                            // 只要格子包含半形 = 或全形 ＝
-                            if (cellText.includes('=') || cellText.includes('＝')) {
-                                let splitChar = cellText.includes('=') ? '=' : '＝';
-                                let parts = cellText.split(splitChar); // 切開前後
+                            if (parts.length === 2) {
+                                let u1Match = parts[0].match(/[^\d]+/);
+                                if (u1Match) unit1 = u1Match[0];
+
+                                let rateMatch = parts[1].match(/\d+/);
+                                let u2Match = parts[1].match(/[^\d]+/);
                                 
-                                if (parts.length === 2) {
-                                    // 擷取大單位 (如 1盒 -> 盒)
-                                    let u1Match = parts[0].match(/[^\d]+/);
-                                    if (u1Match) unit1 = u1Match[0];
+                                if (rateMatch) rate1 = parseInt(rateMatch[0]);
+                                if (u2Match) unit2 = u2Match[0];
 
-                                    // 擷取換算率與小單位 (如 5支 -> 數字5, 單位支)
-                                    let rateMatch = parts[1].match(/\d+/);
-                                    let u2Match = parts[1].match(/[^\d]+/);
-                                    
-                                    if (rateMatch) rate1 = parseInt(rateMatch[0]);
-                                    if (u2Match) unit2 = u2Match[0];
-
-                                    descStr = cellText.replace('＝', '='); // 規格標準化呈現
-                                }
+                                descStr = `1${unit1} = ${rate1}${unit2}`;
                             }
-                        });
+                        }
 
                         globalIndex++;
                         const uniquePrimaryKey = `${drugCode}_${locationValue || '0'}_${globalIndex}`;
@@ -188,7 +212,7 @@
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
                         statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}行)`;
-                        alert(`🎉 彰醫智慧公式庫更新成功！\n系統已完美辨識全半形公式，共成功匯入 ${parsedCount} 行藥品明細！`);
+                        alert(`🎉 彰醫Ｘ光公式引擎同步成功！\n已成功穿透空白欄位，精準讀取您在 E 欄設定的所有特殊包裝規則！`);
                     });
                 } else {
                     statusLabel.className = "text-[11px] font-bold text-red-500";
