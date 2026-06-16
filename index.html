@@ -52,7 +52,7 @@
                     <span class="font-bold text-slate-700 text-lg">西藥儲位</span>
                 </div>
                 <div class="portal-card bg-gradient-to-br from-blue-600 to-indigo-600 p-5 rounded-2xl flex items-center gap-4 cursor-pointer shadow-md text-white" onclick="routeToTransfer()">
-                    <span class="text-3xl bg-white/20 p-3 rounded-xl shadow-inner">🚑</span>
+                    <span class="text-3xl bg-white/20 p-3 rounded-xl shadow-inner">橫🚑</span>
                     <div>
                         <span class="font-black text-xl block">撥補 / 急領</span>
                         <span class="text-[10px] opacity-80 font-bold">缺藥調撥即時通知</span>
@@ -98,4 +98,23 @@
                     <span class="text-3xl bg-red-50 p-3 rounded-xl">❓</span>
                     <span class="font-bold text-slate-700 text-lg">疑義處方登記</span>
                 </div>
-                <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer"
+                <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('建置中...')">
+                    <span class="text-3xl bg-rose-50 p-3 rounded-xl">⚠️</span>
+                    <span class="font-bold text-slate-700 text-lg">調劑錯誤登記</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function routeToTransfer() {
+            const choice = confirm("請選擇進入視窗：\n\n【確定】進入 ➡️ 藥局端 (手機點藥)\n【取消】進入 ➡️ 藥庫端 (電腦收單)");
+            if (choice) {
+                window.location.href = "transfer.html?role=pharmacy";
+            } else {
+                window.location.href = "transfer.html?role=warehouse";
+            }
+        }
+    </script>
+</body>
+</html>
