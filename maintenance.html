@@ -21,10 +21,10 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> Ｘ光座標掃描引擎已升級：</div>
-                <p>1. 🎯 <span class="font-bold text-teal-600">無視空白欄位阻擋</span>：不論公式寫在 D 欄、E 欄或 F 欄，皆能穿越空白格精準捕捉！</p>
-                <p>2. 完美對應您在 <span class="font-bold text-blue-600">E 欄</span> 填寫的 1盒=30片、1盒=12瓶、1盒=50瓶等規則。</p>
-                <p>3. 重新上傳後，手機端卡片即刻展現全自動公式換總量！</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> 預包多規格引擎已就位：</div>
+                <p>1. 🎯 <span class="font-bold text-indigo-600">支援 UD 藍標預包區</span>：已完美解鎖該分頁，支援以逗號分隔的多組包裝換算。</p>
+                <p>2. 自動將多規格轉化為手機端複數輸入框，解決現場混合包裝的盤點痛點。</p>
+                <p>3. 重新上傳您的完整 Excel 即可無痛同步升級。</p>
             </div>
 
             <div class="space-y-4">
@@ -43,7 +43,7 @@
                     </button>
                 </div>
 
-                <!-- 針劑外用匯入端 -->
+                <!-- 針劑外用匯入端 (支援 UD 藍標預包多規格) -->
                 <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-indigo-400 transition">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
@@ -62,7 +62,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v6.10-xray-scan</span>
+            <span class="text-[10px] text-slate-300 font-mono">v7.00-multi-spec</span>
         </div>
     </div>
 
@@ -89,7 +89,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> Ｘ光透視掃描中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在解析預包多規格...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -100,11 +100,10 @@
                 let globalIndex = 0;
 
                 workbook.SheetNames.forEach(sheetName => {
-                    if (sheetName.includes('工作表') || sheetName.includes('UD藍標')) return;
+                    // 🎯 智慧解鎖：保留實體分頁，包含您的「UD藍標預包區外用」
+                    if (sheetName.includes('工作表') || sheetName === '工作表9') return;
 
                     const worksheet = workbook.Sheets[sheetName];
-                    
-                    // 1. 先用傳統二維陣列掃描藥品基本資料
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
                     let headerIndex = -1;
@@ -118,36 +117,29 @@
                     if (headerIndex === -1) headerIndex = 1;
 
                     const headers = jsonData[headerIndex] || [];
-                    const locIdx = headers.findIndex(h => String(h).includes('位號'));
-                    const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼') || String(h).includes('代碼'));
+                    const locIdx = headers.findIndex(h => String(h).includes('位號') || String(h).includes('儲位'));
+                    const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼'));
                     const nameIdx = headers.findIndex(h => String(h).includes('品名') || String(h).includes('名稱'));
 
-                    // 2. 🎯 秘密武器：啟動 X 光公式/純文字座標定位器，把這張分頁的所有格子全部倒出來
+                    // 提取此工作表內的所有公式或備註格子
                     const cellEntries = XLSX.utils.sheet_to_formulae(worksheet);
-                    let sheetFormulasByRow = {}; // 用來記錄這一行有沒有公式
+                    let sheetFormulasByRow = {};
 
                     cellEntries.forEach(entry => {
-                        // entry 格式類似 "E3=1盒=30片"
                         const eqIdx = entry.indexOf('=');
                         if (eqIdx === -1) return;
-                        
-                        const cellCoord = entry.substring(0, eqIdx); // "E3"
-                        const cellContent = entry.substring(eqIdx + 1); // "1盒=30片"
-                        
-                        // 解析出列號 (如 "E3" -> 3)
+                        const cellCoord = entry.substring(0, eqIdx);
+                        const cellContent = entry.substring(eqIdx + 1);
                         const rowMatch = cellCoord.match(/\d+/);
                         if (rowMatch) {
                             const rowNum = parseInt(rowMatch[0]);
                             let cleanText = cellContent.replace(/\s+/g, '');
-                            
-                            // 只要內容裡含有全形或半形等號，就判定為換算公式
                             if (cleanText.includes('=') || cleanText.includes('＝')) {
                                 sheetFormulasByRow[rowNum] = cleanText;
                             }
                         }
                     });
 
-                    // 3. 開始組裝藥品清單，並將黏在行號上的公式無痛合體
                     for (let j = headerIndex + 1; j < jsonData.length; j++) {
                         const row = jsonData[j];
                         if (!row || !row[codeIdx]) continue;
@@ -158,32 +150,50 @@
                         const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥名';
                         const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
                         
-                        // 預設包裝
-                        let rate1 = 10;
-                        let unit1 = "盒", unit2 = "支";
+                        // 1. 設定基礎預設規則
+                        let isMultiSpec = false;
+                        let specArray = [];
+                        let rate1 = 10, unit1 = "盒", unit2 = "支";
+                        
                         if (sheetName.includes('外用') || sheetName.includes('少用')) {
                             rate1 = 1; unit1 = "盒"; unit2 = "罐";
                         }
                         let descStr = `1${unit1} = ${rate1}${unit2}`;
 
-                        // 🎯 拿真實 Excel 行號（J + 1）去剛才的Ｘ光地圖裡撈 E 欄公式！
+                        // 2. 🎯 多規格智慧拆解核心 (處理 3支包=3 , 4支包=4 等結構)
                         const excelRealRowNum = j + 1;
                         if (sheetFormulasByRow[excelRealRowNum]) {
                             let cellText = sheetFormulasByRow[excelRealRowNum];
-                            let splitChar = cellText.includes('=') ? '=' : '＝';
-                            let parts = cellText.split(splitChar);
                             
-                            if (parts.length === 2) {
-                                let u1Match = parts[0].match(/[^\d]+/);
-                                if (u1Match) unit1 = u1Match[0];
-
-                                let rateMatch = parts[1].match(/\d+/);
-                                let u2Match = parts[1].match(/[^\d]+/);
+                            // 統一將全形逗號與等號轉為半形
+                            cellText = cellText.replace(/，/g, ',').replace(/＝/g, '=');
+                            
+                            if (cellText.includes(',')) {
+                                // 💡 判定為「多規格預包藥物」
+                                isMultiSpec = true;
+                                descStr = cellText; // 直接保留多規格文字描述
                                 
-                                if (rateMatch) rate1 = parseInt(rateMatch[0]);
-                                if (u2Match) unit2 = u2Match[0];
-
-                                descStr = `1${unit1} = ${rate1}${unit2}`;
+                                const subSpecs = cellText.split(',');
+                                subSpecs.forEach(sub => {
+                                    const parts = sub.split('=');
+                                    if (parts.length === 2) {
+                                        let specName = parts[0]; // "3支包"
+                                        let specRate = parseInt(parts[1].match(/\d+/)[0]) || 1; // 數值 3
+                                        specArray.push({ label: specName, rate: specRate });
+                                    }
+                                });
+                            } else {
+                                // 普通單一規格處理
+                                let parts = cellText.split('=');
+                                if (parts.length === 2) {
+                                    let u1Match = parts[0].match(/[^\d]+/);
+                                    if (u1Match) unit1 = u1Match[0];
+                                    let rateMatch = parts[1].match(/\d+/);
+                                    let u2Match = parts[1].match(/[^\d]+/);
+                                    if (rateMatch) rate1 = parseInt(rateMatch[0]);
+                                    if (u2Match) unit2 = u2Match[0];
+                                    descStr = `1${unit1} = ${rate1}${unit2}`;
+                                }
                             }
                         }
 
@@ -201,7 +211,9 @@
                             desc: descStr,
                             mainType: type,
                             sortOrder: globalIndex,
-                            dbKey: uniquePrimaryKey
+                            dbKey: uniquePrimaryKey,
+                            isMultiSpec: isMultiSpec,    // 標記是否為多規格
+                            specArray: specArray         // 存放預包拆解後的陣列
                         };
                         parsedCount++;
                     }
@@ -212,7 +224,7 @@
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
                         statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}行)`;
-                        alert(`🎉 彰醫Ｘ光公式引擎同步成功！\n已成功穿透空白欄位，精準讀取您在 E 欄設定的所有特殊包裝規則！`);
+                        alert(`🎉 彰醫多規格雲端基本庫升級成功！\n共讀取 ${parsedCount} 行品項，UD藍標多組預包包裝已全自動拆解完畢！`);
                     });
                 } else {
                     statusLabel.className = "text-[11px] font-bold text-red-500";
