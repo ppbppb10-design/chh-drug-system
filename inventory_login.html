@@ -28,7 +28,7 @@
                     </label>
                     <div class="relative">
                         <select id="userSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold px-4 py-3 rounded-2xl outline-none appearance-none cursor-pointer focus:border-blue-500 focus:bg-white transition">
-                                                   <option value="李瑞文" class="text-slate-800">李瑞文</option>
+                        <option value="李瑞文" class="text-slate-800">李瑞文</option>
                         <option value="陳東錦" class="text-slate-800">陳東錦</option>
                         <option value="賴錦益" class="text-slate-800">賴錦益</option>
                         <option value="邱富強" class="text-slate-800">邱富強</option>
@@ -164,11 +164,15 @@
             } else if (zone === 'even') {
                 // 雙月針劑&外用的次區域
                 const evenZones = [
-                    { val: '冰庫', name: '❄️ 冰庫冷藏品項' },
-                    { val: '針劑A', name: '💉 一般針劑櫃 (A排)' },
-                    { val: '針劑B', name: '💉 一般針劑櫃 (B排)' },
-                    { val: '外用藥', name: '🧴 外用藥膏/水劑區' },
-                    { val: '大輸液', name: '📦 庫房大輸液堆疊區' }
+                    { val: '冰箱', name: '❄️ 冰箱冷藏品項' },
+                    { val: '針劑調劑區', name: '🧪 針劑調劑區' },
+                    { val: '針劑庫存區', name: '📦 針劑庫存區' },
+                    { val: '外用庫存區', name: '🏢 外用庫存區' },
+                    { val: '外用調單一', name: '🎯 外用調單一' },
+                    { val: '外用調單三', name: '🧩 外用調單三' },
+                    { val: '外用調雙', name: '🎨 外用調雙' },
+                    { val: '外用少用區', name: '⚠️ 外用少用區' }
+                    
                 ];
                 evenZones.forEach(z => {
                     subSelect.innerHTML += `<option value="${z.val}">${z.name}</option>`;
