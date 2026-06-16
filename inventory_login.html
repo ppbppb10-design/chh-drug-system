@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>藥局盤點系統 - 入口</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-slate-100 min-h-screen flex items-center justify-center p-4">
+
+    <div class="bg-white w-full max-w-md rounded-3xl shadow-xl p-8 border border-slate-100 flex flex-col justify-between min-h-[580px] relative">
+        
+        <div>
+            <div class="text-center mt-4 mb-8">
+                <h1 class="text-3xl font-black text-blue-900 tracking-wide">藥局盤點系統</h1>
+                <p class="text-xs font-bold text-slate-400 tracking-widest mt-1 uppercase">FIREBASE V5.28 UX</p>
+            </div>
+
+            <div class="space-y-6">
+                <div class="space-y-2">
+                    <label class="block text-sm font-bold text-slate-700 tracking-wide">
+                        <i class="fa-solid fa-user text-blue-500 mr-1.5"></i> 盤點人員
+                    </label>
+                    <div class="relative">
+                        <select id="userSelect" class="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold px-4 py-3.5 rounded-2xl outline-none appearance-none cursor-pointer focus:border-blue-500 focus:bg-white transition">
+                            <option value="育伶">劉育伶 (育伶)</option>
+                            <option value="育豪">劉育豪</option>
+                            <option value="東錦">陳東錦</option>
+                            <option value="錦益">賴錦益</option>
+                            <option value="富強">邱富強</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-4.5 text-slate-400 pointer-events-none text-sm"></i>
+                    </div>
+                </div>
+
+                <div class="space-y-2">
+                    <label class="block text-sm font-bold text-slate-700 tracking-wide">
+                        <i class="fa-solid fa-layer-group text-blue-500 mr-1.5"></i> 盤點區域
+                    </label>
+                    <div class="relative">
+                        <select id="zoneSelect" onchange="checkForm()" class="w-full bg-slate-50 border border-slate-200 text-slate-700 font-bold px-4 py-3.5 rounded-2xl outline-none appearance-none cursor-pointer focus:border-blue-500 focus:bg-white transition">
+                            <option value="">-- 請選擇區域 --</option>
+                            <option value="冰">❄️ 冰庫品項</option>
+                            <option value="口服">💊 口服藥區 (調A~調H)</option>
+                            <option value="針劑">💉 針劑藥區</option>
+                            <option value="外用">🧴 外用藥區</option>
+                            <option value="鐵架">🗄️ 鐵架儲位</option>
+                        </select>
+                        <i class="fa-solid fa-chevron-down absolute right-4 top-4.5 text-slate-400 pointer-events-none text-sm"></i>
+                    </div>
+                </div>
+            </div>
+
+            <div class="mt-8">
+                <button id="btnStart" onclick="startInventory()" disabled class="w-full bg-slate-300 text-white font-black py-4 rounded-2xl text-lg shadow-md transition cursor-not-allowed">
+                    開始盤點
+                </button>
+            </div>
+        </div>
+
+        <div class="mt-8 space-y-4">
+            <div class="grid grid-cols-2 gap-4">
+                <button onclick="alert('報表中心建置中...')" class="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 rounded-2xl shadow-sm active:scale-95 transition text-sm">
+                    📊 報表中心
+                </button>
+                <button onclick="alert('資料維護建置中...')" class="flex items-center justify-center gap-2 border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold py-3.5 rounded-2xl shadow-sm active:scale-95 transition text-sm">
+                    <i class="fa-solid fa-gear text-slate-400"></i> 資料維護
+                </button>
+            </div>
+            
+            <div class="text-center text-[11px] text-slate-400 font-medium tracking-wide">
+                Total: 1008 items
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 檢查是否有選取區域，決定是否解鎖按鈕
+        function checkForm() {
+            const zone = document.getElementById('zoneSelect').value;
+            const btn = document.getElementById('btnStart');
+
+            if (zone !== "") {
+                // 解鎖變藍色
+                btn.disabled = false;
+                btn.className = "w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl text-lg shadow-lg shadow-blue-500/20 active:scale-[0.98] transition cursor-pointer";
+            } else {
+                // 鎖定變灰色
+                btn.disabled = true;
+                btn.className = "w-full bg-slate-300 text-white font-black py-4 rounded-2xl text-lg shadow-md transition cursor-not-allowed";
+            }
+        }
+
+        // 開始盤點跳轉：將選擇的「人員」與「區域」利用網址參數帶到下一頁
+        function startInventory() {
+            const user = document.getElementById('userSelect').value;
+            const zone = document.getElementById('zoneSelect').value;
+            
+            // 跳轉至盤點卡片頁面，並帶上參數
+            window.location.href = `inventory.html?user=${encodeURIComponent(user)}&zone=${encodeURIComponent(zone)}`;
+        }
+    </script>
+</body>
+</html>
