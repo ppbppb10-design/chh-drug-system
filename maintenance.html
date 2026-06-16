@@ -21,13 +21,13 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-triangle-exclamation text-amber-500"></i> 彰醫重複藥碼多儲位解鎖：</div>
-                <p>1. 🎯 <span class="font-bold text-blue-600">多儲位並存</span>：同藥碼若存在不同「位號」，系統將全數保留、不予覆蓋！</p>
-                <p>2. 系統將嚴格比對第二行標頭，完整還原您 Excel 每一橫列的原始行數。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> 智慧公式引擎已升級：</div>
+                <p>1. 🎯 <span class="font-bold text-teal-600">中英文全相容</span>：支援全形等號 <span class="font-bold text-blue-600">「＝」</span> 與半形等號 <span class="font-bold text-blue-600">「=」</span>。</p>
+                <p>2. 自動清除公式內的所有空白字元，防止打字手滑導致辨識失敗。</p>
+                <p>3. 只要在備註或任意欄位填寫，即可自動覆蓋預設的 10 支規則！</p>
             </div>
 
             <div class="space-y-4">
-                <!-- 口服藥匯入端 -->
                 <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-teal-400 transition">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
@@ -37,22 +37,21 @@
                         <span id="status-oral" class="text-[11px] font-bold text-slate-400">尚未上傳</span>
                     </div>
                     <input type="file" id="excelOral" accept=".xlsx, .xls" class="hidden" onchange="uploadDatabase('oral', this)">
-                    <button onclick="document.getElementById('excelOral').click()" class="w-full bg-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button onclick="document.getElementById('excelOral').click()" class="w-gradient-to-r from-teal-600 to-cyan-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer w-full">
                         <i class="fa-solid fa-file-import"></i> 匯入口服藥總表
                     </button>
                 </div>
 
-                <!-- 針劑外用匯入端 -->
                 <div class="border border-slate-200 p-4 rounded-2xl bg-white shadow-sm hover:border-indigo-400 transition">
                     <div class="flex justify-between items-center mb-2">
                         <div class="flex items-center gap-2">
                             <span class="text-xl">💉</span>
-                            <span class="font-bold text-slate-800 text-sm">針劑/外用 基本庫更新</span>
+                            <span class="font-black text-slate-800 text-sm">針劑/外用 基本庫更新</span>
                         </div>
                         <span id="status-inject" class="text-[11px] font-bold text-slate-400">尚未上傳</span>
                     </div>
                     <input type="file" id="excelInject" accept=".xlsx, .xls" class="hidden" onchange="uploadDatabase('inject', this)">
-                    <button onclick="document.getElementById('excelInject').click()" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <button onclick="document.getElementById('excelInject').click()" class="w-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-2.5 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer w-full">
                         <i class="fa-solid fa-file-import"></i> 匯入針劑外用盤點表
                     </button>
                 </div>
@@ -61,7 +60,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v5.80-multi-location</span>
+            <span class="text-[10px] text-slate-300 font-mono">v5.90-formula-v2</span>
         </div>
     </div>
 
@@ -88,7 +87,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在深層解構...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 智慧解構公式...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -130,15 +129,41 @@
                         const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥名';
                         const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
                         
+                        // 1. 先設定彰醫預設包裝規則
                         let rate1 = 10;
                         let unit1 = "盒", unit2 = "支";
                         if (sheetName.includes('外用') || sheetName.includes('少用')) {
                             rate1 = 1; unit1 = "盒"; unit2 = "罐";
                         }
+                        let descStr = `1${unit1} = ${rate1}${unit2}`;
+
+                        // 2. 🎯 核心升級：智慧公式抽取大腦 (同時支援 = 與 ＝，且自動濾除空白)
+                        row.forEach(cell => {
+                            let cellText = String(cell).replace(/\s+/g, ''); // 拔掉所有空格
+                            
+                            // 只要格子包含半形 = 或全形 ＝
+                            if (cellText.includes('=') || cellText.includes('＝')) {
+                                let splitChar = cellText.includes('=') ? '=' : '＝';
+                                let parts = cellText.split(splitChar); // 切開前後
+                                
+                                if (parts.length === 2) {
+                                    // 擷取大單位 (如 1盒 -> 盒)
+                                    let u1Match = parts[0].match(/[^\d]+/);
+                                    if (u1Match) unit1 = u1Match[0];
+
+                                    // 擷取換算率與小單位 (如 5支 -> 數字5, 單位支)
+                                    let rateMatch = parts[1].match(/\d+/);
+                                    let u2Match = parts[1].match(/[^\d]+/);
+                                    
+                                    if (rateMatch) rate1 = parseInt(rateMatch[0]);
+                                    if (u2Match) unit2 = u2Match[0];
+
+                                    descStr = cellText.replace('＝', '='); // 規格標準化呈現
+                                }
+                            }
+                        });
 
                         globalIndex++;
-
-                        // 🎯 核心大改裝：使用「藥碼 + 位號」或是「藥碼 + 流水號」建立複合唯一鑰匙，徹底粉碎覆蓋Bug！
                         const uniquePrimaryKey = `${drugCode}_${locationValue || '0'}_${globalIndex}`;
 
                         newMasterList[uniquePrimaryKey] = {
@@ -149,10 +174,10 @@
                             rate1: rate1,
                             unit1: unit1,
                             unit2: unit2,
-                            desc: `1${unit1} = ${rate1}${unit2}`,
+                            desc: descStr,
                             mainType: type,
                             sortOrder: globalIndex,
-                            dbKey: uniquePrimaryKey // 儲存複合鑰匙供手機端識別
+                            dbKey: uniquePrimaryKey
                         };
                         parsedCount++;
                     }
@@ -163,7 +188,7 @@
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
                         statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}行)`;
-                        alert(`🎉 彰醫全多儲位基本庫匯入成功！\n本次共完整解開並保留了 ${parsedCount} 行藥品明細！`);
+                        alert(`🎉 彰醫智慧公式庫更新成功！\n系統已完美辨識全半形公式，共成功匯入 ${parsedCount} 行藥品明細！`);
                     });
                 } else {
                     statusLabel.className = "text-[11px] font-bold text-red-500";
