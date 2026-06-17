@@ -21,9 +21,9 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-circle-check text-emerald-500"></i> 無標頭地毯式掃描已啟動：</div>
-                <p>1. 🚀 **無視空白欄位名稱**：右側格子不論有沒有打欄位標題，只要包含等號公式，一律自動捕捉！</p>
-                <p>2. 自動清洗並抹除所有單引號雜訊，確保手機端 100% 聽話變形。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-layer-group text-emerald-500"></i> 多規格全欄位補齊機制：</div>
+                <p>1. 📦 **散裝欄位強制回歸**：例如 `1盒=10排,1排=5支`，手機端將完美呈現 **盒、排、支** 三個輸入框，絕不遺漏任何最末端散裝！</p>
+                <p>2. 自動校正複合單位的最小階乘，確保雲端加總數量精確無誤。</p>
             </div>
 
             <div class="space-y-4">
@@ -65,7 +65,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v8.60-blind-scan-secured</span>
+            <span class="text-[10px] text-slate-300 font-mono">v8.80-multi-spec-fixed</span>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 盲掃公式對應中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 規格補齊同步中...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -147,28 +147,44 @@
                         let unitPiece = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
                         let descStr = "純散裝品項";
 
-                        // 🎯 核心升級：地毯式盲掃這一橫列「所有格子」的純文字
                         row.forEach(cell => {
                             if (!cell) return;
                             let rawText = String(cell).trim();
-                            
-                            // 強制移除所有空格、單引號，將全型等號轉半型
                             let cellText = rawText.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
                             
-                            // 只要格子包含等號，就主動抓取解析，不管上方有沒有欄位標題！
                             if (cellText.includes('=')) {
                                 try {
                                     if (cellText.includes(',')) {
+                                        // 🌟 多規格解析中心：例如 1盒=10排,1排=5支
                                         isMultiSpec = true;
                                         descStr = cellText;
-                                        specArray = []; // 清空確保不重複
-                                        cellText.split(',').forEach(sub => {
+                                        specArray = [];
+                                        
+                                        let tempSubs = cellText.split(',');
+                                        
+                                        // 1. 先把前面的各階層（如：盒、排）塞進去
+                                        tempSubs.forEach(sub => {
                                             const parts = sub.split('=');
                                             if (parts.length === 2) {
-                                                specArray.push({ label: parts[0].trim(), rate: parseInt(parts[1].match(/\d+/)[0]) || 1 });
+                                                let labelStr = parts[0].trim();
+                                                let rateNum = parseInt(parts[1].match(/\d+/)[0]) || 1;
+                                                specArray.push({ label: labelStr, rate: rateNum });
                                             }
                                         });
+
+                                        // 2. 🎯 終極補漏：把最後一階等號右邊的散裝單位（如：支）也強制補成獨立欄位，比率為 1
+                                        let lastSub = tempSubs[tempSubs.length - 1];
+                                        if (lastSub && lastSub.includes('=')) {
+                                            let lastRightSide = lastSub.split('=')[1];
+                                            let unitMatch = lastRightSide.match(/[^\d]+/);
+                                            if (unitMatch) {
+                                                unitPiece = unitMatch[0].trim(); // 抓出 "支"
+                                                // 強制追加最末梢的散裝欄位，讓畫面長出輸入框
+                                                specArray.push({ label: unitPiece, rate: 1 });
+                                            }
+                                        }
                                     } else {
+                                        // 🌟 單一自訂雙單位：例如 1盒=30片
                                         let parts = cellText.split('=');
                                         if (parts.length === 2) {
                                             let u1Match = parts[0].match(/[^\d]+/);
@@ -218,7 +234,7 @@
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
                         statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
-                        alert(`🎉 彰醫盲掃大腦同步成功！已成功匯入 ${parsedCount} 筆品項，公式已完美復原亮起！`);
+                        alert(`🎉 散裝欄位補齊完畢！手機端現在會完整出現三層輸入框囉！`);
                     });
                 }
             };
