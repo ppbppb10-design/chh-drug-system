@@ -38,7 +38,7 @@
 
     <main class="max-w-7xl mx-auto p-4 md:p-6">
         <div id="inventoryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在載入彰醫精準盤點界面...</div>
+            <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在同步彰醫精準盤點界面...</div>
         </div>
     </main>
 
@@ -93,6 +93,7 @@
             grid.innerHTML = '';
 
             masterDrugDb.forEach(drug => {
+                // 🎯 雙重安全防線：為每張藥品卡片增設獨立 try-catch，發生快取或空值異常時自動修復
                 try {
                     if (searchVal && !drug.name.toUpperCase().includes(searchVal) && !drug.id.toUpperCase().includes(searchVal) && !String(drug.location).toUpperCase().includes(searchVal)) return;
 
@@ -127,6 +128,7 @@
                             </div>
                     `;
 
+                    // 🎯 摒棄一切動態拼接，使用 100% 聽話的彈性橫列 (Flexbox) 進行多規格並排
                     if (hasArray) {
                         cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
                         drug.specArray.forEach((spec, idx) => {
@@ -140,6 +142,7 @@
                         });
                         cardHtml += `</div>`;
                     } else {
+                        // 純散裝模式
                         const singleUnit = drug.unitPiece || ((drug.subZone && (drug.subZone.includes('外用') || drug.subZone.includes('少用'))) ? '罐' : '支');
                         cardHtml += `
                             <div class="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
@@ -155,7 +158,7 @@
                     card.innerHTML = cardHtml;
                     grid.appendChild(card);
                 } catch (cardError) {
-                    console.error("跳過問題卡片:", cardError);
+                    console.error("安全防護跳過單個卡片異常:", cardError);
                 }
             });
         }
@@ -165,4 +168,53 @@
             const intVal = Math.max(0, parseInt(val) || 0);
             set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
                 total: intVal,
-                user: login
+                user: loginUser
+            });
+        };
+
+        // 多規格向後級連乘大腦 (加裝最強空值與長度防死鎖護欄)
+        window.updateMultiCount = function(dbKey, specIdx, val) {
+            const intVal = Math.max(0, parseInt(val) || 0);
+            const drug = masterDrugDb.find(d => d.dbKey === dbKey);
+            if (!drug || !drug.specArray || drug.specArray.length === 0) return;
+            
+            let currentRecord = firebaseRecords[dbKey] ? JSON.parse(JSON.stringify(firebaseRecords[dbKey])) : { total: 0 };
+            currentRecord[`spec_${specIdx}`] = intVal;
+
+            let grandTotal = 0;
+            const specs = drug.specArray;
+            
+            specs.forEach((spec, idx) => {
+                const count = currentRecord[`spec_${idx}`] || 0;
+                
+                // 🌟 安全級連乘核心：完美解開單層、多層公式，且絕對不踩空
+                let multiplier = 1;
+                for (let k = idx; k < specs.length - 1; k++) {
+                    if (specs[k] && specs[k].rate) {
+                        multiplier *= specs[k].rate;
+                    }
+                }
+                grandTotal += (count * multiplier);
+            });
+
+            currentRecord.total = grandTotal;
+            currentRecord.user = loginUser;
+
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), currentRecord);
+        };
+
+        function calculateProgress() {
+            const totalItems = masterDrugDb.length;
+            let completedItems = 0;
+            masterDrugDb.forEach(d => {
+                if (firebaseRecords[d.dbKey] && firebaseRecords[d.dbKey].total > 0) completedItems++;
+            });
+            const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            document.getElementById('progressText').innerText = `${completedItems} / ${totalItems} (${percent}%)`;
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        document.getElementById('inventorySearch').addEventListener('input', renderGrid);
+    </script>
+</body>
+</html>
