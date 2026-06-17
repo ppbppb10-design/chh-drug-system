@@ -9,7 +9,6 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
-    <!-- 頂部橫幅 -->
     <div class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3 w-full md:w-auto">
@@ -37,10 +36,9 @@
         </div>
     </div>
 
-    <!-- 卡片網格 -->
     <main class="max-w-7xl mx-auto p-4 md:p-6">
         <div id="inventoryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在同步彰醫精準盤點界面...</div>
+            <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在載入彰醫精準盤點界面...</div>
         </div>
     </main>
 
@@ -105,8 +103,6 @@
                 let tagHtml = "";
                 if (drug.isMultiSpec) {
                     tagHtml = `<span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-calculator mr-1"></i>${drug.desc}</span>`;
-                } else if (drug.hasCustomSpec) {
-                    tagHtml = `<span class="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-calculator mr-1"></i>${drug.desc}</span>`;
                 } else {
                     tagHtml = `<span class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-box-open mr-1"></i>純散裝品項</span>`;
                 }
@@ -130,8 +126,9 @@
                 `;
 
                 if (drug.isMultiSpec && drug.specArray && drug.specArray.length > 0) {
-                    // 1. 🎯 多規格區：強制改為 grid-cols-3 三欄完美等寬並排
-                    cardHtml += `<div class="grid grid-cols-3 gap-1.5 mt-4">`;
+                    // 🌟 智慧動態欄位並排（2個或3個規格格子完美平分）
+                    const colCount = drug.specArray.length;
+                    cardHtml += `<div class="grid grid-cols-${colCount} gap-1.5 mt-4">`;
                     drug.specArray.forEach((spec, idx) => {
                         const currentVal = record[`spec_${idx}`] || 0;
                         cardHtml += `
@@ -142,22 +139,8 @@
                         `;
                     });
                     cardHtml += `</div>`;
-                } else if (drug.hasCustomSpec) {
-                    // 2. 有自訂公式的 (雙單位並排)
-                    cardHtml += `
-                        <div class="grid grid-cols-2 gap-3 mt-4">
-                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 text-center">
-                                <span class="text-[10px] font-bold text-slate-400 block mb-1">${drug.unitBox || '盒'}</span>
-                                <input type="number" value="${record.u1 || 0}" min="0" onchange="updateCustomTwoUnitCount('${drug.dbKey}', 'u1', this.value)" class="w-full text-center font-black text-slate-700 border rounded-lg p-2 text-md outline-none focus:border-blue-500">
-                            </div>
-                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 text-center">
-                                <span class="text-[10px] font-black text-blue-500 block mb-1">${drug.unitPiece || '支'}(散)</span>
-                                <input type="number" value="${record.u3 || 0}" min="0" onchange="updateCustomTwoUnitCount('${drug.dbKey}', 'u3', this.value)" class="w-full text-center font-black text-slate-700 border rounded-lg p-2 text-md outline-none focus:border-blue-500">
-                            </div>
-                        </div>
-                    `;
                 } else {
-                    // 3. 純散裝輸入模式
+                    // 純散裝輸入模式
                     const singleUnit = drug.unitPiece || ((drug.subZone && (drug.subZone.includes('外用') || drug.subZone.includes('少用'))) ? '罐' : '支');
                     cardHtml += `
                         <div class="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
@@ -184,21 +167,7 @@
             });
         };
 
-        // 雙單位儲存
-        window.updateCustomTwoUnitCount = function(dbKey, unitKey, val) {
-            const intVal = Math.max(0, parseInt(val) || 0);
-            const drug = masterDrugDb.find(d => d.dbKey === dbKey);
-            let currentRecord = firebaseRecords[dbKey] ? JSON.parse(JSON.stringify(firebaseRecords[dbKey])) : { u1: 0, u3: 0 };
-
-            currentRecord[unitKey] = intVal;
-            const boxRate = drug ? (drug.rateBoxToPiece || 1) : 1;
-            currentRecord.total = ((currentRecord.u1 || 0) * boxRate) + (currentRecord.u3 || 0);
-            currentRecord.user = loginUser;
-
-            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), currentRecord);
-        };
-
-        // 多規格複合加總大腦 (安全容錯加強版)
+        // 🎯 智慧型獨立換算率大腦（彻底解決放大十倍問題）
         window.updateMultiCount = function(dbKey, specIdx, val) {
             const intVal = Math.max(0, parseInt(val) || 0);
             const drug = masterDrugDb.find(d => d.dbKey === dbKey);
@@ -208,38 +177,19 @@
 
             let grandTotal = 0;
             if (drug && drug.specArray && drug.specArray.length > 0) {
+                const len = drug.specArray.length;
+                
                 drug.specArray.forEach((spec, idx) => {
                     const count = currentRecord[`spec_${idx}`] || 0;
-                    
                     let multiplier = 1;
-                    // 🎯 這裡加上安全機制，確保只有在長度大於 1 且未超出邊界時才做連乘
-                    for (let k = idx; k < drug.specArray.length - 1; k++) {
-                        if(drug.specArray[k] && drug.specArray[k].rate) {
-                            multiplier *= drug.specArray[k].rate;
-                        }
-                    }
-                    grandTotal += (count * multiplier);
-                });
-            }
 
-            currentRecord.total = grandTotal;
-            currentRecord.user = loginUser;
-
-            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), currentRecord);
-        };
-
-        function calculateProgress() {
-            const totalItems = masterDrugDb.length;
-            let completedItems = 0;
-            masterDrugDb.forEach(d => {
-                if (firebaseRecords[d.dbKey] && firebaseRecords[d.dbKey].total > 0) completedItems++;
-            });
-            const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
-            document.getElementById('progressText').innerText = `${completedItems} / ${totalItems} (${percent}%)`;
-            document.getElementById('progressBar').style.width = percent + '%';
-        }
-
-        document.getElementById('inventorySearch').addEventListener('input', renderGrid);
-    </script>
-</body>
-</html>
+                    if (len === 2) {
+                        // 🌟 情況 A：單層公式（例如 1盒=100支）
+                        // 第一格(盒)的倍率直接就是 specArray[0].rate；第二格(支)倍率是 1
+                        if (idx === 0) multiplier = drug.specArray[0].rate;
+                        else multiplier = 1;
+                    } else if (len === 3) {
+                        // 🌟 情況 B：標準三層規格（例如 1盒=10排, 1排=5支）
+                        if (idx === 0) {
+                            // 第一格(盒)倍率 = 第一階換算率 * 第二階換算率
+                            multiplier = drug.specArray[0].rate * drug.specArray[1].rate;
