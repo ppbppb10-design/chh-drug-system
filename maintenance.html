@@ -21,9 +21,9 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> 精準分流引擎已更新：</div>
-                <p>1. 🎯 **無註記公式品項**：不再預設三層換算，直接判定為「純散裝品項」（換算率為1）。</p>
-                <p>2. **有自訂公式品項**：動態依 Excel 公式變形（多規格區、或自訂雙單位）。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-shield-halved text-red-500"></i> 單引號絕對抹除防線：</div>
+                <p>1. 🎯 **終極字串淨化**：不論單引號 `'` 出現在公式開頭、中間還是結尾，系統都將強制全數過濾，絕不遺留任何雜訊。</p>
+                <p>2. 上傳更新基本庫後，手機端標籤的單引號將會徹底消失乾淨！</p>
             </div>
 
             <div class="space-y-4">
@@ -65,7 +65,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v8.20-pure-single</span>
+            <span class="text-[10px] text-slate-300 font-mono">v8.30-kill-quotes-final</span>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在建構純淨規格基本庫...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 徹底淨化字串中...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -139,7 +139,11 @@
                         const cellContent = entry.substring(eqIdx + 1);
                         const rowMatch = cellCoord.match(/\d+/);
                         if (rowMatch) {
-                            sheetFormulasByRow[parseInt(rowMatch[0])] = cellContent.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=');
+                            // 🎯 採取第一重正則過濾：把所有讀出來的公式內的單引號全數拔掉
+                            let cleanContent = cellContent.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
+                            if (cleanContent.includes('=') || cleanContent.includes('＝')) {
+                                sheetFormulasByRow[parseInt(rowMatch[0])] = cleanContent;
+                            }
                         }
                     });
 
@@ -150,84 +154,4 @@
                         const drugCode = String(row[codeIdx]).trim();
                         if (drugCode === "undefined" || drugCode === "" || drugCode.includes('藥品碼')) continue;
 
-                        const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥名';
-                        const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
-                        
-                        let isMultiSpec = false;
-                        let hasCustomSpec = false;
-                        let specArray = [];
-                        
-                        // 🎯 徹徹底底的散裝預設：沒寫公式就是 1 最小單位，不預設任何 100
-                        let rateBoxToPiece = 1; 
-                        let unitBox = "";
-                        let unitPiece = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
-                        let descStr = "純散裝品項";
-
-                        const excelRealRowNum = j + 1;
-                        if (sheetFormulasByRow[excelRealRowNum]) {
-                            let cellText = sheetFormulasByRow[excelRealRowNum];
-                            
-                            if (cellText.includes(',')) {
-                                isMultiSpec = true;
-                                descStr = cellText;
-                                cellText.split(',').forEach(sub => {
-                                    const parts = sub.split('=');
-                                    if (parts.length === 2) {
-                                        specArray.push({ label: parts[0].trim(), rate: parseInt(parts[1].match(/\d+/)[0]) || 1 });
-                                    }
-                                });
-                            } else {
-                                let parts = cellText.split('=');
-                                if (parts.length === 2) {
-                                    hasCustomSpec = true;
-                                    let u1Match = parts[0].match(/[^\d]+/);
-                                    if (u1Match) unitBox = u1Match[0].trim();
-                                    
-                                    let rateMatch = parts[1].match(/\d+/);
-                                    let u2Match = parts[1].match(/[^\d]+/);
-                                    
-                                    if (rateMatch) rateBoxToPiece = parseInt(rateMatch[0]);
-                                    if (u2Match) unitPiece = u2Match[0].trim();
-                                    
-                                    descStr = `實行包裝：1${unitBox} = ${rateBoxToPiece}${unitPiece}`;
-                                }
-                            }
-                        }
-
-                        globalIndex++;
-                        const uniquePrimaryKey = `${drugCode}_${locationValue || '0'}_${globalIndex}`;
-
-                        newMasterList[uniquePrimaryKey] = {
-                            id: drugCode,
-                            name: drugName,
-                            subZone: sheetName,
-                            location: locationValue,
-                            unitBox: unitBox,
-                            unitPiece: unitPiece,
-                            rateBoxToPiece: rateBoxToPiece,
-                            desc: descStr,
-                            mainType: type,
-                            sortOrder: globalIndex,
-                            dbKey: uniquePrimaryKey,
-                            isMultiSpec: isMultiSpec,
-                            hasCustomSpec: hasCustomSpec,
-                            specArray: specArray
-                        };
-                        parsedCount++;
-                    }
-                });
-
-                if (parsedCount > 0) {
-                    const nodePath = (type === 'oral') ? 'masterOralList' : 'masterInjectList';
-                    set(ref(db, nodePath), newMasterList).then(() => {
-                        statusLabel.className = "text-[11px] font-bold text-green-600";
-                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
-                        alert(`🎉 彰醫純淨無預設基本庫同步成功！`);
-                    });
-                }
-            };
-            reader.readAsArrayBuffer(file);
-        };
-    </script>
-</body>
-</html>
+                        const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥
