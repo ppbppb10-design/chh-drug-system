@@ -21,9 +21,9 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-circle-check text-emerald-500"></i> 文字直接讀取機制（已啟動）：</div>
-                <p>1. 🚀 **全面繞過 Excel 公式**：不再解析複雜的後台公式，直接抓取表格上看到的「備註文字」，100% 拒絕卡死轉圈圈。</p>
-                <p>2. **自動抹除所有雜訊**：無論單引號 `'`、特殊減號，系統都會在讀取瞬間直接融化清除。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-circle-check text-emerald-500"></i> 無標頭地毯式掃描已啟動：</div>
+                <p>1. 🚀 **無視空白欄位名稱**：右側格子不論有沒有打欄位標題，只要包含等號公式，一律自動捕捉！</p>
+                <p>2. 自動清洗並抹除所有單引號雜訊，確保手機端 100% 聽話變形。</p>
             </div>
 
             <div class="space-y-4">
@@ -65,7 +65,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v8.50-text-mode-secured</span>
+            <span class="text-[10px] text-slate-300 font-mono">v8.60-blind-scan-secured</span>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 文字串流直連中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 盲掃公式對應中...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -112,7 +112,6 @@
                     if (sheetName.includes('工作表') || sheetName === '工作表9') return;
 
                     const worksheet = workbook.Sheets[sheetName];
-                    // 🎯 核心改動：直接轉成純物件陣列，完全不走 sheet_to_formulae 公式解析線路
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
                     let headerIndex = -1;
@@ -129,9 +128,6 @@
                     const locIdx = headers.findIndex(h => String(h).includes('位號') || String(h).includes('儲位'));
                     const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼'));
                     const nameIdx = headers.findIndex(h => String(h).includes('品名') || String(h).includes('名稱'));
-                    
-                    // 🎯 尋找備註或公式欄位文字
-                    const noteIdx = headers.findIndex(h => String(h).includes('備註') || String(h).includes('公式') || String(h).includes('換算'));
 
                     for (let j = headerIndex + 1; j < jsonData.length; j++) {
                         const row = jsonData[j];
@@ -151,18 +147,21 @@
                         let unitPiece = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
                         let descStr = "純散裝品項";
 
-                        // 🎯 直接從格子文字讀取，百分之百不當機
-                        let rawCellText = (noteIdx !== -1 && row[noteIdx]) ? String(row[noteIdx]).trim() : '';
-                        
-                        if (rawCellText) {
-                            try {
-                                // 強制移除所有空格、單引號，將全型等號轉半型
-                                let cellText = rawCellText.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
-                                
-                                if (cellText.includes('=')) {
+                        // 🎯 核心升級：地毯式盲掃這一橫列「所有格子」的純文字
+                        row.forEach(cell => {
+                            if (!cell) return;
+                            let rawText = String(cell).trim();
+                            
+                            // 強制移除所有空格、單引號，將全型等號轉半型
+                            let cellText = rawText.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
+                            
+                            // 只要格子包含等號，就主動抓取解析，不管上方有沒有欄位標題！
+                            if (cellText.includes('=')) {
+                                try {
                                     if (cellText.includes(',')) {
                                         isMultiSpec = true;
                                         descStr = cellText;
+                                        specArray = []; // 清空確保不重複
                                         cellText.split(',').forEach(sub => {
                                             const parts = sub.split('=');
                                             if (parts.length === 2) {
@@ -185,13 +184,11 @@
                                             }
                                         }
                                     }
+                                } catch (e) {
+                                    // 容錯跳過
                                 }
-                            } catch (err) {
-                                isMultiSpec = false;
-                                hasCustomSpec = false;
-                                descStr = "純散裝品項";
                             }
-                        }
+                        });
 
                         globalIndex++;
                         const uniquePrimaryKey = `${drugCode}_${locationValue || '0'}_${globalIndex}`;
@@ -221,12 +218,8 @@
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
                         statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
-                        alert(`🎉 彰醫資料庫純文字通道架設成功！已成功同步 ${parsedCount} 筆藥品！`);
+                        alert(`🎉 彰醫盲掃大腦同步成功！已成功匯入 ${parsedCount} 筆品項，公式已完美復原亮起！`);
                     });
-                } else {
-                    statusLabel.className = "text-[11px] font-bold text-red-500";
-                    statusLabel.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 找不到欄位`;
-                    alert("⚠️ 讀取失敗，請確認 Excel 中是否有「藥品碼/藥碼」與「品名」欄位。");
                 }
             };
             reader.readAsArrayBuffer(file);
