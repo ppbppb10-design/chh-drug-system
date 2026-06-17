@@ -21,9 +21,9 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> 後台管理維護须知：</div>
-                <p>1. 更新基本庫會保留 Excel 內的所有藥名、位號與多規格換算公式。</p>
-                <p>2. 🎯 <span class="font-bold text-teal-600">字串全面淨化</span>：已修正部分 Excel 儲存格會帶有單引號 `'` 導致單位顯示錯誤的問題。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> 動態規格包裝引擎已啟動：</div>
+                <p>1. 🎯 系統會自動讀取 Excel 內填寫的公式（如 `1盒=30片`、`1盒=50支`），手機端會**自動根據該藥品的真實規格變形**，絕不寫死換算率！</p>
+                <p>2. 若個別藥品未註記自訂公式，則維持預設的通用三層規格格。</p>
             </div>
 
             <div class="space-y-4">
@@ -65,7 +65,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v7.30-strip-quotes</span>
+            <span class="text-[10px] text-slate-300 font-mono">v8.10-dynamic-spec</span>
         </div>
     </div>
 
@@ -87,18 +87,9 @@
         const db = getDatabase(app);
 
         window.resetInventoryRecords = function() {
-            const confirm1 = confirm("⚠️ 警告！\n您即將刪除目前所有藥師上傳的盤點數量、負責人員與進度紀錄。\n此操作無法復原，確定要執行嗎？");
-            if (!confirm1) return;
-
-            const adminCode = prompt("🔒 安全二次防呆驗證：\n請輸入大寫的「RESET」來核准清空：");
-            if (adminCode !== "RESET") {
-                alert("驗證碼輸入錯誤，操作已被安全取消。");
-                return;
-            }
-
-            remove(ref(db, 'inventoryRecords')).then(() => {
-                alert("🎉 清空完成！\n全院所有儲位的盤點數量已徹底歸零。");
-            });
+            if (!confirm("⚠️ 警告！確定要清空目前所有已盤點的數量紀錄嗎？")) return;
+            if (prompt("請輸入 RESET 確認：") !== "RESET") return;
+            remove(ref(db, 'inventoryRecords')).then(() => alert("🎉 全院盤點數據已成功歸零！"));
         };
 
         window.uploadDatabase = function(type, element) {
@@ -107,7 +98,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在處理中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在建構動態規格基本庫...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -148,11 +139,7 @@
                         const cellContent = entry.substring(eqIdx + 1);
                         const rowMatch = cellCoord.match(/\d+/);
                         if (rowMatch) {
-                            const rowNum = parseInt(rowMatch[0]);
-                            let cleanText = cellContent.replace(/\s+/g, '');
-                            if (cleanText.includes('=') || cleanText.includes('＝')) {
-                                sheetFormulasByRow[rowNum] = cleanText;
-                            }
+                            sheetFormulasByRow[parseInt(rowMatch[0])] = cellContent.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=');
                         }
                     });
 
@@ -169,41 +156,42 @@
                         let isMultiSpec = false;
                         let hasCustomSpec = false;
                         let specArray = [];
-                        let rate1 = 1; 
-                        let unit1 = ""; 
-                        let unit2 = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
-                        let descStr = ""; 
+                        
+                        // 預設基本防呆參數
+                        let rateBoxToPiece = 100; 
+                        let unitBox = "盒";
+                        let unitPiece = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
+                        let descStr = "未指定包裝量 (預設三層模式)";
 
                         const excelRealRowNum = j + 1;
                         if (sheetFormulasByRow[excelRealRowNum]) {
-                            // 🎯 核心修正：除了取代空白與全形等號，額外過濾掉開頭或結尾可能的單引號 '
                             let cellText = sheetFormulasByRow[excelRealRowNum];
-                            cellText = cellText.replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
                             
                             if (cellText.includes(',')) {
+                                // 情況 A：多規格預包區（如 3支包=3, 4支包=4）
                                 isMultiSpec = true;
-                                hasCustomSpec = true;
                                 descStr = cellText;
-                                const subSpecs = cellText.split(',');
-                                subSpecs.forEach(sub => {
+                                cellText.split(',').forEach(sub => {
                                     const parts = sub.split('=');
                                     if (parts.length === 2) {
-                                        let specName = parts[0].trim(); 
-                                        let specRate = parseInt(parts[1].match(/\d+/)[0]) || 1; 
-                                        specArray.push({ label: specName, rate: specRate });
+                                        specArray.push({ label: parts[0].trim(), rate: parseInt(parts[1].match(/\d+/)[0]) || 1 });
                                     }
                                 });
                             } else {
+                                // 情況 B：【完美動態換算】單一自訂公式 (如 1盒=30片、1盒=50支)
                                 let parts = cellText.split('=');
                                 if (parts.length === 2) {
                                     hasCustomSpec = true;
                                     let u1Match = parts[0].match(/[^\d]+/);
-                                    if (u1Match) unit1 = u1Match[0].trim();
+                                    if (u1Match) unitBox = u1Match[0].trim();
+                                    
                                     let rateMatch = parts[1].match(/\d+/);
                                     let u2Match = parts[1].match(/[^\d]+/);
-                                    if (rateMatch) rate1 = parseInt(rateMatch[0]);
-                                    if (u2Match) unit2 = u2Match[0].trim();
-                                    descStr = `1${unit1} = ${rate1}${unit2}`;
+                                    
+                                    if (rateMatch) rateBoxToPiece = parseInt(rateMatch[0]);
+                                    if (u2Match) unitPiece = u2Match[0].trim();
+                                    
+                                    descStr = `實行包裝：1${unitBox} = ${rateBoxToPiece}${unitPiece}`;
                                 }
                             }
                         }
@@ -216,9 +204,9 @@
                             name: drugName,
                             subZone: sheetName,
                             location: locationValue,
-                            rate1: rate1,
-                            unit1: unit1,
-                            unit2: unit2,
+                            unitBox: unitBox,
+                            unitPiece: unitPiece,
+                            rateBoxToPiece: rateBoxToPiece, // 儲存該藥品專屬的真實盒裝量！
                             desc: descStr,
                             mainType: type,
                             sortOrder: globalIndex,
@@ -235,12 +223,9 @@
                     const nodePath = (type === 'oral') ? 'masterOralList' : 'masterInjectList';
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
-                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}行)`;
-                        alert(`🎉 彰醫字串淨化版更新成功！已完全過濾異常單引號問題。`);
+                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
+                        alert(`🎉 彰醫動態規格包裝庫建立成功！`);
                     });
-                } else {
-                    statusLabel.className = "text-[11px] font-bold text-red-500";
-                    statusLabel.innerText = "❌ 解析失敗";
                 }
             };
             reader.readAsArrayBuffer(file);
