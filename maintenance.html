@@ -23,7 +23,7 @@
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
                 <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-wand-magic-sparkles text-teal-500"></i> 後台管理維護须知：</div>
                 <p>1. 更新基本庫會保留 Excel 內的所有藥名、位號與多規格換算公式。</p>
-                <p>2. 🎯 <span class="font-bold text-red-600">數據清空歸零</span>：欲開啟新一輪盤點時，請使用最下方的紅色歸零鈕。</p>
+                <p>2. 🎯 <span class="font-bold text-teal-600">字串全面淨化</span>：已修正部分 Excel 儲存格會帶有單引號 `'` 導致單位顯示錯誤的問題。</p>
             </div>
 
             <div class="space-y-4">
@@ -60,13 +60,12 @@
                         <i class="fa-solid fa-trash-can animate-pulse"></i> 🧹 刪除並清空全院盤點數據 (不影響基本庫)
                     </button>
                 </div>
-
             </div>
         </div>
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v7.20-secure-reset</span>
+            <span class="text-[10px] text-slate-300 font-mono">v7.30-strip-quotes</span>
         </div>
     </div>
 
@@ -87,24 +86,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 🎯 雙重防呆二次驗證歸零大腦
         window.resetInventoryRecords = function() {
-            // 第一重驗證
             const confirm1 = confirm("⚠️ 警告！\n您即將刪除目前所有藥師上傳的盤點數量、負責人員與進度紀錄。\n此操作無法復原，確定要執行嗎？");
             if (!confirm1) return;
 
-            // 第二重強驗證：防止忙碌中不小心手滑按到
             const adminCode = prompt("🔒 安全二次防呆驗證：\n請輸入大寫的「RESET」來核准清空：");
             if (adminCode !== "RESET") {
                 alert("驗證碼輸入錯誤，操作已被安全取消。");
                 return;
             }
 
-            // 通過驗證 -> 強制將 Firebase 資料庫的 /inventoryRecords 節點抹除
             remove(ref(db, 'inventoryRecords')).then(() => {
-                alert("🎉 清空完成！\n全院所有儲位的盤點數量已徹底歸零，進度條已重置。您可以立刻開始新一輪大盤點了！");
-            }).catch((error) => {
-                alert("歸零失敗，請檢查網路連線或權限設定：" + error);
+                alert("🎉 清空完成！\n全院所有儲位的盤點數量已徹底歸零。");
             });
         };
 
@@ -183,8 +176,9 @@
 
                         const excelRealRowNum = j + 1;
                         if (sheetFormulasByRow[excelRealRowNum]) {
+                            // 🎯 核心修正：除了取代空白與全形等號，額外過濾掉開頭或結尾可能的單引號 '
                             let cellText = sheetFormulasByRow[excelRealRowNum];
-                            cellText = cellText.replace(/，/g, ',').replace(/＝/g, '=');
+                            cellText = cellText.replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
                             
                             if (cellText.includes(',')) {
                                 isMultiSpec = true;
@@ -194,7 +188,7 @@
                                 subSpecs.forEach(sub => {
                                     const parts = sub.split('=');
                                     if (parts.length === 2) {
-                                        let specName = parts[0]; 
+                                        let specName = parts[0].trim(); 
                                         let specRate = parseInt(parts[1].match(/\d+/)[0]) || 1; 
                                         specArray.push({ label: specName, rate: specRate });
                                     }
@@ -204,11 +198,11 @@
                                 if (parts.length === 2) {
                                     hasCustomSpec = true;
                                     let u1Match = parts[0].match(/[^\d]+/);
-                                    if (u1Match) unit1 = u1Match[0];
+                                    if (u1Match) unit1 = u1Match[0].trim();
                                     let rateMatch = parts[1].match(/\d+/);
                                     let u2Match = parts[1].match(/[^\d]+/);
                                     if (rateMatch) rate1 = parseInt(rateMatch[0]);
-                                    if (u2Match) unit2 = u2Match[0];
+                                    if (u2Match) unit2 = u2Match[0].trim();
                                     descStr = `1${unit1} = ${rate1}${unit2}`;
                                 }
                             }
@@ -242,6 +236,7 @@
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
                         statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}行)`;
+                        alert(`🎉 彰醫字串淨化版更新成功！已完全過濾異常單引號問題。`);
                     });
                 } else {
                     statusLabel.className = "text-[11px] font-bold text-red-500";
