@@ -9,7 +9,6 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
-    <!-- 頂部橫幅 -->
     <div class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3 w-full md:w-auto">
@@ -20,7 +19,6 @@
                 <a href="inventory_login.html" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition"><i class="fa-solid fa-house mr-1"></i>離開</a>
             </div>
 
-            <!-- 進度條 -->
             <div class="flex-1 w-full max-w-xl mx-4">
                 <div class="flex justify-between text-xs font-bold mb-1">
                     <span>當前櫃位盤點進度 (<span id="currentZoneLabel">-</span>)</span>
@@ -31,20 +29,18 @@
                 </div>
             </div>
 
-            <!-- 搜尋 -->
             <div class="w-full md:w-auto max-w-sm">
                 <div class="relative w-full">
-                    <input type="text" id="inventorySearch" placeholder="搜尋藥名、藥碼、位號..." class="w-full pl-9 pr-4 py-2 rounded-xl text-slate-800 outline-none focus:ring-2 focus:ring-green-400 text-sm">
+                    <input type="text" id="inventorySearch" placeholder="搜尋藥名、藥碼..." class="w-full pl-9 pr-4 py-2 rounded-xl text-slate-800 outline-none focus:ring-2 focus:ring-green-400 text-sm">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- 主卡片網格 -->
     <main class="max-w-7xl mx-auto p-4 md:p-6">
         <div id="inventoryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在載入彰醫多儲位雲端數據...</div>
+            <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在同步彰醫多規格雲端數據...</div>
         </div>
     </main>
 
@@ -106,18 +102,17 @@
             masterDrugDb.forEach(drug => {
                 if (searchVal && !drug.name.toUpperCase().includes(searchVal) && !drug.id.toUpperCase().includes(searchVal) && !String(drug.location).toUpperCase().includes(searchVal)) return;
 
-                // 🎯 讀取時，改用複合 dbKey 進行數量精準配對
-                const record = firebaseRecords[drug.dbKey] || { u1: 0, u2: 0, total: 0, user: '未盤' };
+                const record = firebaseRecords[drug.dbKey] || { total: 0, user: '未盤' };
                 let card = document.createElement('div');
                 card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between relative overflow-hidden transition-all";
                 if (record.total > 0) card.classList.add('border-green-400', 'bg-green-50/10');
 
-                card.innerHTML = `
+                let cardHtml = `
                     <div>
                         <div class="flex justify-between items-start">
                             <div>
                                 <h3 class="font-black text-slate-800 text-base leading-tight line-clamp-2">${drug.name}</h3>
-                                <div class="text-[11px] text-slate-400 font-bold mt-1">${drug.id} · <span class="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-mono">位號: ${drug.location || '—'}</span></div>
+                                <div class="text-[11px] text-slate-400 font-bold mt-1">${drug.id} · <span class="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-mono">${drug.location ? '位號: '+drug.location : '無位號'}</span></div>
                             </div>
                             <div class="text-right shrink-0 ml-2">
                                 <span class="text-3xl font-black ${record.total > 0 ? 'text-green-500' : 'text-slate-300'}">${record.total}</span>
@@ -126,26 +121,49 @@
                         </div>
 
                         <div class="mt-3 flex space-x-1">
-                            <span class="text-[10px] bg-green-100 text-green-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-calculator mr-1"></i>${drug.desc || '1盒=10支'}</span>
+                            <span class="text-[10px] ${drug.isMultiSpec ? 'bg-indigo-100 text-indigo-700' : 'bg-green-100 text-green-700'} font-bold px-2 py-0.5 rounded-md">
+                                <i class="fa-solid fa-calculator mr-1"></i>${drug.desc}
+                            </span>
                         </div>
+                `;
 
+                // 🎯 核心修復點：多規格預包區塊 HTML 生成引擎
+                if (drug.isMultiSpec && drug.specArray) {
+                    cardHtml += `<div class="grid grid-cols-2 gap-2 mt-4">`;
+                    drug.specArray.forEach((spec, idx) => {
+                        const currentVal = record[`spec_${idx}`] || 0;
+                        cardHtml += `
+                            <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 text-center">
+                                <span class="text-[10px] font-black text-indigo-500 block mb-1 tracking-tighter">${spec.label}</span>
+                                <input type="number" value="${currentVal}" min="0" onchange="updateMultiCount('${drug.dbKey}', ${idx}, this.value)" class="w-full text-center font-black text-slate-700 border rounded-lg p-1 text-sm outline-none focus:border-indigo-500">
+                            </div>
+                        `;
+                    });
+                    cardHtml += `</div>`;
+                } else {
+                    // 普通標準藥物
+                    cardHtml += `
                         <div class="grid grid-cols-2 gap-2 mt-4">
                             <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 text-center">
                                 <span class="text-[10px] font-bold text-slate-400 block mb-1">${drug.unit1 || '盒'}</span>
-                                <input type="number" value="${record.u1 || 0}" min="0" onchange="updateCount('${drug.dbKey}', 'u1', this.value)" class="w-full text-center font-black text-slate-700 border rounded-lg p-1 text-md outline-none focus:border-blue-500">
+                                <input type="number" value="${record.u1 || 0}" min="0" onchange="updateStandardCount('${drug.dbKey}', 'u1', this.value)" class="w-full text-center font-black text-slate-700 border rounded-lg p-1 text-md outline-none focus:border-blue-500">
                             </div>
                             <div class="bg-slate-50 p-2 rounded-xl border border-slate-100 text-center">
                                 <span class="text-[10px] font-bold text-slate-400 block mb-1">${drug.unit2 || '支'}</span>
-                                <input type="number" value="${record.u2 || 0}" min="0" onchange="updateCount('${drug.dbKey}', 'u2', this.value)" class="w-full text-center font-black text-slate-700 border rounded-lg p-1 text-md outline-none focus:border-blue-500">
+                                <input type="number" value="${record.u2 || 0}" min="0" onchange="updateStandardCount('${drug.dbKey}', 'u2', this.value)" class="w-full text-center font-black text-slate-700 border rounded-lg p-1 text-md outline-none focus:border-blue-500">
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
+
+                cardHtml += `</div>`;
+                card.innerHTML = cardHtml;
                 grid.appendChild(card);
             });
         }
 
-        window.updateCount = function(dbKey, unitKey, val) {
+        // 標準雙單位計算
+        window.updateStandardCount = function(dbKey, unitKey, val) {
             const intVal = Math.max(0, parseInt(val) || 0);
             const drug = masterDrugDb.find(d => d.dbKey === dbKey);
             const currentRecord = firebaseRecords[dbKey] || { u1: 0, u2: 0 };
@@ -153,7 +171,6 @@
             currentRecord[unitKey] = intVal;
             const calculatedTotal = (currentRecord.u1 * drug.rate1) + currentRecord.u2;
 
-            // 🎯 儲存時也依據 dbKey 獨立記錄在該櫃位下
             set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
                 u1: currentRecord.u1,
                 u2: currentRecord.u2,
@@ -162,13 +179,35 @@
             });
         };
 
+        // 🎯 多規格智慧自動累加乘積大腦
+        window.updateMultiCount = function(dbKey, specIdx, val) {
+            const intVal = Math.max(0, parseInt(val) || 0);
+            const drug = masterDrugDb.find(d => d.dbKey === dbKey);
+            
+            // 安全拷貝並初始化舊數據
+            let currentRecord = firebaseRecords[dbKey] ? JSON.parse(JSON.stringify(firebaseRecords[dbKey])) : { total: 0 };
+            currentRecord[`spec_${specIdx}`] = intVal;
+
+            // 核心累加公式：[各規格格子輸入的包數 * 該規格對應的乘積係數]
+            let grandTotal = 0;
+            drug.specArray.forEach((spec, idx) => {
+                const count = currentRecord[`spec_${idx}`] || 0;
+                grandTotal += (count * spec.rate);
+            });
+
+            currentRecord.total = grandTotal;
+            currentRecord.user = loginUser;
+
+            // 即時儲存同步回雲端 Firebase
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), currentRecord);
+        };
+
         function calculateProgress() {
             const totalItems = masterDrugDb.length;
             let completedItems = 0;
             masterDrugDb.forEach(d => {
                 if (firebaseRecords[d.dbKey] && firebaseRecords[d.dbKey].total > 0) completedItems++;
             });
-
             const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
             document.getElementById('progressText').innerText = `${completedItems} / ${totalItems} (${percent}%)`;
             document.getElementById('progressBar').style.width = percent + '%';
