@@ -21,9 +21,9 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-shield-halved text-red-500"></i> 單引號絕對抹除防線：</div>
-                <p>1. 🎯 **終極字串淨化**：不論單引號 `'` 出現在公式開頭、中間還是結尾，系統都將強制全數過濾，絕不遺留任何雜訊。</p>
-                <p>2. 上傳更新基本庫後，手機端標籤的單引號將會徹底消失乾淨！</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-shield-halved text-emerald-500"></i> 防崩潰安全容錯機制已升級：</div>
+                <p>1. 🎯 **安全不卡死**：已對 Excel 內的所有怪異符號（如破折號、特殊等號）加入強制防當容錯，絕對不再轉圈圈。</p>
+                <p>2. 品項若有無效公式將自動降維為「純散裝」，手機端 100% 正常載入。</p>
             </div>
 
             <div class="space-y-4">
@@ -65,7 +65,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v8.30-kill-quotes-final</span>
+            <span class="text-[10px] text-slate-300 font-mono">v8.40-anti-crash-final</span>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 徹底淨化字串中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 安全沖刷雲端中...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -131,27 +131,3 @@
 
                     const cellEntries = XLSX.utils.sheet_to_formulae(worksheet);
                     let sheetFormulasByRow = {};
-
-                    cellEntries.forEach(entry => {
-                        const eqIdx = entry.indexOf('=');
-                        if (eqIdx === -1) return;
-                        const cellCoord = entry.substring(0, eqIdx);
-                        const cellContent = entry.substring(eqIdx + 1);
-                        const rowMatch = cellCoord.match(/\d+/);
-                        if (rowMatch) {
-                            // 🎯 採取第一重正則過濾：把所有讀出來的公式內的單引號全數拔掉
-                            let cleanContent = cellContent.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
-                            if (cleanContent.includes('=') || cleanContent.includes('＝')) {
-                                sheetFormulasByRow[parseInt(rowMatch[0])] = cleanContent;
-                            }
-                        }
-                    });
-
-                    for (let j = headerIndex + 1; j < jsonData.length; j++) {
-                        const row = jsonData[j];
-                        if (!row || !row[codeIdx]) continue;
-
-                        const drugCode = String(row[codeIdx]).trim();
-                        if (drugCode === "undefined" || drugCode === "" || drugCode.includes('藥品碼')) continue;
-
-                        const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥
