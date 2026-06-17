@@ -21,9 +21,9 @@
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-layer-group text-emerald-500"></i> 多規格全欄位補齊機制：</div>
-                <p>1. 📦 **散裝欄位強制回歸**：例如 `1盒=10排,1排=5支`，手機端將完美呈現 **盒、排、支** 三個輸入框，絕不遺漏任何最末端散裝！</p>
-                <p>2. 自動校正複合單位的最小階乘，確保雲端加總數量精確無誤。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-shield-halved text-emerald-500"></i> 公式去重疊防呆引擎已啟動：</div>
+                <p>1. 🎯 **防重複追加**：修正單層公式（如 1盒=50支）尾巴會被多補一個「支=1」的錯誤，讓單雙層規格完美共存並排！</p>
+                <p>2. 更新基本庫後，多規格藥品會維持精確的三格連乘；單層公式會維持漂亮的雙格輸入。</p>
             </div>
 
             <div class="space-y-4">
@@ -65,7 +65,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v8.80-multi-spec-fixed</span>
+            <span class="text-[10px] text-slate-300 font-mono">v9.10-dedup-spec-final</span>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 規格補齊同步中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 正在排解重複標籤...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -140,68 +140,55 @@
                         const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
                         
                         let isMultiSpec = false;
-                        let hasCustomSpec = false;
                         let specArray = [];
-                        let rateBoxToPiece = 1; 
-                        let unitBox = "";
-                        let unitPiece = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
+                        let defaultUnitPiece = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
                         let descStr = "純散裝品項";
 
                         row.forEach(cell => {
                             if (!cell) return;
-                            let rawText = String(cell).trim();
-                            let cellText = rawText.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
+                            let cellText = String(cell).replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
                             
                             if (cellText.includes('=')) {
+                                isMultiSpec = true;
+                                descStr = cellText;
+                                specArray = [];
+
                                 try {
                                     if (cellText.includes(',')) {
-                                        // 🌟 多規格解析中心：例如 1盒=10排,1排=5支
-                                        isMultiSpec = true;
-                                        descStr = cellText;
-                                        specArray = [];
-                                        
+                                        // 🌟 複合式多規格 (如 1盒=10排,1排=5支)
                                         let tempSubs = cellText.split(',');
-                                        
-                                        // 1. 先把前面的各階層（如：盒、排）塞進去
                                         tempSubs.forEach(sub => {
                                             const parts = sub.split('=');
                                             if (parts.length === 2) {
-                                                let labelStr = parts[0].trim();
-                                                let rateNum = parseInt(parts[1].match(/\d+/)[0]) || 1;
-                                                specArray.push({ label: labelStr, rate: rateNum });
+                                                specArray.push({ label: parts[0].trim(), rate: parseInt(parts[1].match(/\d+/)[0]) || 1 });
                                             }
                                         });
-
-                                        // 2. 🎯 終極補漏：把最後一階等號右邊的散裝單位（如：支）也強制補成獨立欄位，比率為 1
+                                        
+                                        // 補上最後一階等號右邊的散裝
                                         let lastSub = tempSubs[tempSubs.length - 1];
-                                        if (lastSub && lastSub.includes('=')) {
-                                            let lastRightSide = lastSub.split('=')[1];
-                                            let unitMatch = lastRightSide.match(/[^\d]+/);
-                                            if (unitMatch) {
-                                                unitPiece = unitMatch[0].trim(); // 抓出 "支"
-                                                // 強制追加最末梢的散裝欄位，讓畫面長出輸入框
-                                                specArray.push({ label: unitPiece, rate: 1 });
-                                            }
-                                        }
+                                        let lastRight = lastSub.split('=')[1];
+                                        defaultUnitPiece = lastRight.match(/[^\d]+/)[0].trim();
+                                        specArray.push({ label: defaultUnitPiece, rate: 1 });
                                     } else {
-                                        // 🌟 單一自訂雙單位：例如 1盒=30片
+                                        // 🌟 單層規格公式處理 (如 1盒=50支)
                                         let parts = cellText.split('=');
                                         if (parts.length === 2) {
-                                            let u1Match = parts[0].match(/[^\d]+/);
-                                            let rateMatch = parts[1].match(/\d+/);
-                                            let u2Match = parts[1].match(/[^\d]+/);
-                                            
-                                            if (u1Match && rateMatch && u2Match) {
-                                                hasCustomSpec = true;
-                                                unitBox = u1Match[0].trim();
-                                                rateBoxToPiece = parseInt(rateMatch[0]);
-                                                unitPiece = u2Match[0].trim();
-                                                descStr = `實行包裝：1${unitBox} = ${rateBoxToPiece}${unitPiece}`;
+                                            let u1Box = parts[0].match(/[^\d]+/)[0].trim();
+                                            let rateBox = parseInt(parts[1].match(/\d+/)[0]) || 1;
+                                            defaultUnitPiece = parts[1].match(/[^\d]+/)[0].trim();
+
+                                            // 🎯 去重複關鍵防線：等號左邊與右邊單位不同（代表是正常的盒與支對應），我們才長出雙格！
+                                            if (u1Box !== defaultUnitPiece) {
+                                                specArray.push({ label: u1Box, rate: rateBox });
+                                                specArray.push({ label: defaultUnitPiece, rate: 1 });
+                                            } else {
+                                                // 如果左右單位相同，代表是無效的備註，降維成純散裝
+                                                isMultiSpec = false;
                                             }
                                         }
                                     }
                                 } catch (e) {
-                                    // 容錯跳過
+                                    isMultiSpec = false;
                                 }
                             }
                         });
@@ -214,15 +201,12 @@
                             name: drugName,
                             subZone: sheetName,
                             location: locationValue,
-                            unitBox: unitBox,
-                            unitPiece: unitPiece,
-                            rateBoxToPiece: rateBoxToPiece,
+                            unitPiece: defaultUnitPiece,
                             desc: descStr,
                             mainType: type,
                             sortOrder: globalIndex,
                             dbKey: uniquePrimaryKey,
                             isMultiSpec: isMultiSpec,
-                            hasCustomSpec: hasCustomSpec,
                             specArray: specArray
                         };
                         parsedCount++;
@@ -234,7 +218,7 @@
                     set(ref(db, nodePath), newMasterList).then(() => {
                         statusLabel.className = "text-[11px] font-bold text-green-600";
                         statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
-                        alert(`🎉 散裝欄位補齊完畢！手機端現在會完整出現三層輸入框囉！`);
+                        alert(`🎉 彰醫去重複防呆規格同步成功！`);
                     });
                 }
             };
