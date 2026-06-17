@@ -181,7 +181,7 @@
                     card.innerHTML = cardHtml;
                     grid.appendChild(card);
                 } catch (cardError) {
-                    // 防護罩
+                    // 防護
                 }
             });
         }
@@ -195,7 +195,7 @@
             });
         };
 
-        // 🎯 究極型態數字校正計算大腦
+        // 🎯 修正後直覺式對應換算率大腦（不進行多層累乘，100% 吻合維護設定）
         window.updateMultiCount = function(dbKey, specIdx, val) {
             const intVal = Math.max(0, parseInt(val) || 0);
             const drug = masterDrugDb.find(d => d.dbKey === dbKey || d.id === dbKey);
@@ -214,4 +214,36 @@
                 
                 currentRecord[`spec_${i}`] = currentBoxCount;
 
-                // 🎯 核心修正
+                // 🎯 核心大升級：直接對應各自格子的後台 rate 設定，不再對第一層進行二次相乘
+                let currentRate = specs[i] ? (parseFloat(specs[i].rate) || 1) : 1;
+
+                // 如果是最後一格（通常是支、粒等基本單位），換算率絕對強制為 1
+                if (i === len - 1) {
+                    currentRate = 1;
+                }
+
+                grandTotal += (Number(currentBoxCount) * Number(currentRate));
+            }
+
+            currentRecord.total = grandTotal;
+            currentRecord.user = loginUser;
+
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), currentRecord);
+        };
+
+        function calculateProgress() {
+            const totalItems = masterDrugDb.length;
+            let completedItems = 0;
+            masterDrugDb.forEach(d => {
+                const k = d.dbKey || d.id;
+                if (firebaseRecords[k] && Number(firebaseRecords[k].total) > 0) completedItems++;
+            });
+            const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            document.getElementById('progressText').innerText = `${completedItems} / ${totalItems} (${percent}%)`;
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        document.getElementById('inventorySearch').addEventListener('input', renderGrid);
+    </script>
+</body>
+</html>
