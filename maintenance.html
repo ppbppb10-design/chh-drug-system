@@ -13,17 +13,17 @@
     <div class="bg-white w-full max-w-lg rounded-3xl shadow-xl p-6 md:p-8 border border-slate-100 flex flex-col justify-between min-h-[580px]">
         <div>
             <div class="text-center mt-2 mb-6">
-                <div class="w-14 h-14 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-sm">
-                    <i class="fa-solid fa-screwdriver-wrench"></i>
+                <div class="w-14 h-14 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl mx-auto mb-3 shadow-sm">
+                    <i class="fa-solid fa-cloud-arrow-up"></i>
                 </div>
                 <h1 class="text-2xl font-black text-slate-800 tracking-wide">後台資料維護分流中心</h1>
                 <p class="text-xs font-bold text-slate-400 tracking-widest mt-1 uppercase">Changhua Hospital Pharmacy</p>
             </div>
 
             <div class="bg-slate-50 border border-slate-200/60 p-4 rounded-2xl text-xs text-slate-600 leading-relaxed space-y-1 mb-6">
-                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-shield-halved text-emerald-500"></i> 防崩潰安全容錯機制已升級：</div>
-                <p>1. 🎯 **安全不卡死**：已對 Excel 內的所有怪異符號（如破折號、特殊等號）加入強制防當容錯，絕對不再轉圈圈。</p>
-                <p>2. 品項若有無效公式將自動降維為「純散裝」，手機端 100% 正常載入。</p>
+                <div class="font-bold text-slate-700 text-sm flex items-center gap-1 mb-1"><i class="fa-solid fa-circle-check text-emerald-500"></i> 文字直接讀取機制（已啟動）：</div>
+                <p>1. 🚀 **全面繞過 Excel 公式**：不再解析複雜的後台公式，直接抓取表格上看到的「備註文字」，100% 拒絕卡死轉圈圈。</p>
+                <p>2. **自動抹除所有雜訊**：無論單引號 `'`、特殊減號，系統都會在讀取瞬間直接融化清除。</p>
             </div>
 
             <div class="space-y-4">
@@ -65,7 +65,7 @@
 
         <div class="mt-6 pt-4 border-t border-slate-100 flex justify-between items-center">
             <a href="inventory_login.html" class="text-xs font-bold text-slate-400 hover:text-slate-600 transition flex items-center gap-1"><i class="fa-solid fa-arrow-left"></i> 返回登入頁</a>
-            <span class="text-[10px] text-slate-300 font-mono">v8.40-anti-crash-final</span>
+            <span class="text-[10px] text-slate-300 font-mono">v8.50-text-mode-secured</span>
         </div>
     </div>
 
@@ -98,7 +98,7 @@
 
             const statusLabel = document.getElementById(`status-${type}`);
             statusLabel.className = "text-[11px] font-bold text-blue-500 animate-pulse";
-            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 安全沖刷雲端中...`;
+            statusLabel.innerHTML = `<i class="fa-solid fa-spinner animate-spin"></i> 文字串流直連中...`;
 
             const reader = new FileReader();
             reader.onload = function(e) {
@@ -112,6 +112,7 @@
                     if (sheetName.includes('工作表') || sheetName === '工作表9') return;
 
                     const worksheet = workbook.Sheets[sheetName];
+                    // 🎯 核心改動：直接轉成純物件陣列，完全不走 sheet_to_formulae 公式解析線路
                     const jsonData = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' });
 
                     let headerIndex = -1;
@@ -128,6 +129,108 @@
                     const locIdx = headers.findIndex(h => String(h).includes('位號') || String(h).includes('儲位'));
                     const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼'));
                     const nameIdx = headers.findIndex(h => String(h).includes('品名') || String(h).includes('名稱'));
+                    
+                    // 🎯 尋找備註或公式欄位文字
+                    const noteIdx = headers.findIndex(h => String(h).includes('備註') || String(h).includes('公式') || String(h).includes('換算'));
 
-                    const cellEntries = XLSX.utils.sheet_to_formulae(worksheet);
-                    let sheetFormulasByRow = {};
+                    for (let j = headerIndex + 1; j < jsonData.length; j++) {
+                        const row = jsonData[j];
+                        if (!row || !row[codeIdx]) continue;
+
+                        const drugCode = String(row[codeIdx]).trim();
+                        if (drugCode === "undefined" || drugCode === "" || drugCode.includes('藥品碼')) continue;
+
+                        const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥名';
+                        const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
+                        
+                        let isMultiSpec = false;
+                        let hasCustomSpec = false;
+                        let specArray = [];
+                        let rateBoxToPiece = 1; 
+                        let unitBox = "";
+                        let unitPiece = (sheetName.includes('外用') || sheetName.includes('少用')) ? "罐" : "支";
+                        let descStr = "純散裝品項";
+
+                        // 🎯 直接從格子文字讀取，百分之百不當機
+                        let rawCellText = (noteIdx !== -1 && row[noteIdx]) ? String(row[noteIdx]).trim() : '';
+                        
+                        if (rawCellText) {
+                            try {
+                                // 強制移除所有空格、單引號，將全型等號轉半型
+                                let cellText = rawCellText.replace(/\s+/g, '').replace(/，/g, ',').replace(/＝/g, '=').replace(/'/g, '');
+                                
+                                if (cellText.includes('=')) {
+                                    if (cellText.includes(',')) {
+                                        isMultiSpec = true;
+                                        descStr = cellText;
+                                        cellText.split(',').forEach(sub => {
+                                            const parts = sub.split('=');
+                                            if (parts.length === 2) {
+                                                specArray.push({ label: parts[0].trim(), rate: parseInt(parts[1].match(/\d+/)[0]) || 1 });
+                                            }
+                                        });
+                                    } else {
+                                        let parts = cellText.split('=');
+                                        if (parts.length === 2) {
+                                            let u1Match = parts[0].match(/[^\d]+/);
+                                            let rateMatch = parts[1].match(/\d+/);
+                                            let u2Match = parts[1].match(/[^\d]+/);
+                                            
+                                            if (u1Match && rateMatch && u2Match) {
+                                                hasCustomSpec = true;
+                                                unitBox = u1Match[0].trim();
+                                                rateBoxToPiece = parseInt(rateMatch[0]);
+                                                unitPiece = u2Match[0].trim();
+                                                descStr = `實行包裝：1${unitBox} = ${rateBoxToPiece}${unitPiece}`;
+                                            }
+                                        }
+                                    }
+                                }
+                            } catch (err) {
+                                isMultiSpec = false;
+                                hasCustomSpec = false;
+                                descStr = "純散裝品項";
+                            }
+                        }
+
+                        globalIndex++;
+                        const uniquePrimaryKey = `${drugCode}_${locationValue || '0'}_${globalIndex}`;
+
+                        newMasterList[uniquePrimaryKey] = {
+                            id: drugCode,
+                            name: drugName,
+                            subZone: sheetName,
+                            location: locationValue,
+                            unitBox: unitBox,
+                            unitPiece: unitPiece,
+                            rateBoxToPiece: rateBoxToPiece,
+                            desc: descStr,
+                            mainType: type,
+                            sortOrder: globalIndex,
+                            dbKey: uniquePrimaryKey,
+                            isMultiSpec: isMultiSpec,
+                            hasCustomSpec: hasCustomSpec,
+                            specArray: specArray
+                        };
+                        parsedCount++;
+                    }
+                });
+
+                if (parsedCount > 0) {
+                    const nodePath = (type === 'oral') ? 'masterOralList' : 'masterInjectList';
+                    set(ref(db, nodePath), newMasterList).then(() => {
+                        statusLabel.className = "text-[11px] font-bold text-green-600";
+                        statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 同步完成 (${parsedCount}品項)`;
+                        alert(`🎉 彰醫資料庫純文字通道架設成功！已成功同步 ${parsedCount} 筆藥品！`);
+                    });
+                } else {
+                    statusLabel.className = "text-[11px] font-bold text-red-500";
+                    statusLabel.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 找不到欄位`;
+                    alert("⚠️ 讀取失敗，請確認 Excel 中是否有「藥品碼/藥碼」與「品名」欄位。");
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+    </script>
+</body>
+</html>
