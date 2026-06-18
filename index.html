@@ -24,7 +24,7 @@
             </div>
             <div class="flex gap-2 text-xs">
                 <button onclick="alert('目前字級已設定為最適大小')" class="bg-slate-100 text-slate-600 px-3 py-2 rounded-xl border font-bold">較小</button>
-                <button onclick="alert('目前字級已設定為最適大小')" class="bg-slate-100 text-slate-600 px-3 py-2 rounded-xl border font-bold">較大</button>
+                <button onclick="alert('Tailwind基礎字級已設定')'" class="bg-slate-100 text-slate-600 px-3 py-2 rounded-xl border font-bold">較大</button>
             </div>
         </div>
 
@@ -39,9 +39,12 @@
                     <span class="text-3xl bg-blue-50 p-3 rounded-xl">🩻</span>
                     <span class="font-bold text-slate-700 text-lg">Fentanyl 廢片</span>
                 </div>
-                <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="location.href='inventory_login.html'">
-                    <span class="text-3xl bg-indigo-50 p-3 rounded-xl">📋</span>
-                    <span class="font-bold text-slate-700 text-lg">盤點系統</span>
+                <div class="portal-card bg-gradient-to-br from-emerald-600 to-teal-600 p-5 rounded-2xl flex items-center gap-4 cursor-pointer shadow-md text-white" onclick="location.href='inventory_login.html'">
+                    <span class="text-3xl bg-white/20 p-3 rounded-xl shadow-inner">📋</span>
+                    <div>
+                        <span class="font-black text-xl block">盤點系統</span>
+                        <span class="text-[10px] opacity-80 font-bold">藥庫 / 藥局即時盤點</span>
+                    </div>
                 </div>
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('處方集載入中...')">
                     <span class="text-3xl bg-cyan-50 p-3 rounded-xl">📘</span>
@@ -101,6 +104,15 @@
                 <div class="portal-card bg-white p-5 rounded-2xl border flex items-center gap-4 cursor-pointer" onclick="alert('建置中...')">
                     <span class="text-3xl bg-rose-50 p-3 rounded-xl">⚠️</span>
                     <span class="font-bold text-slate-700 text-lg">調劑錯誤登記</span>
+                </div>
+
+                <div class="portal-card bg-gradient-to-br from-red-600 to-rose-600 p-5 rounded-2xl flex items-center gap-4 cursor-pointer shadow-md text-white" 
+                     onclick="window.open('https://www.surveycake.com/s/64KMD', '_blank')">
+                    <span class="text-3xl bg-white/20 p-3 rounded-xl shadow-inner">📝</span>
+                    <div>
+                        <span class="font-black text-lg block">藥物諮詢紀錄</span>
+                        <span class="text-[10px] opacity-90 font-bold">SurveyCake 通報系統</span>
+                    </div>
                 </div>
             </div>
         </div>
