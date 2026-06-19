@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <!-- 智慧儲位快捷鍵橫列（已全面支援全通用數字歸類類推） -->
+        <!-- 智慧儲位快捷鍵橫列（完美通殺英文字母 A/B/G 與 數字 1/2/4） -->
         <div class="max-w-7xl mx-auto mt-3 pt-2 border-t border-blue-500/40 flex items-center gap-2 overflow-x-auto no-scrollbar">
             <span class="text-xs font-bold text-blue-200 shrink-0"><i class="fa-solid fa-tags mr-1"></i>儲位快選:</span>
             <div id="locationBadgeContainer" class="flex items-center gap-1.5">
@@ -107,21 +107,21 @@
             calculateProgress();
         });
 
-        // 🎯 核心大類推大腦：擷取大類代碼函數
+        // 🎯 究極類推核心大腦：支持中文字開頭，且完美相容括號內的英文字母 (A/B/G) 或 數字 (1/2/4)
         function getShortLocLabel(fullLoc) {
             if (!fullLoc) return "";
             const str = String(fullLoc).trim();
             
-            // 使用正則表達式，尋找「中文字串開頭、後面跟著括號或直接跟著數字」的結構
-            // 例如：針(2-10) -> 針2, 針2-1 -> 針2, A(1) -> A1
-            const match = str.match(/^([^\d\(\)]+)[\(\s-]*(\d+)/);
+            // 🌟 超強正則：擷取開頭的中文，並強制抓取後方緊接著的「第一個字母或數字」
+            // 範例：針(A1) -> 針A, 針(2-10) -> 針2, 針(B2) -> 針B, 針(G1) -> 針G
+            const match = str.match(/^([^\d\A-Za-z\(\)]+)[\(\s-]*(.)/);
             if (match) {
-                return match[1] + match[2]; // 完美拼接成 針1, 針2, 針4...
+                return match[1] + match[2].toUpperCase(); // 完美輸出 針A、針B、針2
             }
-            return str; // 如果沒有數字結構（如：冰箱、藍標），維持原樣
+            return str; 
         }
 
-        // 🎯 智慧橫列生成器
+        // 智慧橫列生成器
         function generateLocationBadges() {
             const container = document.getElementById('locationBadgeContainer');
             if (!container) return;
@@ -130,12 +130,11 @@
             let locSet = new Set();
             masterDrugDb.forEach(drug => {
                 if (drug.location && String(drug.location).trim()) {
-                    // 全面套用通用類推簡化大腦
                     locSet.add(getShortLocLabel(drug.location));
                 }
             });
 
-            // 排序快捷鍵標籤（確保 針1 -> 針2 -> 針4 依序排列）
+            // 依拼音/筆畫順序漂亮排序快捷鍵
             let sortedLocs = Array.from(locSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-TW-u-co-stroke'));
 
             // 「顯示全部」按鈕
@@ -149,7 +148,7 @@
             };
             container.appendChild(allBtn);
 
-            // 循環長出簡化後的快選按鈕
+            // 長出過濾後的快捷按鈕
             sortedLocs.forEach(loc => {
                 let btn = document.createElement('button');
                 const isActive = (activeLocationFilter === loc);
@@ -173,7 +172,7 @@
 
             masterDrugDb.forEach(drug => {
                 try {
-                    // 🎯 通用類推過濾邏輯：拿當前藥品算出來的簡短大類去跟按鈕比對
+                    // 🎯 完美融合字母與數字的大類篩選判定
                     if (activeLocationFilter) {
                         let drugShortLoc = drug.location ? getShortLocLabel(drug.location) : "";
                         if (drugShortLoc !== activeLocationFilter) return;
