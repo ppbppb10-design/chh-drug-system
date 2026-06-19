@@ -9,6 +9,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
+    <!-- 頂部狀態橫幅 -->
     <div class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center space-x-3 w-full md:w-auto">
@@ -29,13 +30,22 @@
             </div>
             <div class="w-full md:w-auto max-w-sm">
                 <div class="relative w-full">
-                    <input type="text" id="inventorySearch" placeholder="搜尋藥名、藥碼..." class="w-full pl-9 pr-4 py-2 rounded-xl text-slate-800 outline-none focus:ring-2 focus:ring-green-400 text-sm">
+                    <input type="text" id="inventorySearch" placeholder="搜尋藥名、藥碼、儲位..." class="w-full pl-9 pr-4 py-2 rounded-xl text-slate-800 outline-none focus:ring-2 focus:ring-green-400 text-sm">
                     <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-400 text-sm"></i>
                 </div>
             </div>
         </div>
+
+        <!-- 🎯 新增：智慧儲位快捷鍵橫列（自動由 Excel 資料庫分析長出） -->
+        <div class="max-w-7xl mx-auto mt-3 pt-2 border-t border-blue-500/40 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            <span class="text-xs font-bold text-blue-200 shrink-0"><i class="fa-solid fa-tags mr-1"></i>儲位快選:</span>
+            <div id="locationBadgeContainer" class="flex items-center gap-1.5">
+                <!-- 快捷鍵按鈕自動生成處 -->
+            </div>
+        </div>
     </div>
 
+    <!-- 卡片網格 -->
     <main class="max-w-7xl mx-auto p-4 md:p-6">
         <div id="inventoryGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在同步彰醫精準盤點界面...</div>
@@ -69,6 +79,7 @@
 
         let masterDrugDb = [];
         let firebaseRecords = {};
+        let activeLocationFilter = ""; // 當前被點選的儲位
 
         const masterNode = (mainZone === 'odd') ? 'masterOralList' : 'masterInjectList';
         
@@ -84,6 +95,9 @@
 
             list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
             masterDrugDb = list;
+            
+            // 🎯 載入清單時，同步分析並生成頂部儲位快捷鍵
+            generateLocationBadges();
             renderGrid();
             calculateProgress();
         });
@@ -94,6 +108,50 @@
             calculateProgress();
         });
 
+        // 🎯 核心功能：分析現有藥品自動生成不重複的儲位標籤
+        function generateLocationBadges() {
+            const container = document.getElementById('locationBadgeContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            // 1. 蒐集所有不為空的儲位名稱
+            let locSet = new Set();
+            masterDrugDb.forEach(drug => {
+                if (drug.location && String(drug.location).trim()) {
+                    locSet.add(String(drug.location).trim());
+                }
+            });
+
+            // 排序儲位
+            let sortedLocs = Array.from(locSet).sort();
+
+            // 2. 建立「顯示全部」按鈕
+            let allBtn = document.createElement('button');
+            allBtn.className = `px-3 py-1 rounded-lg text-xs font-bold transition shrink-0 ${!activeLocationFilter ? 'bg-white text-blue-700 shadow-sm font-black' : 'bg-blue-700/50 text-blue-100 hover:bg-blue-700'}`;
+            allBtn.innerText = "顯示全部";
+            allBtn.onclick = () => {
+                activeLocationFilter = "";
+                generateLocationBadges();
+                renderGrid();
+            };
+            container.appendChild(allBtn);
+
+            // 3. 建立各別儲位快捷鍵
+            sortedLocs.forEach(loc => {
+                let btn = document.createElement('button');
+                const isActive = (activeLocationFilter === loc);
+                btn.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition shrink-0 flex items-center gap-1 ${isActive ? 'bg-yellow-400 text-slate-900 shadow-sm font-black' : 'bg-blue-700/50 text-blue-100 hover:bg-blue-700'}`;
+                btn.innerHTML = `<i class="fa-solid fa-folder-open opacity-70"></i> ${loc}`;
+                btn.onclick = () => {
+                    // 如果點擊已經激活的，就切換回顯示全部；否則激活該儲位
+                    activeLocationFilter = isActive ? "" : loc;
+                    generateLocationBadges();
+                    renderGrid();
+                };
+                container.appendChild(btn);
+            });
+        }
+
         function renderGrid() {
             const grid = document.getElementById('inventoryGrid');
             if (!grid) return;
@@ -103,6 +161,10 @@
 
             masterDrugDb.forEach(drug => {
                 try {
+                    // 🎯 核心過濾機制 1：如果有點選頂部儲位快捷鍵，且藥品储位不符，直接過濾跳過
+                    if (activeLocationFilter && String(drug.location).trim() !== activeLocationFilter) return;
+
+                    // 核心過濾機制 2：關鍵字搜尋（藥名、藥碼、儲位）
                     if (searchVal && !drug.name.toUpperCase().includes(searchVal) && !drug.id.toUpperCase().includes(searchVal) && !String(drug.location).toUpperCase().includes(searchVal)) return;
 
                     const currentKey = drug.dbKey || drug.id;
@@ -195,7 +257,7 @@
             });
         };
 
-        // 🎯 修正後直覺式對應換算率大腦（不進行多層累乘，100% 吻合維護設定）
+        // 智慧型換算大腦
         window.updateMultiCount = function(dbKey, specIdx, val) {
             const intVal = Math.max(0, parseInt(val) || 0);
             const drug = masterDrugDb.find(d => d.dbKey === dbKey || d.id === dbKey);
@@ -214,10 +276,7 @@
                 
                 currentRecord[`spec_${i}`] = currentBoxCount;
 
-                // 🎯 核心大升級：直接對應各自格子的後台 rate 設定，不再對第一層進行二次相乘
                 let currentRate = specs[i] ? (parseFloat(specs[i].rate) || 1) : 1;
-
-                // 如果是最後一格（通常是支、粒等基本單位），換算率絕對強制為 1
                 if (i === len - 1) {
                     currentRate = 1;
                 }
@@ -245,5 +304,11 @@
 
         document.getElementById('inventorySearch').addEventListener('input', renderGrid);
     </script>
+
+    <!-- 隱藏原生捲軸樣式，使快捷鍵橫列更好看 -->
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
 </body>
 </html>
