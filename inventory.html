@@ -36,7 +36,7 @@
             </div>
         </div>
 
-        <!-- 🎯 新增：智慧儲位快捷鍵橫列（自動由 Excel 資料庫分析長出） -->
+        <!-- 智慧儲位快捷鍵橫列（已全面支援全通用數字歸類類推） -->
         <div class="max-w-7xl mx-auto mt-3 pt-2 border-t border-blue-500/40 flex items-center gap-2 overflow-x-auto no-scrollbar">
             <span class="text-xs font-bold text-blue-200 shrink-0"><i class="fa-solid fa-tags mr-1"></i>儲位快選:</span>
             <div id="locationBadgeContainer" class="flex items-center gap-1.5">
@@ -79,7 +79,7 @@
 
         let masterDrugDb = [];
         let firebaseRecords = {};
-        let activeLocationFilter = ""; // 當前被點選的儲位
+        let activeLocationFilter = ""; 
 
         const masterNode = (mainZone === 'odd') ? 'masterOralList' : 'masterInjectList';
         
@@ -96,7 +96,6 @@
             list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
             masterDrugDb = list;
             
-            // 🎯 載入清單時，同步分析並生成頂部儲位快捷鍵
             generateLocationBadges();
             renderGrid();
             calculateProgress();
@@ -108,24 +107,38 @@
             calculateProgress();
         });
 
-        // 🎯 核心功能：分析現有藥品自動生成不重複的儲位標籤
+        // 🎯 核心大類推大腦：擷取大類代碼函數
+        function getShortLocLabel(fullLoc) {
+            if (!fullLoc) return "";
+            const str = String(fullLoc).trim();
+            
+            // 使用正則表達式，尋找「中文字串開頭、後面跟著括號或直接跟著數字」的結構
+            // 例如：針(2-10) -> 針2, 針2-1 -> 針2, A(1) -> A1
+            const match = str.match(/^([^\d\(\)]+)[\(\s-]*(\d+)/);
+            if (match) {
+                return match[1] + match[2]; // 完美拼接成 針1, 針2, 針4...
+            }
+            return str; // 如果沒有數字結構（如：冰箱、藍標），維持原樣
+        }
+
+        // 🎯 智慧橫列生成器
         function generateLocationBadges() {
             const container = document.getElementById('locationBadgeContainer');
             if (!container) return;
             container.innerHTML = '';
 
-            // 1. 蒐集所有不為空的儲位名稱
             let locSet = new Set();
             masterDrugDb.forEach(drug => {
                 if (drug.location && String(drug.location).trim()) {
-                    locSet.add(String(drug.location).trim());
+                    // 全面套用通用類推簡化大腦
+                    locSet.add(getShortLocLabel(drug.location));
                 }
             });
 
-            // 排序儲位
-            let sortedLocs = Array.from(locSet).sort();
+            // 排序快捷鍵標籤（確保 針1 -> 針2 -> 針4 依序排列）
+            let sortedLocs = Array.from(locSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-TW-u-co-stroke'));
 
-            // 2. 建立「顯示全部」按鈕
+            // 「顯示全部」按鈕
             let allBtn = document.createElement('button');
             allBtn.className = `px-3 py-1 rounded-lg text-xs font-bold transition shrink-0 ${!activeLocationFilter ? 'bg-white text-blue-700 shadow-sm font-black' : 'bg-blue-700/50 text-blue-100 hover:bg-blue-700'}`;
             allBtn.innerText = "顯示全部";
@@ -136,14 +149,13 @@
             };
             container.appendChild(allBtn);
 
-            // 3. 建立各別儲位快捷鍵
+            // 循環長出簡化後的快選按鈕
             sortedLocs.forEach(loc => {
                 let btn = document.createElement('button');
                 const isActive = (activeLocationFilter === loc);
                 btn.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition shrink-0 flex items-center gap-1 ${isActive ? 'bg-yellow-400 text-slate-900 shadow-sm font-black' : 'bg-blue-700/50 text-blue-100 hover:bg-blue-700'}`;
                 btn.innerHTML = `<i class="fa-solid fa-folder-open opacity-70"></i> ${loc}`;
                 btn.onclick = () => {
-                    // 如果點擊已經激活的，就切換回顯示全部；否則激活該儲位
                     activeLocationFilter = isActive ? "" : loc;
                     generateLocationBadges();
                     renderGrid();
@@ -161,10 +173,13 @@
 
             masterDrugDb.forEach(drug => {
                 try {
-                    // 🎯 核心過濾機制 1：如果有點選頂部儲位快捷鍵，且藥品储位不符，直接過濾跳過
-                    if (activeLocationFilter && String(drug.location).trim() !== activeLocationFilter) return;
+                    // 🎯 通用類推過濾邏輯：拿當前藥品算出來的簡短大類去跟按鈕比對
+                    if (activeLocationFilter) {
+                        let drugShortLoc = drug.location ? getShortLocLabel(drug.location) : "";
+                        if (drugShortLoc !== activeLocationFilter) return;
+                    }
 
-                    // 核心過濾機制 2：關鍵字搜尋（藥名、藥碼、儲位）
+                    // 關鍵字模糊搜尋
                     if (searchVal && !drug.name.toUpperCase().includes(searchVal) && !drug.id.toUpperCase().includes(searchVal) && !String(drug.location).toUpperCase().includes(searchVal)) return;
 
                     const currentKey = drug.dbKey || drug.id;
@@ -305,7 +320,6 @@
         document.getElementById('inventorySearch').addEventListener('input', renderGrid);
     </script>
 
-    <!-- 隱藏原生捲軸樣式，使快捷鍵橫列更好看 -->
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
         .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
