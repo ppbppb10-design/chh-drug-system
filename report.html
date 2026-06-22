@@ -110,6 +110,7 @@
 
         function renderTable() {
             const tbody = document.getElementById('reportTableBody');
+            if (!tbody) return;
             if (allCombinedDrugs.length === 0) {
                 tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 font-medium">⚠️ 雲端目前無品項資料，請先至「資料維護」匯入 Excel。</td></tr>`;
                 return;
@@ -118,7 +119,10 @@
             tbody.innerHTML = '';
             allCombinedDrugs.forEach(drug => {
                 const zoneRecord = firebaseRecords[drug.subZone] || {};
-                const rec = zoneRecord[drug.dbKey] || { total: 0, user: '未盤' };
+                
+                // 🎯 核心升級 1：前台明細渲染同樣套用最穩固的雙鑰匙防呆連結
+                const currentKey = drug.dbKey || drug.id;
+                const rec = zoneRecord[currentKey] || { total: 0, user: '未盤' };
 
                 let tr = document.createElement('tr');
                 tr.className = "hover:bg-slate-50/80 transition text-slate-600";
@@ -127,17 +131,16 @@
                     <td class="py-4 px-6 font-mono text-xs text-slate-400 font-bold">${drug.location || '—'}</td>
                     <td class="py-4 px-6 font-black text-slate-800">${drug.id}</td>
                     <td class="py-4 px-6 font-bold text-slate-700">${drug.name}</td>
-                    <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold">${drug.desc || '1盒=10支'}</td>
-                    <td class="py-4 px-6 text-center font-black ${rec.total > 0 ? 'text-green-600 text-base' : 'text-slate-300'}">${rec.total} <span class="text-[10px] text-slate-400 font-normal">(${rec.user})</span></td>
+                    <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold">${drug.desc || '純散裝品項'}</td>
+                    <td class="py-4 px-6 text-center font-black ${Number(rec.total) > 0 ? 'text-green-600 text-base' : 'text-slate-300'}">${rec.total} <span class="text-[10px] text-slate-400 font-normal">(${rec.user})</span></td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // 🎯 智慧核心大改裝：匯出時進行二維拆解與藥碼自動合併加總
+        // 🎯 智慧核心修正：完美根除 XLSX.read 當機死結
         window.downloadExcel = function() {
             const timeString = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }).replace(/[\/:]/g, '-');
-            const workbook = XLSX.read(new Uint8Array([80,75,3,4]), {type: 'array'}); // 建立空白活頁簿
             
             // ==========================================
             // 📊 頁籤一：建構【盤點多儲位明細】原始資料
@@ -151,14 +154,18 @@
 
             allCombinedDrugs.forEach(drug => {
                 const zoneRecord = firebaseRecords[drug.subZone] || {};
-                const rec = zoneRecord[drug.dbKey] || { total: 0, user: '未盤點' };
+                
+                // 🎯 核心升級 2：Excel 導出時，改採最新雙識別碼鑰匙
+                const currentKey = drug.dbKey || drug.id;
+                const rec = zoneRecord[currentKey] || { total: 0, user: '未盤點' };
+                
                 sheet1Rows.push([
                     drug.subZone || '未分類',
                     drug.location || '',
                     drug.id,
                     drug.name,
-                    drug.desc || '1盒=10支',
-                    rec.total,
+                    drug.desc || '純散裝品項',
+                    Number(rec.total) || 0, // 強制數字型態
                     rec.user
                 ]);
             });
@@ -174,14 +181,13 @@
                 ["藥品代碼", "藥品名稱", "全院盤點加總總量", "狀態提示"]
             ];
 
-            // 使用物件演算法進行不重複篩選與累加
             let summaryMap = {};
 
             allCombinedDrugs.forEach(drug => {
                 const zoneRecord = firebaseRecords[drug.subZone] || {};
-                const rec = zoneRecord[drug.dbKey] || { total: 0 };
+                const currentKey = drug.dbKey || drug.id;
+                const rec = zoneRecord[currentKey] || { total: 0 };
                 
-                // 如果這個藥碼還沒記錄過，先建立初始基本資料
                 if (!summaryMap[drug.id]) {
                     summaryMap[drug.id] = {
                         id: drug.id,
@@ -189,11 +195,10 @@
                         grandTotal: 0
                     };
                 }
-                // 核心加總：將不同儲位、不同位號的數量全部累加進去！
-                summaryMap[drug.id].grandTotal += rec.total;
+                // 確保數值累加時進行強硬的 Number 轉型，絕不發生文字拼貼
+                summaryMap[drug.id].grandTotal += (Number(rec.total) || 0);
             });
 
-            // 將加總完畢的資料，整齊地塞入頁籤二
             Object.values(summaryMap).forEach(item => {
                 sheet2Rows.push([
                     item.id,
@@ -205,14 +210,4 @@
             const worksheet2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
 
             // ==========================================
-            // 📦 雙劍合璧：將兩個頁籤打包塞進同一個 Excel 下載
-            // ==========================================
-            const finalWorkbook = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(finalWorkbook, worksheet1, "盤點多儲位明細");
-            XLSX.utils.book_append_sheet(finalWorkbook, worksheet2, "全院藥碼加總彙整"); // 🎯 新頁籤登場！
-            
-            XLSX.writeFile(finalWorkbook, `彰醫藥局盤點報表_雙向加總版_${timeString}.xlsx`);
-        };
-    </script>
-</body>
-</html>
+            //
