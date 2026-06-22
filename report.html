@@ -73,36 +73,49 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let masterOralList = {};
-        let masterInjectList = {};
+        let masterOralList = null;
+        let masterInjectList = null;
+        let firebaseRecords = null;  
         let allCombinedDrugs = []; 
-        let firebaseRecords = {};  
+
+        // 🌟 聯合計數器：只有當 3 個雲端節點全部下載完成後，才准許放行大腦運算
+        function checkAllLoaded() {
+            if (masterOralList !== null && masterInjectList !== null && firebaseRecords !== null) {
+                combineAndRender();
+            }
+        }
 
         onValue(ref(db, 'inventoryRecords'), (snapshot) => {
             firebaseRecords = snapshot.val() || {};
-            combineAndRender();
+            checkAllLoaded();
         });
 
         onValue(ref(db, 'masterOralList'), (snapshot) => {
             masterOralList = snapshot.val() || {};
-            combineAndRender();
+            checkAllLoaded();
         });
 
         onValue(ref(db, 'masterInjectList'), (snapshot) => {
             masterInjectList = snapshot.val() || {};
-            combineAndRender();
+            checkAllLoaded();
         });
 
         function combineAndRender() {
             try {
-                const oralItems = masterOralList ? Object.values(masterOralList) : [];
-                const injectItems = masterInjectList ? Object.values(masterInjectList) : [];
+                const oralItems = Object.values(masterOralList);
+                const injectItems = Object.values(masterInjectList);
                 allCombinedDrugs = [...oralItems, ...injectItems];
                 
+                // 安全排序：防止有空品項混入導致崩潰
                 allCombinedDrugs.sort((a, b) => {
-                    const zoneCompare = (a.subZone || '').localeCompare(b.subZone || '');
+                    const zoneA = a && a.subZone ? String(a.subZone) : "";
+                    const zoneB = b && b.subZone ? String(b.subZone) : "";
+                    const zoneCompare = zoneA.localeCompare(zoneB, 'zh-Hans-TW-u-co-stroke');
                     if (zoneCompare !== 0) return zoneCompare;
-                    return (a.sortOrder || 0) - (b.sortOrder || 0);
+                    
+                    const orderA = a && a.sortOrder ? Number(a.sortOrder) : 0;
+                    const orderB = b && b.sortOrder ? Number(b.sortOrder) : 0;
+                    return orderA - orderB;
                 });
 
                 const countDom = document.getElementById('totalItemsCount');
@@ -110,7 +123,9 @@
                 
                 renderTable();
             } catch (err) {
-                console.error("整合出錯：", err);
+                console.error("整合大腦發生錯誤：", err);
+                const tbody = document.getElementById('reportTableBody');
+                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">❌ 資料整合失敗，請刷新重試。</td></tr>`;
             }
         }
 
@@ -118,47 +133,86 @@
             const tbody = document.getElementById('reportTableBody');
             if (!tbody) return;
             if (allCombinedDrugs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 font-medium">⚠️ 雲端目前無品項資料，請先至「資料維護」匯入 Excel。</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 font-medium">⚠️ 雲端目前無品項資料。</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = '';
-            allCombinedDrugs.forEach(drug => {
-                try {
-                    if (!drug || !drug.id) return; // 漏空防護
-                    
-                    const zoneRecord = firebaseRecords[drug.subZone] || {};
-                    
-                    // ✨ 防呆升級：如果沒有 dbKey，就拿 id 或者節點名稱當備用，三層過濾絕對抓得到！
-                    const currentKey = drug.dbKey || drug.id || "";
-                    let rec = zoneRecord[currentKey];
-                    if (!rec && drug.id) rec = zoneRecord[drug.id]; // 備用防線
-                    if (!rec) rec = { total: 0, user: '未盤' };
+            
+            // 效能優化：使用 DocumentFragment 減少網頁渲染負荷，防止大數據量造成手機卡死
+            const fragment = document.createDocumentFragment();
 
-                    let tr = document.createElement('tr');
-                    tr.className = "hover:bg-slate-50/80 transition text-slate-600";
-                    tr.innerHTML = `
-                        <td class="py-4 px-6"><span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold text-xs">${drug.subZone || '未分類'}</span></td>
-                        <td class="py-4 px-6 font-mono text-xs text-slate-400 font-bold">${drug.location || '—'}</td>
-                        <td class="py-4 px-6 font-black text-slate-800">${drug.id}</td>
-                        <td class="py-4 px-6 font-bold text-slate-700">${drug.name}</td>
-                        <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold">${drug.desc || '純散裝品項'}</td>
-                        <td class="py-4 px-6 text-center font-black ${Number(rec.total) > 0 ? 'text-green-600 text-base' : 'text-slate-300'}">${rec.total || 0} <span class="text-[10px] text-slate-400 font-normal">(${rec.user || '未盤'})</span></td>
-                    `;
-                    tbody.appendChild(tr);
-                } catch (trErr) {
-                    console.error("單列渲染跳過防崩潰：", trErr);
-                }
+            allCombinedDrugs.forEach(drug => {
+                if (!drug || !drug.id) return; 
+                
+                const zoneRecord = firebaseRecords[drug.subZone] || {};
+                const currentKey = drug.dbKey || drug.id || "";
+                
+                let rec = zoneRecord[currentKey];
+                if (!rec && drug.id) rec = zoneRecord[drug.id];
+                if (!rec) rec = { total: 0, user: '未盤' };
+
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50/80 transition text-slate-600";
+                tr.innerHTML = `
+                    <td class="py-4 px-6"><span class="bg-blue-50 text-blue-600 px-2 py-0.5 rounded-md font-bold text-xs">${drug.subZone || '未分類'}</span></td>
+                    <td class="py-4 px-6 font-mono text-xs text-slate-400 font-bold">${drug.location || '—'}</td>
+                    <td class="py-4 px-6 font-black text-slate-800">${drug.id}</td>
+                    <td class="py-4 px-6 font-bold text-slate-700">${drug.name}</td>
+                    <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold">${drug.desc || '純散裝品項'}</td>
+                    <td class="py-4 px-6 text-center font-black ${Number(rec.total) > 0 ? 'text-green-600 text-base' : 'text-slate-300'}">${rec.total || 0} <span class="text-[10px] text-slate-400 font-normal">(${rec.user || '未盤'})</span></td>
+                `;
+                fragment.appendChild(tr);
             });
+
+            tbody.appendChild(fragment);
         }
 
-        // 🎯 智慧核心修正：加入超強容錯機制，保證不卡死
         window.downloadExcel = function() {
             try {
                 const timeString = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }).replace(/[\/:]/g, '-');
                 
-                // ==========================================
-                // 📊 頁籤一：建構【盤點多儲位明細】原始資料
-                // ==========================================
                 const sheet1Rows = [
                     ["彰化醫院藥劑科 - 智慧盤點多儲位原始明細報表"],
+                    ["匯出時間：" + new Date().toLocaleString('zh-TW')],
+                    [],
+                    ["儲位分類(分頁)", "實體位號", "藥品代碼", "藥品名稱", "包裝換算規則", "該儲位盤點數量", "負責藥師"]
+                ];
+
+                allCombinedDrugs.forEach(drug => {
+                    if (!drug || !drug.id) return;
+                    const zoneRecord = firebaseRecords[drug.subZone] || {};
+                    const currentKey = drug.dbKey || drug.id || "";
+                    
+                    let rec = zoneRecord[currentKey];
+                    if (!rec && drug.id) rec = zoneRecord[drug.id];
+                    if (!rec) rec = { total: 0, user: '未盤點' };
+                    
+                    sheet1Rows.push([
+                        drug.subZone || '未分類',
+                        drug.location || '',
+                        drug.id,
+                        drug.name,
+                        drug.desc || '純散裝品項',
+                        Number(rec.total) || 0,
+                        rec.user || '未盤點'
+                    ]);
+                });
+                const worksheet1 = XLSX.utils.aoa_to_sheet(sheet1Rows);
+
+                const sheet2Rows = [
+                    ["彰化醫院藥劑科 - 全院藥品代碼總量匯總報表 (已去重自動加總)"],
+                    ["匯出時間：" + new Date().toLocaleString('zh-TW')],
+                    [],
+                    ["藥品代碼", "藥品名稱", "全院盤點加總總量", "狀態提示"]
+                ];
+
+                let summaryMap = {};
+
+                allCombinedDrugs.forEach(drug => {
+                    if (!drug || !drug.id) return;
+                    const zoneRecord = firebaseRecords[drug.subZone] || {};
+                    const currentKey = drug.dbKey || drug.id || "";
+                    
+                    let rec = zoneRecord[currentKey];
+                    if
