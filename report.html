@@ -27,11 +27,11 @@
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h2 class="text-xl font-black text-slate-800">📊 雲端盤點數據明細總覽 (<span id="totalItemsCount">0</span> 行明細)</h2>
-                <p class="text-xs text-slate-400 font-medium mt-1">匯出 Excel 功能已全面升級：自動提供【儲位明細】與【藥碼自動加總】雙頁籤！</p>
+                <p class="text-xs text-slate-400 font-medium mt-1">匯出 Excel 功能已全面升級：自動提供【明細、全院總量、針劑分類、外用分類】多頁籤整合報表！</p>
             </div>
             <button onclick="downloadExcel()" class="bg-gradient-to-r from-emerald-600 to-green-600 hover:from-emerald-700 hover:to-green-700 text-white font-black px-6 py-3 rounded-2xl text-sm shadow-md active:scale-95 transition flex items-center gap-2">
                 <i class="fa-solid fa-file-excel text-lg"></i>
-                <span>下載 Excel 雙向加總報表</span>
+                <span>下載 Excel 分類加總報表</span>
             </button>
         </div>
 
@@ -93,20 +93,13 @@
             combineAndRender();
         });
 
-        // ✨ 關鍵核心防護：建立一個全功能大小寫容錯的智慧搜尋抽屜
         function getFirebaseZoneData(subZoneName) {
             if (!subZoneName) return {};
-            // 1. 先嘗試完全吻合的名稱尋找 (例如：藥庫-針劑 a 區)
             if (firebaseRecords[subZoneName]) return firebaseRecords[subZoneName];
-            
-            // 2. 自動嘗試轉換為大寫後尋找 (例如：藥庫-針劑 A 區)
             const upperZone = subZoneName.toUpperCase();
             if (firebaseRecords[upperZone]) return firebaseRecords[upperZone];
-            
-            // 3. 自動嘗試轉換為小寫後尋找
             const lowerZone = subZoneName.toLowerCase();
             if (firebaseRecords[lowerZone]) return firebaseRecords[lowerZone];
-            
             return {};
         }
 
@@ -134,10 +127,7 @@
 
             tbody.innerHTML = '';
             allCombinedDrugs.forEach(drug => {
-                // 🛠️ 升級為大小寫去敏感化搜尋抽屜，防堵大小寫 a/A 不一致問題
                 const zoneRecord = getFirebaseZoneData(drug.subZone);
-                
-                // 新舊欄位兼顧相容搜尋
                 let rec = zoneRecord[drug.dbKey];
                 if (!rec) rec = zoneRecord[drug.id];
                 if (!rec) rec = { total: 0, user: '未盤' };
@@ -159,22 +149,21 @@
         window.downloadExcel = function() {
             try {
                 const timeString = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }).replace(/[\/:]/g, '-');
+                const todayString = new Date().toLocaleString('zh-TW');
                 
                 // ==========================================
-                // 📊 頁籤一：盤點多儲位明細
+                // 📊 頁籤一：建構【盤點多儲位明細】原始資料
                 // ==========================================
                 const sheet1Rows = [
                     ["彰化醫院藥劑科 - 智慧盤點多儲位原始明細報表"],
-                    ["匯出時間：" + new Date().toLocaleString('zh-TW')],
+                    ["匯出時間：" + todayString],
                     [],
                     ["儲位分類(分頁)", "實體位號", "藥品代碼", "藥品名稱", "包裝換算規則", "該儲位盤點數量", "負責藥師"]
                 ];
 
                 allCombinedDrugs.forEach(drug => {
                     const zoneRecord = getFirebaseZoneData(drug.subZone);
-                    let rec = zoneRecord[drug.dbKey];
-                    if (!rec) rec = zoneRecord[drug.id];
-                    if (!rec) rec = { total: 0, user: '未盤點' };
+                    let rec = zoneRecord[drug.dbKey] || zoneRecord[drug.id] || { total: 0, user: '未盤點' };
 
                     sheet1Rows.push([
                         drug.subZone || '未分類',
@@ -189,22 +178,14 @@
                 const worksheet1 = XLSX.utils.aoa_to_sheet(sheet1Rows);
 
                 // ==========================================
-                // 🎯 頁籤二：同藥品代碼合併加總彙整
+                // 🎯 核心計算大腦：全院不重複加總與劑型分類邏輯
                 // ==========================================
-                const sheet2Rows = [
-                    ["彰化醫院藥劑科 - 全院藥品代碼總量匯總報表 (已去重自動加總)"],
-                    ["匯出時間：" + new Date().toLocaleString('zh-TW')],
-                    [],
-                    ["藥品代碼", "藥品名稱", "全院盤點加總總量", "狀態提示"]
-                ];
-
                 let summaryMap = {};
 
                 allCombinedDrugs.forEach(drug => {
+                    if (!drug || !drug.id) return;
                     const zoneRecord = getFirebaseZoneData(drug.subZone);
-                    let rec = zoneRecord[drug.dbKey];
-                    if (!rec) rec = zoneRecord[drug.id];
-                    if (!rec) rec = { total: 0 };
+                    let rec = zoneRecord[drug.dbKey] || zoneRecord[drug.id] || { total: 0 };
                     
                     if (!summaryMap[drug.id]) {
                         summaryMap[drug.id] = {
@@ -216,24 +197,49 @@
                     summaryMap[drug.id].grandTotal += (Number(rec.total) || 0);
                 });
 
+                // 建立基礎欄位格式
+                const headers = ["藥品代碼", "藥品名稱", "全院盤點加總總量", "狀態提示"];
+                
+                const allSummaryRows = [["彰化醫院藥劑科 - 全院藥品代碼總量匯總報表"], ["匯出時間：" + todayString], [], headers];
+                const injectSummaryRows = [["彰化醫院藥劑科 - 針劑類藥品總量彙整 (第四碼為 I)"], ["匯出時間：" + todayString], [], headers];
+                const externalSummaryRows = [["彰化醫院藥劑科 - 外用藥類藥品總量彙整 (第四碼為 E)"], ["匯出時間：" + todayString], [], headers];
+
+                // 🔍 開始依據代碼的第四碼（JavaScript index 為 3）進行分流判定
                 Object.values(summaryMap).forEach(item => {
-                    sheet2Rows.push([
+                    const rowData = [
                         item.id,
                         item.name,
                         item.grandTotal,
                         item.grandTotal > 0 ? "已盤點" : "未盤點"
-                    ]);
+                    ];
+                    
+                    // 1. 無條件加入「全院總量」頁籤
+                    allSummaryRows.push(rowData);
+                    
+                    // 2. 判斷第四碼英文字母
+                    const fourthChar = (item.id && item.id.length >= 4) ? item.id.charAt(3).toUpperCase() : '';
+                    
+                    if (fourthChar === 'I') {
+                        injectSummaryRows.push(rowData); // 歸類至針劑
+                    } else if (fourthChar === 'E') {
+                        externalSummaryRows.push(rowData); // 歸類至外用藥
+                    }
                 });
-                const worksheet2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
+
+                const worksheet2 = XLSX.utils.aoa_to_sheet(allSummaryRows);
+                const worksheet3 = XLSX.utils.aoa_to_sheet(injectSummaryRows);
+                const worksheet4 = XLSX.utils.aoa_to_sheet(externalSummaryRows);
 
                 // ==========================================
-                // 📦 乾淨、不報錯的活頁簿打包下載
+                // 📦 封裝 4 大頁籤並匯出 Excel
                 // ==========================================
                 const finalWorkbook = XLSX.utils.book_new();
                 XLSX.utils.book_append_sheet(finalWorkbook, worksheet1, "盤點多儲位明細");
-                XLSX.utils.book_append_sheet(finalWorkbook, worksheet2, "全院藥碼加總彙整");
+                XLSX.utils.book_append_sheet(finalWorkbook, worksheet2, "全院藥碼總匯總");
+                XLSX.utils.book_append_sheet(finalWorkbook, worksheet3, "針劑類加總彙整");
+                XLSX.utils.book_append_sheet(finalWorkbook, worksheet4, "外用藥加總彙整");
                 
-                XLSX.writeFile(finalWorkbook, `彰醫藥局盤點報表_雙向加總版_${timeString}.xlsx`);
+                XLSX.writeFile(finalWorkbook, `彰醫藥局盤點報表_分類加總版_${timeString}.xlsx`);
             } catch (clickErr) {
                 alert("產生 Excel 報表失敗，請刷新重試。");
                 console.error(clickErr);
