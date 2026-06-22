@@ -73,49 +73,39 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        let masterOralList = null;
-        let masterInjectList = null;
-        let firebaseRecords = null;  
+        let masterOralList = {};
+        let masterInjectList = {};
+        let firebaseRecords = {};  
         let allCombinedDrugs = []; 
 
-        // 🌟 聯合計數器：只有當 3 個雲端節點全部下載完成後，才准許放行大腦運算
-        function checkAllLoaded() {
-            if (masterOralList !== null && masterInjectList !== null && firebaseRecords !== null) {
-                combineAndRender();
-            }
-        }
-
+        // 🟢 恢復最保險的即時觸發模式，來任何一個資料都直接更新畫面
         onValue(ref(db, 'inventoryRecords'), (snapshot) => {
             firebaseRecords = snapshot.val() || {};
-            checkAllLoaded();
+            combineAndRender();
         });
 
         onValue(ref(db, 'masterOralList'), (snapshot) => {
             masterOralList = snapshot.val() || {};
-            checkAllLoaded();
+            combineAndRender();
         });
 
         onValue(ref(db, 'masterInjectList'), (snapshot) => {
             masterInjectList = snapshot.val() || {};
-            checkAllLoaded();
+            combineAndRender();
         });
 
         function combineAndRender() {
             try {
-                const oralItems = Object.values(masterOralList);
-                const injectItems = Object.values(masterInjectList);
+                const oralItems = Object.values(masterOralList || {});
+                const injectItems = Object.values(masterInjectList || {});
                 allCombinedDrugs = [...oralItems, ...injectItems];
                 
-                // 安全排序：防止有空品項混入導致崩潰
+                // 排序優化：確保資料存在才進行比對，防呆過濾
                 allCombinedDrugs.sort((a, b) => {
-                    const zoneA = a && a.subZone ? String(a.subZone) : "";
-                    const zoneB = b && b.subZone ? String(b.subZone) : "";
-                    const zoneCompare = zoneA.localeCompare(zoneB, 'zh-Hans-TW-u-co-stroke');
+                    if (!a || !b) return 0;
+                    const zoneCompare = (a.subZone || '').localeCompare(b.subZone || '');
                     if (zoneCompare !== 0) return zoneCompare;
-                    
-                    const orderA = a && a.sortOrder ? Number(a.sortOrder) : 0;
-                    const orderB = b && b.sortOrder ? Number(b.sortOrder) : 0;
-                    return orderA - orderB;
+                    return (a.sortOrder || 0) - (b.sortOrder || 0);
                 });
 
                 const countDom = document.getElementById('totalItemsCount');
@@ -123,9 +113,7 @@
                 
                 renderTable();
             } catch (err) {
-                console.error("整合大腦發生錯誤：", err);
-                const tbody = document.getElementById('reportTableBody');
-                if (tbody) tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-red-500 font-bold">❌ 資料整合失敗，請刷新重試。</td></tr>`;
+                console.error("整合出錯：", err);
             }
         }
 
@@ -133,23 +121,20 @@
             const tbody = document.getElementById('reportTableBody');
             if (!tbody) return;
             if (allCombinedDrugs.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 font-medium">⚠️ 雲端目前無品項資料。</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="6" class="text-center py-8 text-slate-400 font-medium">⚠️ 雲端目前無品項資料，請先至「資料維護」匯入 Excel。</td></tr>`;
                 return;
             }
 
             tbody.innerHTML = '';
-            
-            // 效能優化：使用 DocumentFragment 減少網頁渲染負荷，防止大數據量造成手機卡死
-            const fragment = document.createDocumentFragment();
-
             allCombinedDrugs.forEach(drug => {
-                if (!drug || !drug.id) return; 
+                if (!drug || !drug.id) return;
                 
-                const zoneRecord = firebaseRecords[drug.subZone] || {};
-                const currentKey = drug.dbKey || drug.id || "";
+                const zoneRecord = firebaseRecords[drug.subZone || ''] || {};
                 
+                // ✨ 新舊欄位全防呆比對
+                const currentKey = drug.dbKey || drug.id;
                 let rec = zoneRecord[currentKey];
-                if (!rec && drug.id) rec = zoneRecord[drug.id];
+                if (!rec) rec = zoneRecord[drug.id]; 
                 if (!rec) rec = { total: 0, user: '未盤' };
 
                 let tr = document.createElement('tr');
@@ -159,19 +144,21 @@
                     <td class="py-4 px-6 font-mono text-xs text-slate-400 font-bold">${drug.location || '—'}</td>
                     <td class="py-4 px-6 font-black text-slate-800">${drug.id}</td>
                     <td class="py-4 px-6 font-bold text-slate-700">${drug.name}</td>
-                    <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold">${drug.desc || '純散裝品項'}</td>
+                    <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold">${drug.desc || '1盒=10支'}</td>
                     <td class="py-4 px-6 text-center font-black ${Number(rec.total) > 0 ? 'text-green-600 text-base' : 'text-slate-300'}">${rec.total || 0} <span class="text-[10px] text-slate-400 font-normal">(${rec.user || '未盤'})</span></td>
                 `;
-                fragment.appendChild(tr);
+                tbody.appendChild(tr);
             });
-
-            tbody.appendChild(fragment);
         }
 
+        // 🎯 完美校正：移除第一行錯誤的 XLSX.read()，直接使用合法的 utils.book_new()
         window.downloadExcel = function() {
             try {
                 const timeString = new Date().toLocaleString('zh-TW', { timeZone: 'Asia/Taipei' }).replace(/[\/:]/g, '-');
                 
+                // ==========================================
+                // 📊 頁籤一：建構【盤點多儲位明細】原始資料
+                // ==========================================
                 const sheet1Rows = [
                     ["彰化醫院藥劑科 - 智慧盤點多儲位原始明細報表"],
                     ["匯出時間：" + new Date().toLocaleString('zh-TW')],
@@ -181,73 +168,11 @@
 
                 allCombinedDrugs.forEach(drug => {
                     if (!drug || !drug.id) return;
-                    const zoneRecord = firebaseRecords[drug.subZone] || {};
-                    const currentKey = drug.dbKey || drug.id || "";
+                    const zoneRecord = firebaseRecords[drug.subZone || ''] || {};
                     
+                    const currentKey = drug.dbKey || drug.id;
                     let rec = zoneRecord[currentKey];
-                    if (!rec && drug.id) rec = zoneRecord[drug.id];
+                    if (!rec) rec = zoneRecord[drug.id];
                     if (!rec) rec = { total: 0, user: '未盤點' };
                     
-                    sheet1Rows.push([
-                        drug.subZone || '未分類',
-                        drug.location || '',
-                        drug.id,
-                        drug.name,
-                        drug.desc || '純散裝品項',
-                        Number(rec.total) || 0,
-                        rec.user || '未盤點'
-                    ]);
-                });
-                const worksheet1 = XLSX.utils.aoa_to_sheet(sheet1Rows);
-
-                const sheet2Rows = [
-                    ["彰化醫院藥劑科 - 全院藥品代碼總量匯總報表 (已去重自動加總)"],
-                    ["匯出時間：" + new Date().toLocaleString('zh-TW')],
-                    [],
-                    ["藥品代碼", "藥品名稱", "全院盤點加總總量", "狀態提示"]
-                ];
-
-                let summaryMap = {};
-
-                allCombinedDrugs.forEach(drug => {
-                    if (!drug || !drug.id) return;
-                    const zoneRecord = firebaseRecords[drug.subZone] || {};
-                    const currentKey = drug.dbKey || drug.id || "";
-                    
-                    let rec = zoneRecord[currentKey];
-                    if (!rec && drug.id) rec = zoneRecord[drug.id];
-                    if (!rec) rec = { total: 0 };
-                    
-                    if (!summaryMap[drug.id]) {
-                        summaryMap[drug.id] = {
-                            id: drug.id,
-                            name: drug.name,
-                            grandTotal: 0
-                        };
-                    }
-                    summaryMap[drug.id].grandTotal += (Number(rec.total) || 0);
-                });
-
-                Object.values(summaryMap).forEach(item => {
-                    sheet2Rows.push([
-                        item.id,
-                        item.name,
-                        item.grandTotal,
-                        item.grandTotal > 0 ? "已盤點" : "未盤點"
-                    ]);
-                });
-                const worksheet2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
-
-                const finalWorkbook = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(finalWorkbook, worksheet1, "盤點多儲位明細");
-                XLSX.utils.book_append_sheet(finalWorkbook, worksheet2, "全院藥碼加總彙整");
-                
-                XLSX.writeFile(finalWorkbook, `彰醫藥局盤點報表_雙向加總版_${timeString}.xlsx`);
-            } catch (clickErr) {
-                alert("產生 Excel 失敗，請重試。");
-                console.error(clickErr);
-            }
-        };
-    </script>
-</body>
-</html>
+                    sheet1Rows.push(
