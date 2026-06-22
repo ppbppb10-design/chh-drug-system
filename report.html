@@ -215,4 +215,39 @@
                     const currentKey = drug.dbKey || drug.id || "";
                     
                     let rec = zoneRecord[currentKey];
-                    if
+                    if (!rec && drug.id) rec = zoneRecord[drug.id];
+                    if (!rec) rec = { total: 0 };
+                    
+                    if (!summaryMap[drug.id]) {
+                        summaryMap[drug.id] = {
+                            id: drug.id,
+                            name: drug.name,
+                            grandTotal: 0
+                        };
+                    }
+                    summaryMap[drug.id].grandTotal += (Number(rec.total) || 0);
+                });
+
+                Object.values(summaryMap).forEach(item => {
+                    sheet2Rows.push([
+                        item.id,
+                        item.name,
+                        item.grandTotal,
+                        item.grandTotal > 0 ? "已盤點" : "未盤點"
+                    ]);
+                });
+                const worksheet2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
+
+                const finalWorkbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(finalWorkbook, worksheet1, "盤點多儲位明細");
+                XLSX.utils.book_append_sheet(finalWorkbook, worksheet2, "全院藥碼加總彙整");
+                
+                XLSX.writeFile(finalWorkbook, `彰醫藥局盤點報表_雙向加總版_${timeString}.xlsx`);
+            } catch (clickErr) {
+                alert("產生 Excel 失敗，請重試。");
+                console.error(clickErr);
+            }
+        };
+    </script>
+</body>
+</html>
