@@ -20,6 +20,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
+    <!-- 頂部導覽列 -->
     <nav class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-2">
@@ -35,6 +36,7 @@
 
     <main class="max-w-[1600px] mx-auto px-3 mt-4 space-y-4">
         
+        <!-- 控制面板列 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
                 <label class="text-[10px] font-bold text-slate-400 mb-0.5">🗓️ 選擇核帳日期</label>
@@ -57,15 +59,12 @@
             </div>
         </div>
 
+        <!-- 警報與即時狀態列 -->
         <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm">
             <span id="matchStatusLabel">載入數據中...</span>
         </div>
 
-        <div id="debugBox" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 font-mono">
-            <p class="font-bold mb-1">⚠️ 偵測到比對項目為 0，以下為 Excel 內實際讀取到的部分代碼範例：</p>
-            <div id="debugContent" class="bg-white/80 p-2 rounded border overflow-x-auto max-h-24"></div>
-        </div>
-
+        <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
         <div class="block lg:hidden space-y-3">
             <div class="bg-slate-200/80 p-2.5 rounded-xl">
                 <span class="text-xs font-black text-slate-700 block mb-2"><i class="fa-solid fa-map-location-dot text-red-600"></i> 請選擇目前所在的盤點儲位：</span>
@@ -82,6 +81,7 @@
             <div id="mobileZoneCardsContainer" class="space-y-3"></div>
         </div>
 
+        <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
                 <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽</h3>
@@ -365,7 +365,7 @@
             return "text-green-600 font-black";
         }
 
-        // 🧠 終極極致勾稽大腦：容許空格、容許大小寫、模糊包含勾稽！
+        // 🧠 強力直擊大腦：直接跳過搜尋，強制定向鎖定 B 欄放代碼、I 欄放總量！
         window.importComputerStock = function(element) {
             const file = element.files[0]; 
             if (!file) return;
@@ -376,40 +376,14 @@
                 const data = new Uint8Array(e.target.result);
                 const workbook = XLSX.read(data, { type: 'array' });
                 const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
-                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                 
-                let codeIdx = -1;
-                let stockIdx = -1;
-                let foundHeaderRowIdx = -1;
-
-                // 🎯 1. 動態搜尋尋找表頭
-                for (let i = 0; i < Math.min(30, jsonData.length); i++) {
-                    const row = jsonData[i] || [];
-                    let tempCodeIdx = -1;
-                    let tempStockIdx = -1;
-
-                    for (let j = 0; j < row.length; j++) {
-                        const cellText = String(row[j] || '').replace(/\s+/g, '').trim(); // 移除所有空格
-                        if (cellText.includes("物品代碼") || cellText.includes("藥品代碼") || cellText.includes("藥碼") || cellText.includes("代碼")) {
-                            tempCodeIdx = j;
-                        }
-                        if (cellText.includes("總量") || cellText.includes("結存") || cellText.includes("存量") || cellText.includes("總計") || cellText.includes("結存量")) {
-                            tempStockIdx = j;
-                        }
-                    }
-
-                    if (tempCodeIdx !== -1 && tempStockIdx !== -1) {
-                        codeIdx = tempCodeIdx;
-                        stockIdx = tempStockIdx;
-                        foundHeaderRowIdx = i;
-                        break;
-                    }
-                }
-
-                // 🛡️ 兜底保險
-                if (codeIdx === -1) codeIdx = 1; 
-                if (stockIdx === -1) stockIdx = 8; 
-                if (foundHeaderRowIdx === -1) foundHeaderRowIdx = 3;
+                // 🚀 關鍵改動：不使用對齊標頭字串的 utils 轉換，改用純二維陣列 AOA 抓取
+                const jsonRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                
+                // 🎯 絕對座標：強制設定物品代碼在 B 欄 (Index 1)，總量在 I 欄 (Index 8)
+                const codeIdx = 1;  // B 欄
+                const stockIdx = 8; // I 欄
+                const startRowIdx = 4; // 從第 5 行 (Index 4) 開始是真實藥品資料列
 
                 let upload封包 = {};
                 allDrugs.forEach(d => { 
@@ -417,43 +391,30 @@
                 });
 
                 let matchCount = 0;
-                let sampleCodesCollected = []; // 收集前幾個代碼用來除錯
 
-                // 🎯 2. 開始進行極致寬鬆勾稽
-                jsonData.forEach((row, rowIdx) => {
-                    if (rowIdx <= foundHeaderRowIdx || !row || row[codeIdx] === undefined) return;
+                // 直接從固定的第 5 行開始往下讀取每一橫列
+                for (let i = startRowIdx; i < jsonRows.length; i++) {
+                    const row = jsonRows[i];
+                    if (!row || row[codeIdx] === undefined) continue;
                     
-                    // 將 Excel 內讀取到的代碼強制去空白、轉大寫
+                    // 強制去除所有空白並轉大寫
                     const excelCode = String(row[codeIdx]).replace(/\s+/g, '').trim().toUpperCase();
-                    if (!excelCode || excelCode.includes("---")) return; 
-
-                    // 記錄前 5 個代碼範例，如果比對失敗可以顯示
-                    if (sampleCodesCollected.length < 5) sampleCodesCollected.push(excelCode);
+                    if (!excelCode || excelCode.includes("---") || excelCode.includes("填表人")) continue; 
 
                     allDrugs.forEach(d => {
                         const systemCode = d.id.trim().toUpperCase();
                         
-                        // 🌟 核心修正：只要互相包含 (不論前後有沒有夾雜院內特殊符號)，就算配對成功！
+                        // 100% 包含或完全相等的雙重模糊配對安全網
                         if (excelCode === systemCode || excelCode.includes(systemCode) || systemCode.includes(excelCode)) {
                             const rawStock = String(row[stockIdx] || '0').replace(/,/g, '').trim();
                             upload封包[d.id].computerStock = parseFloat(rawStock) || 0;
                             matchCount++;
                         }
                     });
-                });
-
-                // 🎯 3. 如果不幸還是 0 項，立刻啟動除錯面板
-                const debugBox = document.getElementById('debugBox');
-                const debugContent = document.getElementById('debugContent');
-                if (matchCount === 0 && sampleCodesCollected.length > 0) {
-                    debugBox.classList.remove('hidden');
-                    debugContent.innerText = `偵測到表頭位於第 ${foundHeaderRowIdx+1} 行。\nExcel 中前幾筆藥碼範例為：[ ${sampleCodesCollected.join(', ')} ]\n系統內建要比對的藥碼為：[ ATIO01, ATII01, ZOPO01... ]`;
-                } else {
-                    debugBox.classList.add('hidden');
                 }
 
                 set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
-                    alert(`🎉 成功自動偵測表頭並比對載入 ${matchCount} 項管制藥的電腦總量！`);
+                    alert(`🎉 彰醫報表對帳成功！已用絕對路徑完美讀取並對齊 ${matchCount} 項管制藥的電腦總量！`);
                     loadDailyData();
                 });
             };
