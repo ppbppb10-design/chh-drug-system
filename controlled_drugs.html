@@ -47,7 +47,6 @@
                 <input type="text" id="pharmacistName" value="育伶" placeholder="姓名" class="w-full font-bold text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
-                <!-- 徹底解除限制 -->
                 <input type="file" id="computerExcel" class="hidden">
                 <button onclick="document.getElementById('computerExcel').click()" class="w-full h-full bg-rose-600 hover:bg-rose-700 text-white font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1 py-2 cursor-pointer">
                     <i class="fa-solid fa-file-upload"></i> 匯入電腦帳
@@ -64,6 +63,32 @@
         <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs shadow-sm bg-slate-50 border">
             <div id="matchStatusLabel">載入數據中...</div>
             <div id="errorDetailsLabel" class="mt-1.5 text-[11px] font-medium flex flex-wrap gap-1.5"></div>
+        </div>
+
+        <!-- 📊 新增：全院管制藥品【即時總量匯總中心】總表看板 -->
+        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+            <div class="p-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white flex justify-between items-center">
+                <h3 class="font-black text-xs md:text-sm flex items-center">
+                    <i class="fa-solid fa-chart-pie mr-2 text-amber-400"></i> 全院管制藥品即時總量匯總看板 (藥師總覽專用)
+                </h3>
+                <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">即時同步中</span>
+            </div>
+            <div class="max-h-60 overflow-y-auto overflow-x-auto">
+                <table class="w-full text-left border-collapse text-[11px]">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 font-black border-b sticky top-0 shadow-sm text-center">
+                            <th class="py-2 px-2 text-left">藥品商品名 (代碼)</th>
+                            <th class="py-2 px-1 w-24 text-blue-600">📊 實體盤點總量</th>
+                            <th class="py-2 px-1 w-24 text-red-600">💻 電腦帳結存</th>
+                            <th class="py-2 px-1 w-24">🚨 今日落差</th>
+                            <th class="py-2 px-1 w-24 text-slate-400">📈 7日平均誤差</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryTableBody" class="divide-y divide-slate-100 font-bold text-slate-700 text-center">
+                        <!-- 動態動態繪製 -->
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- 🔧 精準調試分析面板 -->
@@ -165,7 +190,7 @@
 
         const injectList = [
             { id: "ATII01", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 2, 3, 5, 6] }, 
-            { id: "PRPIO2", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, // 🎯 完美對齊 PRPIO2
+            { id: "PRPIO2", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, 
             { id: "DORI05", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 5, 6] }, 
             { id: "TRAI11", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 5, 6] }  
         ];
@@ -238,7 +263,42 @@
             renderMobileTabButtons(); 
             renderMobileZoneList();   
             renderMatrixTable();      
+            renderSummaryTable(); // 🧠 刷新全新匯總總表看板
             recalculateWholePage();   
+        }
+
+        // 🧠 新增：渲染全院即時匯總精簡總表邏輯
+        function renderSummaryTable() {
+            const tbody = document.getElementById('summaryTableBody');
+            if(!tbody) return;
+            tbody.innerHTML = "";
+
+            allDrugs.forEach(drug => {
+                const info = getDrugSumAndComputer(drug.id);
+                const diff = info.sum - info.computerStock;
+                const avg7 = avg7DaysErrors[drug.id] || 0;
+
+                let rowTr = document.createElement('tr');
+                rowTr.className = "hover:bg-slate-50 transition";
+
+                // 落差上色
+                let diffHtml = `<span>0</span>`;
+                if(diff !== 0) {
+                    const absDiff = Math.abs(diff);
+                    const isOver = absDiff > avg7;
+                    const color = isOver ? "text-red-600 bg-red-50 px-2 py-0.5 rounded shadow-sm font-black" : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded";
+                    diffHtml = `<span class="${color}">${diff > 0 ? '+' + diff : diff}</span>`;
+                }
+
+                rowTr.innerHTML = `
+                    <td class="p-2 text-left font-black text-slate-800">${drug.name} <span class="text-[9px] text-slate-400 font-mono font-bold">(${drug.id})</span></td>
+                    <td class="p-2 text-blue-600 font-black text-sm">${info.sum}</td>
+                    <td class="p-2 text-slate-500">${info.computerStock}</td>
+                    <td class="p-2">${diffHtml}</td>
+                    <td class="p-2 text-slate-400 font-mono text-[10px]">${avg7.toFixed(1)}</td>
+                `;
+                tbody.appendChild(rowTr);
+            });
         }
 
         function renderMobileTabButtons() {
@@ -375,6 +435,8 @@
                 errSpan.innerText = diff > 0 ? '+' + diff : diff;
                 errSpan.className = getErrClass(diff, avg7);
             }
+            // 🧠 聯動更新精簡總表
+            renderSummaryTable();
         }
 
         function executeSaveCell(drugId, subIdx, val) {
@@ -481,7 +543,7 @@
             }
         });
 
-        // 🧠 強力相容：舊版二進位與二維工作表混合流讀取法
+        // Excel 匯入
         document.getElementById('computerExcel').addEventListener('change', function(e) {
             const file = e.target.files[0]; 
             if (!file) return;
@@ -491,7 +553,6 @@
             reader.onload = function(evt) {
                 try {
                     const data = new Uint8Array(evt.target.result);
-                    // 🚀 降維相容：強制開啟最底層 read 盲讀模式，打破所有系統跨欄與二進位混亂限制
                     const workbook = XLSX.read(data, { type: 'array' });
                     const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
                     const jsonRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
@@ -572,6 +633,24 @@
                 } catch (parseErr) { console.error(parseErr); }
             };
             reader.readAsArrayBuffer(file);
+        });
+
+        // 報表匯出
+        document.getElementById('btnExport').addEventListener('click', function() {
+            const dateStr = dateInput.value;
+            const exportRows = [
+                [`彰化醫院藥劑科 - 四級管制藥儲位分類核帳表 (${dateStr})`],
+                ["藥品代碼", "藥品名稱", "規格", "電腦結存(總量)", "實際總計", "對帳誤差", "7日平均絕對誤差", "簽章藥師"]
+            ];
+            allDrugs.forEach(drug => {
+                const info = getDrugSumAndComputer(drug.id);
+                const dayData = (currentDayRecords && currentDayRecords[drug.id]) ? currentDayRecords[drug.id] : {};
+                const avg7 = avg7DaysErrors[drug.id] || 0;
+                exportRows.push([drug.id, drug.name, drug.spec, info.computerStock, info.sum, (info.sum - info.computerStock), avg7.toFixed(2), dayData.user || '—']);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(exportRows);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "儲位盤點報表");
+            XLSX.writeFile(wb, `彰醫管制藥對帳表_${dateStr}.xlsx`);
         });
 
         loadDailyData();
