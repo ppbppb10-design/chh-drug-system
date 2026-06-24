@@ -43,7 +43,7 @@
                 <input type="date" id="targetDate" onchange="loadDailyData()" class="w-full font-black text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
-                <label class="text-[10px] font-bold text-slate-400 mb-0.5">✍️ 線上簽章藥師</label>
+                <label class="text-[10px] font-bold text-slate-400 mb-0.5">✍️ ✍️ 線上簽章藥師</label>
                 <input type="text" id="pharmacistName" value="育伶" placeholder="姓名" class="w-full font-bold text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
@@ -119,7 +119,6 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        // ✨ 完美填補：已安全接回重要的 databaseURL 雲端網址，徹底修復斷線卡死
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
             authDomain: "drug--arrive.firebaseapp.com",
@@ -136,34 +135,35 @@
         const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
         document.getElementById('targetDate').value = todayStr;
 
+        // 🎯 依據 image_61d6e3.png 100% 完全校正的彰醫物品代碼、名稱與灰色屏蔽(NO)對應表
         const oralList = [
-            { id: "ANXI02", name: "Anxiedin", spec: "0.5 mg/tab", disabled: [] },
-            { id: "APOZ00", name: "Apo-Zopiclone", spec: "7.5 mg/tab", disabled: [] },
-            { id: "APRA02", name: "Aprazo", spec: "0.5 mg/tab", disabled: [] },
-            { id: "BROM01", name: "Bromazin", spec: "3 mg/tab", disabled: [] },
-            { id: "CLON02", name: "Clonopam 2", spec: "2 mg/tab", disabled: [] },
-            { id: "DIAP00", name: "Diapin", spec: "2 mg/tab", disabled: [] },
-            { id: "DORM01", name: "Dormicum", spec: "7.5 mg/tab", disabled: [] },
-            { id: "ELIN00", name: "Elinin", spec: "20 mg/tab", disabled: [5] }, 
-            { id: "FLUP01", name: "Flupine", spec: "0.25 mg/tab", disabled: [] },
-            { id: "KINA00", name: "Kinax", spec: "1 mg/tab", disabled: [] },
-            { id: "KINZ00", name: "Kinzolam", spec: "2 mg/tab", disabled: [] },
-            { id: "LARP00", name: "Larpam", spec: "2 mg/tab", disabled: [] },
-            { id: "LEND01", name: "Lendormin", spec: "0.25 mg/tab", disabled: [] },
-            { id: "LORA00", name: "Lorazepam", spec: "1 mg/tab", disabled: [3, 4, 5] }, 
-            { id: "MUAC00", name: "Muaction SR", spec: "100 mg/tab", disabled: [3, 4, 5] }, 
-            { id: "OPIC00", name: "Opicet", spec: "37.5/325 mg", disabled: [] },
-            { id: "RIVO00", name: "Rivotril", spec: "0.5 mg/tab", disabled: [] },
-            { id: "SONA00", name: "Sonaplon", spec: "10mg/cap", disabled: [] },
-            { id: "TRAM01", name: "Tramtor", spec: "50 mg/cap", disabled: [] },
-            { id: "ZOLN00", name: "Zolnox", spec: "10 mg/tab", disabled: [] }
+            { id: "ATIO01", name: "Anxiedin", spec: "0.5 mg/tab", disabled: [1, 4, 5] }, 
+            { id: "ZOPO01", name: "Apo-Zopiclone", spec: "7.5 mg/tab", disabled: [0, 2, 6] },
+            { id: "ALPO02", name: "Aprazo", spec: "0.5 mg/tab", disabled: [4, 5] },
+            { id: "BROO19", name: "Bromazin", spec: "3 mg/tab", disabled: [1, 4, 5] },
+            { id: "RIVO03", name: "Clonopam", spec: "2 mg/tab", disabled: [4, 5] },
+            { id: "DIAO29", name: "Diapin", spec: "2 mg/tab", disabled: [1, 4, 5] },
+            { id: "DORO01", name: "Dormicum", spec: "7.5 mg/tab", disabled: [1, 4, 5] },
+            { id: "OXAO13", name: "Elinin", spec: "20 mg/tab", disabled: [0, 2, 3, 4, 6] },
+            { id: "FLUO66", name: "Flupine", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
+            { id: "SANO08", name: "Kinax", spec: "1 mg/tab", disabled: [1, 4, 5] },
+            { id: "EURO02", name: "Kinzolam", spec: "2 mg/tab", disabled: [1, 4, 5] },
+            { id: "ATIO07", name: "Larpam", spec: "2 mg/tab", disabled: [1, 4, 5] },
+            { id: "LENO00", name: "Lendormin", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
+            { id: "ATIO12", name: "Lorazepam", spec: "1 mg/tab", disabled: [0, 2, 6] },
+            { id: "TRAO16", name: "Muaction SR", spec: "100 mg/tab", disabled: [0, 2, 3, 4, 6] },
+            { id: "TRAO33", name: "Opicet", spec: "37.5/325 mg", disabled: [1, 4, 5] },
+            { id: "RIVO01", name: "Rivotril", spec: "0.5 mg/tab", disabled: [1, 4, 5] },
+            { id: "ZALO04", name: "Sonaplon", spec: "10mg/cap", disabled: [1, 3, 4, 5] },
+            { id: "TRAO27", name: "Tramtor", spec: "50 mg/cap", disabled: [1, 4, 5] },
+            { id: "ZOLO07", name: "Zolnox", spec: "10 mg/tab", disabled: [1, 4, 5] }
         ];
 
         const injectList = [
-            { id: "ANXI04", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 3, 4, 5, 6] }, 
-            { id: "FRES00", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 4, 5, 6] },
-            { id: "MIDA00", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 4, 5, 6] },
-            { id: "TRAM03", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 4, 5, 6] }
+            { id: "ATII01", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 2, 3, 5, 6] }, // 只開第4個直欄：住院Tosho (即紙本的 UD調劑區)
+            { id: "PRPIO2", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, // 開放：庫存區(2) 與 住院Tosho(4)
+            { id: "DORI05", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 5, 6] }, // 開放：庫存區(2) 與 住院Tosho(4)
+            { id: "TRAI11", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 5, 6] }  // 開放：庫存區(2) 與 住院Tosho(4)
         ];
 
         const allDrugs = [...oralList, ...injectList];
@@ -299,10 +299,9 @@
                 
                 let rowSum = 0;
                 for (let i = 0; i < 7; i++) {
-                    const cellVal = dayData[`sub_${i}`] || 0;
-                    if (i === 2) { rowSum += cellVal; html += `<td class="p-0.5" colspan="2"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="2" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', 2, this.value)" class="w-full text-center font-black text-emerald-600 bg-emerald-50/30 border border-emerald-100 rounded p-1 text-xs outline-none"></td>`; i++; }
-                    else if (i === 4) { rowSum += cellVal; html += `<td class="p-0.5" colspan="2"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="4" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', 4, this.value)" class="w-full text-center font-black text-indigo-600 bg-indigo-50/30 border border-indigo-100 rounded p-1 text-xs outline-none"></td>`; i++; }
-                    else { html += `<td class="bg-slate-100 p-0.5"></td>`; }
+                    const cellVal = dayData[`sub_${i}`] || 0; rowSum += cellVal;
+                    if (drug.disabled.includes(i)) { html += `<td class="bg-slate-100 p-0.5"></td>`; }
+                    else { html += `<td class="p-0.5"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="${i}" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', ${i}, this.value)" class="w-full text-center font-black text-slate-700 bg-white border rounded p-1 text-xs outline-none"></td>`; }
                 }
                 const err = rowSum - computerCount;
                 html += `<td id="total-${drug.id}" class="font-black text-blue-600">${rowSum}</td><td><span id="err-${drug.id}" class="${getErrClass(err)}">${err>0?'+'+err:err}</span></td><td class="text-[10px] text-slate-400 font-bold">${dayData.user||'—'}</td>`;
@@ -367,6 +366,7 @@
             return "text-green-600 font-black";
         }
 
+        // 🧠 智慧對帳大腦：全自動清洗千分位、前後空白，並進行【藥碼精準包含比對】
         window.importComputerStock = function(element) {
             const file = element.files[0]; 
             if (!file) return;
@@ -381,11 +381,14 @@
                 
                 let codeIdx = -1;
                 let stockIdx = -1;
+                let foundHeaders = [];
 
                 for (let i = 0; i < Math.min(15, jsonData.length); i++) {
                     const row = jsonData[i] || [];
                     for (let j = 0; j < row.length; j++) {
                         const cellText = String(row[j] || '').trim();
+                        if(cellText) foundHeaders.push(cellText);
+                        
                         if (cellText === "物品代碼" || cellText.includes("藥碼") || cellText.includes("代碼")) {
                             if (codeIdx === -1) codeIdx = j;
                         }
@@ -401,7 +404,7 @@
                         const row = jsonData[i] || [];
                         for (let j = 0; j < row.length; j++) {
                             const cellText = String(row[j] || '').trim();
-                            if (cellText.includes("結存") || cellText.includes("存量") || cellText.includes("凍結")) {
+                            if (cellText.includes("結存") || cellText.includes("存量") || cellText.includes("總計")) {
                                 stockIdx = j;
                                 break;
                             }
@@ -418,19 +421,32 @@
                     upload封包[d.id] = currentDayRecords[d.id] || { computerStock: 0 }; 
                 });
 
+                let matchCount = 0;
+
                 jsonData.forEach(row => {
                     if (!row || row[codeIdx] === undefined) return;
-                    const code = String(row[codeIdx]).trim().toUpperCase();
-                    if (upload封包[code]) {
-                        const rawStock = String(row[stockIdx] || '0').replace(/,/g, '');
-                        upload封包[code].computerStock = parseFloat(rawStock) || 0;
-                    }
+                    
+                    const excelCode = String(row[codeIdx]).trim().toUpperCase();
+                    if (!excelCode) return;
+
+                    allDrugs.forEach(d => {
+                        const systemCode = d.id.toUpperCase();
+                        if (excelCode === systemCode || excelCode.includes(systemCode) || systemCode.includes(excelCode)) {
+                            const rawStock = String(row[stockIdx] || '0').replace(/,/g, '');
+                            upload封包[d.id].computerStock = parseFloat(rawStock) || 0;
+                            matchCount++;
+                        }
+                    });
                 });
 
-                set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
-                    alert(`🎉 電腦對帳總量載入成功！已鎖定【總量】欄位(第 ${stockIdx+1} 欄)進行自動比對！`);
-                    loadDailyData();
-                });
+                if (matchCount === 0) {
+                    alert(`⚠️ 提示：Excel 成功讀取，但「藥品代碼」完全沒對上任何一項管制藥！\n\n系統鎖定的藥碼欄位索引：第 ${codeIdx+1} 欄\nExcel 前幾行偵測到的欄位有：\n${foundHeaders.slice(0,10).join(' | ')}\n\n請確認您的 Excel 管制藥代碼是否為 ATIO01、ZOPO01 等。`);
+                } else {
+                    set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
+                        alert(`🎉 成功比對並載入 ${matchCount} 項管制藥的電腦總量！`);
+                        loadDailyData();
+                    });
+                }
             };
             reader.readAsArrayBuffer(file);
         };
