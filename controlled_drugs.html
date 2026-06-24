@@ -66,8 +66,8 @@
                 </button>
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
-                <button id="btnExport" class="w-full h-full bg-slate-800 hover:bg-slate-900 text-white font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1 py-2 cursor-pointer">
-                    <i class="fa-solid fa-download"></i> 匯出報表
+                <button id="btnExport" class="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900 text-white font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1 py-2 cursor-pointer">
+                    <i class="fa-solid fa-cloud-download-alt"></i> 匯出智慧多維報表
                 </button>
             </div>
         </div>
@@ -198,7 +198,6 @@
             { id: "FLUO66", name: "Flupine", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
             { id: "SANO08", name: "Kinax", spec: "1 mg/tab", disabled: [1, 4, 5] },
             { id: "EURO02", name: "Kinzolam", spec: "2 mg/tab", disabled: [1, 4, 5] },
-            // 🎯 核心升級：已將 Larpam (ATIO07) 藥車(索引3) 完全拿掉，disabled 加入 3！
             { id: "ATIO07", name: "Larpam", spec: "2 mg/tab", disabled: [1, 3, 4, 5] }, 
             { id: "LENO00", name: "Lendormin", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
             { id: "ATIO12", name: "Lorazepam", spec: "1 mg/tab", disabled: [0, 2, 6] },
@@ -222,12 +221,13 @@
         
         let currentDayRecords = {}; 
         let historyPastRecords = {}; 
+        let rawAllDatesFirebaseBackup = {}; // 🧠 新增：快取整個資料庫用來跑 30 天月庫差
         let avg7DaysErrors = {}; 
         let activeMobileTab = 6; 
         let qrGeneratorInstance = null;
 
-        function getDrugSumAndComputer(drugId) {
-            const dayData = (currentDayRecords && currentDayRecords[drugId]) ? currentDayRecords[drugId] : {};
+        function getDrugSumAndComputer(drugId, recordsObj) {
+            const dayData = (recordsObj && recordsObj[drugId]) ? recordsObj[drugId] : {};
             const computerStock = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
             let sum = 0;
             for(let i=0; i<7; i++) {
@@ -246,6 +246,7 @@
 
             onValue(ref(db, `controlledMatrixRecords`), (snapshot) => {
                 const allDatesData = snapshot.val() || {};
+                rawAllDatesFirebaseBackup = allDatesData; // 存入備份天線
                 const sortedDates = Object.keys(allDatesData).sort().reverse();
                 
                 const prevDate = sortedDates.find(d => d !== dateStr);
@@ -261,12 +262,8 @@
                         if (recordCount >= 7) break;    
                         const dayData = allDatesData[dStr]?.[drug.id];
                         if (dayData) {
-                            const comp = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
-                            let subSum = 0;
-                            for (let z = 0; z < 7; z++) {
-                                subSum += dayData[`sub_${z}`] !== undefined ? Number(dayData[`sub_${z}`]) : 0;
-                            }
-                            totalPastErr += Math.abs(subSum - comp); 
+                            const info = getDrugSumAndComputer(drug.id, allDatesData[dStr]);
+                            totalPastErr += Math.abs(info.sum - info.computerStock); 
                             recordCount++;
                         }
                     }
@@ -296,7 +293,7 @@
             tbody.innerHTML = "";
 
             allDrugs.forEach(drug => {
-                const info = getDrugSumAndComputer(drug.id);
+                const info = getDrugSumAndComputer(drug.id, currentDayRecords);
                 const diff = info.sum - info.computerStock;
                 const avg7 = avg7DaysErrors[drug.id] || 0;
 
@@ -388,8 +385,6 @@
                 
                 const pastData = pastRecords[drug.id] || {};
                 const pastCellVal = pastData[`sub_${activeMobileTab}`] !== undefined ? `${pastData[`sub_${activeMobileTab}`]} 粒/支` : '—';
-                
-                // 🎯 智慧顯印：手機版小卡片上同時秀出該储位先前由誰簽名
                 const cellUser = dayData[`user_${activeMobileTab}`] || '—';
 
                 let isInject = injectList.some(j => j.id === drug.id);
@@ -446,17 +441,13 @@
                     for (let i = 0; i < 7; i++) {
                         const cellVal = dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0; 
                         rowSum += cellVal;
-
                         const pastData = pastRecords[drug.id] || {};
                         const pastCellVal = pastData[`sub_${i}`] !== undefined ? pastData[`sub_${i}`] : '—';
-                        
-                        // 🎯 核心升級：精準撈出該儲位獨立的登錄藥師
                         const cellUser = dayData[`user_${i}`] || '—';
 
                         if (drug.disabled.includes(i)) { 
                             html += `<td class="bg-slate-100 p-0.5"></td>`; 
                         } else { 
-                            // 🎯 視覺優化：表格格子內清晰呈現 [負責藥師] 與 (前次數量)
                             html += `<td class="p-1 bg-white min-w-[75px]">
                                 <input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="${i}" class="matrix-input w-full text-center font-bold border rounded p-0.5 text-xs outline-none focus:border-red-500 bg-white">
                                 <div class="text-[8px] text-blue-600 scale-90 mt-0.5 truncate font-bold bg-blue-50/50 rounded py-0.5">✍️:${cellUser}</div>
@@ -502,7 +493,6 @@
             renderSummaryTable();
         }
 
-        // 🎯 核心升級：寫入資料庫時，獨立蓋印儲位藥師印章 `user_${subIdx}`
         function executeSaveCell(drugId, subIdx, val) {
             const dateStr = dateInput.value;
             const userName = document.getElementById('pharmacistName').value || '線上藥師';
@@ -510,11 +500,11 @@
 
             if(!currentDayRecords[drugId]) currentDayRecords[drugId] = {};
             currentDayRecords[drugId][`sub_${subIdx}`] = cellInt;
-            currentDayRecords[drugId][`user_${subIdx}`] = userName; // 蓋印專屬儲位藥師
+            currentDayRecords[drugId][`user_${subIdx}`] = userName;
 
             const updateMap = {};
             updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/sub_${subIdx}`] = cellInt;
-            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user_${subIdx}`] = userName; // 即時推送
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user_${subIdx}`] = userName;
 
             update(ref(db), updateMap).then(() => {
                 recalculateWholePage();
@@ -526,7 +516,7 @@
             let errorItemsHtml = ""; 
 
             allDrugs.forEach(drug => {
-                const info = getDrugSumAndComputer(drug.id);
+                const info = getDrugSumAndComputer(drug.id, currentDayRecords);
                 const diff = info.sum - info.computerStock;
                 totalErrors += Math.abs(diff);
 
@@ -553,7 +543,7 @@
                 errorDetailsLabel.innerHTML = `<span class="text-green-600 font-medium text-[11px]">✨ 全品項盤點完畢，全院帳物平衡。</span>`;
             } else {
                 box.className = "p-3 rounded-xl font-black text-xs shadow-sm bg-red-50 text-red-700 border border-red-200";
-                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> 警告！今日累計絕對誤差 ${totalErrors} 粒/支。以下為今日誤差品項與滾動 7 日平均比對：`;
+                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> 警告！今日全院累計絕對誤差 ${totalErrors} 粒/支。以下為今日誤差品項與滾動 7 日平均比對：`;
                 errorDetailsLabel.innerHTML = errorItemsHtml;
             }
         }
@@ -568,7 +558,7 @@
             }
         }
 
-        // ==================== 事件監聽綁定 ====================
+        // ==================== 事件監聽與智慧多維報表核心大腦 ====================
         dateInput.addEventListener('change', loadDailyData);
 
         document.getElementById('pharmacistName').addEventListener('change', () => {
@@ -582,7 +572,6 @@
             refreshUI();
         });
 
-        // 全局點擊藥名快顯條碼
         document.body.addEventListener('click', (e) => {
             const qrTrigger = e.target.closest('[data-trigger-qr]');
             if(qrTrigger) {
@@ -602,15 +591,6 @@
                 const drugId = e.target.getAttribute('data-comp-drug');
                 liveCalculateMatrixRow(drugId);
             }
-            if (e.target.classList.contains('mobile-input')) {
-                const drugId = e.target.getAttribute('data-mobile-drug');
-                const subIdx = e.target.getAttribute('data-mobile-sub');
-                const val = parseInt(e.target.value) || 0;
-                
-                const compInput = document.querySelector(`input[data-comp-drug="${drugId}"][data-comp-sub="${subIdx}"]`);
-                if(compInput) compInput.value = val;
-                liveCalculateMatrixRow(drugId);
-            }
         });
 
         document.body.addEventListener('change', (e) => {
@@ -619,11 +599,80 @@
                 const subIdx = parseInt(e.target.getAttribute('data-comp-sub'));
                 executeSaveCell(drugId, subIdx, e.target.value);
             }
-            if (e.target.classList.contains('mobile-input')) {
-                const drugId = e.target.getAttribute('data-mobile-drug');
-                const subIdx = parseInt(e.target.getAttribute('data-mobile-sub'));
-                executeSaveCell(drugId, subIdx, e.target.value);
+        });
+
+        // 🧠 核心大升級：一鍵動態編織【當日各台明細 ＋ 過去30日趨勢大總表】
+        document.getElementById('btnExport').addEventListener('click', function() {
+            const dateStr = dateInput.value;
+            if(!dateStr) return;
+
+            // ─── 第一頁：當日二維精細明細帳 ───
+            const sheet1Rows = [
+                [`彰化醫院藥劑科四級管制藥 - 各調劑台/儲位責任盤點明細表 (核帳日期: ${dateStr})`],
+                ["藥品代碼", "藥品名稱", "規格", "電腦總結存", "雙號台", "雙號藥師", "罐裝台", "罐裝藥師", "庫存區", "庫存藥師", "藥車", "藥車藥師", "住院盒", "住院藥師", "門診盒", "門診藥師", "單號台", "單號藥師", "實體總盤點", "對帳誤差"]
+            ];
+
+            allDrugs.forEach(drug => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const info = getDrugSumAndComputer(drug.id, currentDayRecords);
+                
+                sheet1Rows.push([
+                    drug.id, drug.name, drug.spec, info.computerStock,
+                    dayData.sub_0 || 0, dayData.user_0 || '—',
+                    dayData.sub_1 || 0, dayData.user_1 || '—',
+                    dayData.sub_2 || 0, dayData.user_2 || '—',
+                    dayData.sub_3 || 0, dayData.user_3 || '—',
+                    dayData.sub_4 || 0, dayData.user_4 || '—',
+                    dayData.sub_5 || 0, dayData.user_5 || '—',
+                    dayData.sub_6 || 0, dayData.user_6 || '—',
+                    info.sum, (info.sum - info.computerStock)
+                ]);
+            });
+
+            // ─── 第二頁：動態縱向追溯：過去 30 天滾動庫差變化大總表 ───
+            const sheet2Rows = [
+                ["彰化醫院藥劑科四級管制藥 - 過去30日滾動庫差趨勢追蹤總表"],
+                ["核帳日期", "藥品代碼", "藥品名稱", "電腦帳結存", "全院實盤總量", "當日盤點庫差", "7日滾動絕對誤差均線"]
+            ];
+
+            // 產生過去 30 天的時間軸陣列
+            const baseDate = new Date(dateStr);
+            const dateTimelineArray = [];
+            for (let k = 0; k < 30; k++) {
+                const tempD = new Date(baseDate);
+                tempD.setDate(baseDate.getDate() - k);
+                const isoStr = tempD.toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+                dateTimelineArray.push(isoStr);
             }
+
+            // 依時間軸倒序填入數據
+            dateTimelineArray.forEach(histDateStr => {
+                const dayRecords = rawAllDatesFirebaseBackup[histDateStr];
+                // 如果這一天資料庫完全沒資料，就跳過不繪製
+                if (!dayRecords) return;
+
+                allDrugs.forEach(drug => {
+                    const info = getDrugSumAndComputer(drug.id, dayRecords);
+                    const diff = info.sum - info.computerStock;
+                    const dayAvg7 = avg7DaysErrors[drug.id] || 0; // 當前的均線參考
+
+                    sheet2Rows.push([
+                        histDateStr, drug.id, drug.name, info.computerStock, info.sum, diff, Number(dayAvg7.toFixed(2))
+                    ]);
+                });
+            });
+
+            // 使用 SheetJS 編織雙工作表
+            const wb = XLSX.utils.book_new();
+            
+            const ws1 = XLSX.utils.aoa_to_sheet(sheet1Rows);
+            XLSX.utils.book_append_sheet(wb, ws1, "當日各台簽章明細");
+
+            const ws2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
+            XLSX.utils.book_append_sheet(wb, ws2, "過去30日庫差變化總表");
+
+            // 下載 Excel
+            XLSX.writeFile(wb, `彰醫管制藥智慧多維對帳表_${dateStr}.xlsx`);
         });
 
         // Excel 匯入
@@ -710,29 +759,12 @@
                     }
 
                     set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
-                        alert(`🎉 已成功克服鎖定！精準勾稽 ${matchCount} 項管制藥電腦結存！`);
+                        alert(`🎉 電腦總量勾稽完全成功！`);
                         loadDailyData();
                     });
                 } catch (parseErr) { console.error(parseErr); }
             };
             reader.readAsArrayBuffer(file);
-        });
-
-        // 報表匯出
-        document.getElementById('btnExport').addEventListener('click', function() {
-            const dateStr = dateInput.value;
-            const exportRows = [
-                [`彰化醫院藥劑科 - 四級管制藥儲位分類核帳表 (${dateStr})`],
-                ["藥品代碼", "藥品名稱", "規格", "電腦結存(總量)", "實際總計", "對帳誤差", "7日平均絕對誤差"]
-            ];
-            allDrugs.forEach(drug => {
-                const info = getDrugSumAndComputer(drug.id);
-                const avg7 = avg7DaysErrors[drug.id] || 0;
-                exportRows.push([drug.id, drug.name, drug.spec, info.computerStock, info.sum, (info.sum - info.computerStock), avg7.toFixed(2)]);
-            });
-            const ws = XLSX.utils.aoa_to_sheet(exportRows);
-            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "儲位盤點報表");
-            XLSX.writeFile(wb, `彰醫管制藥對帳表_${dateStr}.xlsx`);
         });
 
         loadDailyData();
