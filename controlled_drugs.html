@@ -20,7 +20,6 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
-    <!-- 頂部導覽列 -->
     <nav class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-2">
@@ -36,7 +35,6 @@
 
     <main class="max-w-[1600px] mx-auto px-3 mt-4 space-y-4">
         
-        <!-- 控制面板列 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
                 <label class="text-[10px] font-bold text-slate-400 mb-0.5">🗓️ 選擇核帳日期</label>
@@ -59,13 +57,11 @@
             </div>
         </div>
 
-        <!-- 警報與即時誤差分析狀態列 -->
         <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs shadow-sm bg-slate-50 border">
             <div id="matchStatusLabel">載入數據中...</div>
             <div id="errorDetailsLabel" class="mt-1.5 text-[11px] font-medium flex flex-wrap gap-1.5"></div>
         </div>
 
-        <!-- 📊 新增：全院管制藥品【即時總量匯總中心】總表看板 -->
         <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white flex justify-between items-center">
                 <h3 class="font-black text-xs md:text-sm flex items-center">
@@ -84,37 +80,33 @@
                             <th class="py-2 px-1 w-24 text-slate-400">📈 7日平均誤差</th>
                         </tr>
                     </thead>
-                    <tbody id="summaryTableBody" class="divide-y divide-slate-100 font-bold text-slate-700 text-center">
-                        <!-- 動態動態繪製 -->
-                    </tbody>
+                    <tbody id="summaryTableBody" class="divide-y divide-slate-100 font-bold text-slate-700 text-center"></tbody>
                 </table>
             </div>
         </div>
 
-        <!-- 🔧 精準調試分析面板 -->
         <div id="debugBox" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 font-mono">
             <p class="font-bold mb-1">📢 系統匯入即時診斷分析：</p>
             <div id="debugContent" class="bg-white/80 p-2 rounded border overflow-x-auto max-h-32 whitespace-pre-wrap"></div>
         </div>
 
-        <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
         <div class="block lg:hidden space-y-3">
             <div class="bg-slate-200/80 p-2.5 rounded-xl">
                 <span class="text-xs font-black text-slate-700 block mb-2"><i class="fa-solid fa-map-location-dot text-red-600"></i> 請選擇目前所在的盤點儲位：</span>
-                <div class="grid grid-cols-3 gap-1.5" id="mobileTabHeader">
+                <div class="grid grid-cols-4 gap-1.5" id="mobileTabHeader">
+                    <button type="button" data-tab="6" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">單號台</button>
                     <button type="button" data-tab="0" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">雙號台</button>
                     <button type="button" data-tab="1" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">罐裝台</button>
                     <button type="button" data-tab="2" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">庫存區</button>
-                    <button type="button" data-tab="3" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">藥車</button>
-                    <button type="button" data-tab="4" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">住院盒</button>
-                    <button type="button" data-tab="5" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">門診盒</button>
-                    <button type="button" data-tab="6" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-3">單號台</button>
+                    
+                    <button type="button" data-tab="3" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-1">藥車</button>
+                    <button type="button" data-tab="4" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-1">住院盒</button>
+                    <button type="button" data-tab="5" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-2">門診盒</button>
                 </div>
             </div>
             <div id="mobileZoneCardsContainer" class="space-y-3"></div>
         </div>
 
-        <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
                 <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽 (小字為前次盤點儲位藥量)</h3>
@@ -201,7 +193,8 @@
         let currentDayRecords = {}; 
         let historyPastRecords = {}; 
         let avg7DaysErrors = {}; 
-        let activeMobileTab = 0; 
+        // 🎯 預設預設點開的頁籤改為 6 (單號台)
+        let activeMobileTab = 6; 
 
         function getDrugSumAndComputer(drugId) {
             const dayData = (currentDayRecords && currentDayRecords[drugId]) ? currentDayRecords[drugId] : {};
@@ -263,11 +256,10 @@
             renderMobileTabButtons(); 
             renderMobileZoneList();   
             renderMatrixTable();      
-            renderSummaryTable(); // 🧠 刷新全新匯總總表看板
+            renderSummaryTable(); 
             recalculateWholePage();   
         }
 
-        // 🧠 新增：渲染全院即時匯總精簡總表邏輯
         function renderSummaryTable() {
             const tbody = document.getElementById('summaryTableBody');
             if(!tbody) return;
@@ -281,7 +273,6 @@
                 let rowTr = document.createElement('tr');
                 rowTr.className = "hover:bg-slate-50 transition";
 
-                // 落差上色
                 let diffHtml = `<span>0</span>`;
                 if(diff !== 0) {
                     const absDiff = Math.abs(diff);
@@ -350,6 +341,7 @@
                     </div>
                     <div class="w-32 flex items-center space-x-1.5 justify-end">
                         <input type="number" value="${cellVal}" min="0" pattern="[0-9]*" inputmode="numeric"
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'');"
                                data-mobile-drug="${drug.id}" data-mobile-sub="${activeMobileTab}"
                                class="mobile-input w-20 text-center font-black text-lg bg-blue-50/50 text-blue-700 border-2 border-blue-100 rounded-lg py-1 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-inner">
                         <span class="text-xs font-bold text-slate-400">粒/支</span>
@@ -435,7 +427,6 @@
                 errSpan.innerText = diff > 0 ? '+' + diff : diff;
                 errSpan.className = getErrClass(diff, avg7);
             }
-            // 🧠 聯動更新精簡總表
             renderSummaryTable();
         }
 
