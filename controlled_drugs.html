@@ -20,7 +20,6 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
-    <!-- 頂部導覽列 -->
     <nav class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-2">
@@ -36,7 +35,6 @@
 
     <main class="max-w-[1600px] mx-auto px-3 mt-4 space-y-4">
         
-        <!-- 控制面板列 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
                 <label class="text-[10px] font-bold text-slate-400 mb-0.5">🗓️ 選擇核帳日期</label>
@@ -59,12 +57,10 @@
             </div>
         </div>
 
-        <!-- 警報與即時狀態列 -->
         <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm">
             <span id="matchStatusLabel">載入數據中...</span>
         </div>
 
-        <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
         <div class="block lg:hidden space-y-3">
             <div class="bg-slate-200/80 p-2.5 rounded-xl">
                 <span class="text-xs font-black text-slate-700 block mb-2"><i class="fa-solid fa-map-location-dot text-red-600"></i> 請選擇目前所在的盤點儲位：</span>
@@ -81,7 +77,6 @@
             <div id="mobileZoneCardsContainer" class="space-y-3"></div>
         </div>
 
-        <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
                 <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽</h3>
@@ -365,7 +360,7 @@
             return "text-green-600 font-black";
         }
 
-        // 🧠 終極大進化：強制定向掃描第 4 行標頭，徹底解決醫院原始 Excel 行政標題雜訊干擾
+        // 🧠 終極「地毯式搜尋」大腦：全面掃描整張 Excel 的每一個格子，不限行數自動抓取表頭！
         window.importComputerStock = function(element) {
             const file = element.files[0]; 
             if (!file) return;
@@ -380,38 +375,37 @@
                 
                 let codeIdx = -1;
                 let stockIdx = -1;
+                let foundHeaderRowIdx = -1;
 
-                // 🎯 核心修正：根據 `{17647ACA-59A5-4A5F-8EAD-74E51C24DF39}.png` 報表結構，精準鎖定在第 4 行（即陣列 index 3 處）作為對帳表頭
-                const targetHeaderRowIdx = 3; 
-                if (jsonData.length > targetHeaderRowIdx) {
-                    const row = jsonData[targetHeaderRowIdx] || [];
+                // 🎯 核心進化：地毯式搜尋前 30 行的所有儲存格
+                for (let i = 0; i < Math.min(30, jsonData.length); i++) {
+                    const row = jsonData[i] || [];
+                    let tempCodeIdx = -1;
+                    let tempStockIdx = -1;
+
                     for (let j = 0; j < row.length; j++) {
                         const cellText = String(row[j] || '').trim();
-                        if (cellText === "物品代碼" || cellText.includes("藥碼")) {
-                            codeIdx = j;
+                        if (cellText === "物品代碼" || cellText === "藥品代碼" || cellText.includes("藥碼") || cellText === "代碼") {
+                            tempCodeIdx = j;
                         }
-                        if (cellText === "總量") {
-                            stockIdx = j;
+                        if (cellText === "總量" || cellText === "結存" || cellText === "存量" || cellText.includes("總計")) {
+                            tempStockIdx = j;
                         }
+                    }
+
+                    // 如果在同一行同時找到了代碼欄和總量欄，這就是我們要找的「黃金表頭行」！
+                    if (tempCodeIdx !== -1 && tempStockIdx !== -1) {
+                        codeIdx = tempCodeIdx;
+                        stockIdx = tempStockIdx;
+                        foundHeaderRowIdx = i;
+                        break;
                     }
                 }
 
-                // 🛡️ 備用安全兜底（萬一行數有變動，才啟動前15行自動搜尋）
-                if (codeIdx === -1 || stockIdx === -1) {
-                    for (let i = 0; i < Math.min(15, jsonData.length); i++) {
-                        const row = jsonData[i] || [];
-                        for (let j = 0; j < row.length; j++) {
-                            const cellText = String(row[j] || '').trim();
-                            if (cellText === "物品代碼" || cellText === "藥品代碼") codeIdx = j;
-                            if (cellText === "總量") stockIdx = j;
-                        }
-                        if (codeIdx !== -1 && stockIdx !== -1) break;
-                    }
-                }
-
-                // 終極防線：設定為 B 欄與 I 欄
+                // 🛡️ 最終保險：如果真的沒有符合的關鍵字，就自動退回預設值
                 if (codeIdx === -1) codeIdx = 1; 
                 if (stockIdx === -1) stockIdx = 8; 
+                if (foundHeaderRowIdx === -1) foundHeaderRowIdx = 3;
 
                 let upload封包 = {};
                 allDrugs.forEach(d => { 
@@ -420,12 +414,12 @@
 
                 let matchCount = 0;
 
+                // 從自動偵測到的表頭行之後，開始讀取真實資料
                 jsonData.forEach((row, rowIdx) => {
-                    // 排除掉前 4 行的標頭跟行政雜訊列，從真實資料列開始讀取
-                    if (rowIdx <= targetHeaderRowIdx || !row || row[codeIdx] === undefined) return;
+                    if (rowIdx <= foundHeaderRowIdx || !row || row[codeIdx] === undefined) return;
                     
                     const excelCode = String(row[codeIdx]).trim().toUpperCase();
-                    if (!excelCode || excelCode.includes("---")) return; // 過濾掉表格線等虛線雜訊
+                    if (!excelCode || excelCode.includes("---")) return; 
 
                     allDrugs.forEach(d => {
                         const systemCode = d.id.toUpperCase();
@@ -438,7 +432,7 @@
                 });
 
                 set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
-                    alert(`🎉 成功比對並載入 ${matchCount} 項管制藥的電腦總量！`);
+                    alert(`🎉 成功自動偵測表頭並比對載入 ${matchCount} 項管制藥的電腦總量！`);
                     loadDailyData();
                 });
             };
