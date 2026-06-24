@@ -57,8 +57,9 @@
             </div>
         </div>
 
-        <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm bg-slate-50 border">
-            <span id="matchStatusLabel">載入數據中...</span>
+        <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs shadow-sm bg-slate-50 border">
+            <div id="matchStatusLabel">載入數據中...</div>
+            <div id="errorDetailsLabel" class="mt-1.5 text-[11px] font-medium flex flex-wrap gap-1.5"></div>
         </div>
 
         <div id="debugBox" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 font-mono">
@@ -84,7 +85,7 @@
 
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
-                <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽</h3>
+                <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽 (小字為前次盤點儲位歷史量)</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -163,12 +164,12 @@
         ];
 
         const allDrugs = [...oralList, ...injectList];
-        const subZoneNames = ["雙號調劑台(5-1~3)", "罐裝調劑台", "庫存區 (針劑庫存)", "藥車Tosho", "住院Tosho (針劑調劑)", "門診Tosho", "單號調劑台(5-1~3)"];
+        const subZoneNames = ["雙號台", "罐裝台", "庫存區", "藥車", "住院盒", "門診盒", "單號台"];
         
         let currentDayRecords = {}; 
+        let historyPastRecords = {}; // 用來存取除今日之外，前一次的歷史儲位盤點量
         let activeMobileTab = 0; 
 
-        // 終極安全防禦：取得特定藥品的欄位加總
         function getDrugSumAndComputer(drugId) {
             const dayData = (currentDayRecords && currentDayRecords[drugId]) ? currentDayRecords[drugId] : {};
             const computerStock = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
@@ -179,71 +180,26 @@
             return { sum, computerStock };
         }
 
-        // 初始化日期
         const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
         const dateInput = document.getElementById('targetDate');
         dateInput.value = todayStr;
 
-        // 加載數據
+        // 加載主功能大腦：包含撈取「前一次」的歷史數據庫
         function loadDailyData() {
             const dateStr = dateInput.value;
             if (!dateStr) return;
 
-            const box = document.getElementById('matchStatusBox');
-            const label = document.getElementById('matchStatusLabel');
-            if(box && label) {
-                box.className = "p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm bg-slate-50 border text-slate-500";
-                label.innerHTML = `<i class="fa-solid fa-spinner animate-spin mr-1"></i> 正在安全同步彰醫雲端資料庫...`;
-            }
-
-            onValue(ref(db, `controlledMatrixRecords/${dateStr}`), (snapshot) => {
-                currentDayRecords = snapshot.val() || {}; 
-                refreshUI(); 
-            }, (error) => {
-                console.error("Firebase 連線失敗:", error);
-                currentDayRecords = {};
-                refreshUI(); 
-            });
-        }
-
-        function refreshUI() {
-            renderMobileTabButtons(); 
-            renderMobileZoneList();   
-            renderMatrixTable();      
-            recalculateWholePage();   
-        }
-
-        function renderMobileTabButtons() {
-            document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
-                const idx = parseInt(btn.getAttribute('data-tab'));
-                if(idx === activeMobileTab) {
-                    btn.className = "mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-gradient-to-r from-red-600 to-rose-600 text-white border-transparent scale-105 duration-150";
+            // 1. 全自動向回搜尋前推歷史紀錄 (抓取前一次儲位數值)
+            onValue(ref(db, `controlledMatrixRecords`), (snapshot) => {
+                const allDatesData = snapshot.val() || {};
+                const sortedDates = Object.keys(allDatesData).sort().reverse();
+                
+                // 找出不是今天、且最靠近今天的歷史紀錄日期
+                const prevDate = sortedDates.find(d => d !== dateStr);
+                if (prevDate) {
+                    historyPastRecords = allDatesData[prevDate] || {};
                 } else {
-                    btn.className = "mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 border-slate-200";
+                    historyPastRecords = {};
                 }
-            });
-        }
-
-        function renderMobileZoneList() {
-            const container = document.getElementById('mobileZoneCardsContainer');
-            if (!container) return;
-            container.innerHTML = '';
-
-            let titleBox = document.createElement('div');
-            titleBox.className = "bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm flex justify-between items-center";
-            
-            let zoneTitleText = subZoneNames[activeMobileTab];
-            if(activeMobileTab === 2) zoneTitleText = "庫存區 (包含口服與針劑UD庫存)";
-            if(activeMobileTab === 4) zoneTitleText = "住院Tosho (包含口服與針劑UD調劑)";
-            
-            titleBox.innerHTML = `<span>📍 目前儲位：${zoneTitleText}</span> <span class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded">行動模式</span>`;
-            container.appendChild(titleBox);
-
-            let hasItems = false;
-
-            allDrugs.forEach((drug) => {
-                if (drug.disabled.includes(activeMobileTab)) return;
-                hasItems = true;
-
-                const dayData = (currentDayRecords && currentDayRecords[drug.id]) ? currentDayRecords[drug.id] : {};
-                const cellVal = dayData[`sub_${activeMobileTab}`] !== undefined ? Number(dayData
+                
+                // 2. 抓
