@@ -44,15 +44,15 @@
                 <label class="text-[10px] font-bold text-slate-400 mb-0.5">🗓️ 選擇核帳日期</label>
                 <input type="date" id="targetDate" class="w-full font-black text-slate-700 border rounded-lg p-1 text-xs bg-slate-50 outline-none focus:border-red-500">
             </div>
-            <div class="bg-white p-2.5 rounded-xl shadow-sm border border-amber-300 bg-amber-50/30 flex flex-col justify-center">
-                <label class="text-[10px] font-bold text-red-500 mb-0.5"><i class="fa-solid fa-user-check"></i> ✍️ 儲位盤點藥師 (必選)</label>
-                <select id="pharmacistName" class="w-full font-black text-slate-700 border border-amber-300 rounded-lg p-1 text-xs bg-white outline-none">
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-amber-300 bg-amber-50/30 flex flex-col justify-center">
+                <label class="text-[10px] font-bold text-red-500 mb-0.5"><i class="fa-solid fa-user-check"></i> ✍️ 請選取盤點藥師 (必選)</label>
+                <select id="pharmacistName" class="w-full font-black text-slate-700 border border-amber-300 rounded-lg p-1 text-xs bg-white outline-none cursor-pointer">
                     <option value="" disabled selected>⚠️ 請選擇藥師名字...</option>
                     <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
                     <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
                     <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
                     <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
-                    <option value="馬惠玲">馬惠玲</option><option value="吴吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
+                    <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
                     <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
                     <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
                     <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
@@ -60,11 +60,10 @@
                     <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
                 </select>
             </div>
-            <!-- 🎯 新增：終極覆核藥師簽章控制中心 -->
             <div class="bg-white p-2.5 rounded-xl shadow-sm border border-emerald-300 bg-emerald-50/10 flex flex-col justify-center">
                 <label class="text-[10px] font-bold text-emerald-600 mb-0.5"><i class="fa-solid fa-user-shield"></i> 🕵️ 當日總覆核藥師</label>
                 <div class="flex gap-1 items-center">
-                    <select id="approverName" class="flex-1 font-black text-slate-700 border border-emerald-300 rounded-lg p-1 text-xs bg-white outline-none">
+                    <select id="approverName" class="flex-1 font-black text-slate-700 border border-emerald-300 rounded-lg p-1 text-xs bg-white outline-none cursor-pointer">
                         <option value="" disabled selected>未覆核...</option>
                         <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
                         <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
@@ -77,7 +76,7 @@
                         <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
                         <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
                     </select>
-                    <button id="btnLockDay" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-2 py-1 rounded-lg text-[10px] shadow transition whitespace-nowrap">
+                    <button id="btnLockDay" class="bg-emerald-600 hover:bg-emerald-700 text-white font-black px-2 py-1 rounded-lg text-[10px] shadow transition whitespace-nowrap cursor-pointer">
                         <i class="fa-solid fa-lock"></i> 結束今日
                     </button>
                 </div>
@@ -234,7 +233,7 @@
 
         const injectList = [
             { id: "ATII01", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 2, 3, 5, 6] }, 
-            { id: "PRPI02", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, // 🎯 已精準修正 Fresofol 代碼為 PRPI02
+            { id: "PRPI02", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, 
             { id: "DORI05", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 5, 6] }, 
             { id: "TRAI11", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 5, 6] }  
         ];
@@ -248,7 +247,7 @@
         let avg7DaysErrors = {}; 
         let activeMobileTab = 6; 
         let qrGeneratorInstance = null;
-        let isDayLocked = false; // 今日覆核終極鎖定天線
+        let isDayLocked = false; 
 
         function getDrugSumAndComputer(drugId, recordsObj) {
             const dayData = (recordsObj && recordsObj[drugId]) ? recordsObj[drugId] : {};
@@ -264,14 +263,15 @@
         const dateInput = document.getElementById('targetDate');
         dateInput.value = todayStr;
 
+        // 🎯 智慧攔截核心：只有在要去戳格子（focus/click/change）時才進行名字檢查，選單絕對不鎖
         function checkPharmacistSelectedMandatory() {
             if (isDayLocked) {
-                alert("🔒 今日管制藥盤點已由覆核藥師簽章完結，數據已被完全封鎖，無法再進行修改！");
+                alert("🔒 今日管制藥盤點已由覆核藥師簽章完結，數據已被完全凍結，無法再進行修改！");
                 return false;
             }
             const currentSelectedUser = document.getElementById('pharmacistName').value;
             if(!currentSelectedUser) {
-                alert("🚨 系統阻斷警告！\n請先在頂端【選取您的姓名】，才能開始填寫或點按盤點格子！");
+                alert("🚨 系統阻斷警告！\n請先在最頂端【選取盤點藥師名字】，才能開始點按格子填寫數量！");
                 document.getElementById('pharmacistName').focus();
                 return false;
             }
@@ -311,7 +311,6 @@
 
                 currentDayRecords = allDatesData[dateStr] || {};
                 
-                // 🧠 智慧判斷：檢查今天這一天是否已經有覆核鎖定印章
                 if (currentDayRecords._meta_lock && currentDayRecords._meta_lock.isLocked) {
                     isDayLocked = true;
                     document.getElementById('approverName').value = currentDayRecords._meta_lock.approver;
@@ -377,6 +376,46 @@
             });
         }
 
+        function openQrModal(drugId, drugName) {
+            const modal = document.getElementById('qrModal');
+            const title = document.getElementById('qrModalTitle');
+            const sub = document.getElementById('qrModalSub');
+            const container = document.getElementById('qrcodeContainer');
+
+            if(!modal || !container || !title || !sub) return;
+
+            title.innerText = drugName;
+            sub.innerText = `藥品代碼：${drugId}`;
+            container.innerHTML = ""; 
+
+            qrGeneratorInstance = new QRCode(container, {
+                text: drugId, 
+                width: 180,
+                height: 180,
+                colorDark : "#1e293b", 
+                colorLight : "#f8fafc", 
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            modal.classList.remove('hidden'); 
+        }
+
+        function closeQrModal() {
+            const modal = document.getElementById('qrModal');
+            if(modal) modal.classList.add('hidden');
+        }
+
+        function renderMobileTabButtons() {
+            document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+                const idx = parseInt(btn.getAttribute('data-tab'));
+                if(idx === activeMobileTab) {
+                    btn.className = "mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-gradient-to-r from-red-600 to-rose-600 text-white border-transparent scale-105 duration-150";
+                } else {
+                    btn.className = "mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 border-slate-200";
+                }
+            });
+        }
+
         function renderMobileZoneList() {
             const container = document.getElementById('mobileZoneCardsContainer');
             if (!container) return;
@@ -390,7 +429,6 @@
             let hasItems = false;
             const records = currentDayRecords || {};
             const pastRecords = historyPastRecords || {};
-            const currentSelectedUser = document.getElementById('pharmacistName').value;
 
             allDrugs.forEach((drug) => {
                 if (drug.disabled.includes(activeMobileTab)) return;
@@ -409,9 +447,6 @@
                 let itemCard = document.createElement('div');
                 itemCard.className = `bg-white p-3 rounded-xl shadow-sm border border-slate-200 border-l-4 ${textBorderColor} flex justify-between items-center gap-3`;
                 
-                // 今日已鎖定或未選取藥師 ➡️ 強制變成灰底唯讀格
-                let lockAttr = (isDayLocked || !currentSelectedUser) ? 'disabled bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed shadow-none' : 'bg-blue-50/50 text-blue-700 border-blue-100 shadow-inner';
-
                 itemCard.innerHTML = `
                     <div class="flex-1 min-w-0">
                         <h4 class="text-sm font-black text-slate-800 truncate">${drug.name}</h4>
@@ -422,10 +457,10 @@
                         </div>
                     </div>
                     <div class="w-32 flex items-center space-x-1.5 justify-end">
-                        <input type="number" value="${cellVal}" min="0" pattern="[0-9]*" inputmode="numeric" ${lockAttr}
+                        <input type="number" value="${cellVal}" min="0" pattern="[0-9]*" inputmode="numeric"
                                oninput="this.value=this.value.replace(/[^0-9]/g,'');"
                                data-mobile-drug="${drug.id}" data-mobile-sub="${activeMobileTab}"
-                               class="mobile-input w-20 text-center font-black text-lg rounded-lg py-1 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition">
+                               class="mobile-input w-20 text-center font-black text-lg bg-blue-50/50 text-blue-700 border-2 border-blue-100 rounded-lg py-1 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-inner">
                         <span class="text-xs font-bold text-slate-400">粒/支</span>
                     </div>
                 `;
@@ -444,7 +479,6 @@
 
             const records = currentDayRecords || {};
             const pastRecords = historyPastRecords || {};
-            const currentSelectedUser = document.getElementById('pharmacistName').value;
 
             function generateRowRows(list, typeName, bgClass) {
                 list.forEach((drug, idx) => {
@@ -468,10 +502,8 @@
                         if (drug.disabled.includes(i)) { 
                             html += `<td class="bg-slate-100 p-0.5"></td>`; 
                         } else { 
-                            let lockAttr = (isDayLocked || !currentSelectedUser) ? 'disabled bg-slate-100/70 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 border-slate-200';
-                            
                             html += `<td class="p-1 bg-white min-w-[75px]">
-                                <input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" ${lockAttr} data-comp-drug="${drug.id}" data-comp-sub="${i}" class="matrix-input w-full text-center font-bold border rounded p-0.5 text-xs outline-none focus:border-red-500">
+                                <input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="${i}" class="matrix-input w-full text-center font-bold border rounded p-0.5 text-xs outline-none focus:border-red-500">
                                 <div class="text-[8px] text-blue-600 scale-90 mt-0.5 truncate font-bold bg-blue-50/50 rounded py-0.5">✍️:${cellUser}</div>
                                 <div class="text-[8px] text-slate-400 scale-90 mt-0.5 font-medium">前次:${pastCellVal}</div>
                             </td>`; 
@@ -536,7 +568,7 @@
             }).catch(e => console.error("儲存失敗:", e));
         }
 
-        // 🧠 新增：覆核按鈕點擊鎖定定案大腦
+        // 結束今日
         document.getElementById('btnLockDay').addEventListener('click', () => {
             if (isDayLocked) return;
             const approver = document.getElementById('approverName').value;
@@ -545,7 +577,7 @@
                 return;
             }
 
-            if (confirm(`🔒 您確定要簽章結束今日盤點嗎？\n覆核藥師：${approver}\n定案後今日的所有儲位藥量數據將會永久凍結，無法再被修改修改！`)) {
+            if (confirm(`🔒 您確定要簽章結束今日盤點嗎？\n覆核藥師：${approver}\n定案後今日的所有儲位藥量數據將會永久凍結，無法再被修改！`)) {
                 const dateStr = dateInput.value;
                 const lockMap = {};
                 lockMap[`controlledMatrixRecords/${dateStr}/_meta_lock`] = {
@@ -557,7 +589,7 @@
                 update(ref(db), lockMap).then(() => {
                     alert(`🎉 鎖定成功！今日管制藥品盤點已由 ${approver} 藥師總覆核定案結案！`);
                     loadDailyData();
-                }).catch(e => alert("鎖定失敗，請檢查連線"));
+                }).catch(e => alert("鎖定失敗"));
             }
         });
 
@@ -587,7 +619,6 @@
             
             if(!box || !label || !errorDetailsLabel) return;
 
-            // 🧠 加強提示：如果已經覆核定案，看板頂部亮起安全勳章
             if (isDayLocked) {
                 box.className = "p-3 rounded-xl font-black text-xs shadow-sm bg-emerald-600 text-white border border-emerald-700";
                 const appName = document.getElementById('approverName').value;
@@ -607,24 +638,39 @@
             }
         }
 
-        // ==================== 事件監聽與智慧多維報表核心大腦 ====================
+        // ==================== 🎯 終極修正：改用精準 Input 欄位事件攔截 ====================
+        
+        dateInput.addEventListener('change', loadDailyData);
+
         document.getElementById('pharmacistName').addEventListener('change', () => {
             refreshUI(); 
         });
 
-        document.getElementById('mobileTabHeader').addEventListener('click', (e) => {
-            const btn = e.target.closest('.mobile-tab-btn');
-            if (!btn) return;
-            activeMobileTab = parseInt(btn.getAttribute('data-tab'));
-            refreshUI();
+        // 點擊格子焦點時進行藥師必選攔截檢查
+        document.body.addEventListener('focusin', (e) => {
+            if (e.target.classList.contains('matrix-input') || e.target.classList.contains('mobile-input')) {
+                if(!checkPharmacistSelectedMandatory()) {
+                    e.target.blur(); // 沒選藥師直接踢出焦點，不給按
+                }
+            }
         });
 
+        // 點擊時再度防護
         document.body.addEventListener('click', (e) => {
+            // A. 快顯條碼功能
             const qrTrigger = e.target.closest('[data-trigger-qr]');
             if(qrTrigger) {
                 const drugId = qrTrigger.getAttribute('data-trigger-qr');
                 const drugName = qrTrigger.getAttribute('data-trigger-name');
                 openQrModal(drugId, drugName);
+                return;
+            }
+
+            // B. 一般格子點擊防護
+            if (e.target.classList.contains('matrix-input') || e.target.classList.contains('mobile-input')) {
+                if(!checkPharmacistSelectedMandatory()) {
+                    e.target.blur();
+                }
             }
         });
 
@@ -632,14 +678,6 @@
         document.getElementById('qrModal').addEventListener('click', (e) => {
             if(e.target === document.getElementById('qrModal')) closeQrModal();
         });
-
-        document.body.addEventListener('keydown', (e) => {
-            if (e.target.classList.contains('matrix-input') || e.target.classList.contains('mobile-input')) {
-                if(!checkPharmacistSelectedMandatory()) {
-                    e.preventDefault();
-                }
-            }
-        }, true);
 
         document.body.addEventListener('input', (e) => {
             if (e.target.classList.contains('matrix-input')) {
@@ -750,7 +788,7 @@
             reader.readAsArrayBuffer(file);
         });
 
-        // 報表匯出（內含覆核藥師簽章標記）
+        // 報表匯出
         document.getElementById('btnExport').addEventListener('click', function() {
             const dateStr = dateInput.value;
             if(!dateStr) return;
@@ -759,7 +797,7 @@
 
             const sheet1Rows = [
                 [`彰化醫院藥劑科四級管制藥 - 各調劑台/儲位責任盤點明細表 (核帳日期: ${dateStr})`],
-                [`當日總覆核藥師簽章： ${finalApproverName}`], // 報表表頭自動蓋上最終認證章
+                [`當日總覆核藥師簽章： ${finalApproverName}`], 
                 ["藥品代碼", "藥品名稱", "規格", "電腦總結存", "雙號台", "雙號藥師", "罐裝台", "罐裝藥師", "庫存區", "庫存藥師", "藥車", "藥車藥師", "住院盒", "住院藥師", "門診盒", "門診藥師", "單號台", "單號藥師", "實體總盤點", "對帳誤差"]
             ];
 
