@@ -7,116 +7,804 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- 引入國際標準 QR Code 引擎 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         input::-webkit-outer-spin-button,
-        input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
-        input[type=number] { -moz-appearance: textfield; }
+        input::-webkit-inner-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type=number] {
+            -moz-appearance: textfield;
+        }
     </style>
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
+    <!-- 頂部導覽列 -->
     <nav class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 py-3.5 flex justify-between items-center">
-            <h1 class="text-base md:text-xl font-black tracking-wide flex items-center">
-                <i class="fa-solid fa-boxes-stacked mr-2 text-xl"></i> 彰醫管制藥儲位動態盤點系統
-            </h1>
+            <div class="flex items-center space-x-2">
+                <a href="index.html" class="hover:opacity-80 transition py-1 px-2"><i class="fa-solid fa-arrow-left text-lg"></i></a>
+                <h1 class="text-base md:text-xl font-black tracking-wide flex items-center">
+                    <i class="fa-solid fa-boxes-stacked mr-2 text-xl animate-pulse"></i>
+                    彰醫管制藥儲位動態盤點系統
+                </h1>
+            </div>
+            <div class="text-[11px] bg-white/20 px-2.5 py-1 rounded-full backdrop-blur-sm font-bold">彰醫藥劑科</div>
         </div>
     </nav>
 
     <main class="max-w-[1600px] mx-auto px-3 mt-4 space-y-4">
-        <!-- 控制面板 -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-3">
-            <input type="date" id="targetDate" class="p-2 border rounded-lg text-xs">
-            <select id="pharmacistName" class="p-2 border rounded-lg text-xs font-bold">
-                <option value="" disabled selected>⚠️ 請選盤點藥師...</option>
-                <option value="劉育伶">劉育伶</option>
-                <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option>
-                <!-- 其他藥師選項 -->
-            </select>
-            <button id="btnLockDay" class="bg-emerald-600 text-white font-black rounded-lg text-xs">結束今日</button>
-            <button onclick="document.getElementById('computerExcel').click()" class="bg-rose-600 text-white font-black rounded-lg text-xs">匯入電腦帳</button>
-            <input type="file" id="computerExcel" class="hidden">
-            <button id="btnExport" class="bg-slate-800 text-white font-black rounded-lg text-xs">匯出報表</button>
+        
+        <!-- 控制面板列 -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
+                <label class="text-[10px] font-bold text-slate-400 mb-0.5">🗓️ 選擇核帳日期</label>
+                <input type="date" id="targetDate" class="w-full font-black text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
+            </div>
+            <div class="bg-white p-3 rounded-xl shadow-sm border border-amber-300 bg-amber-50/30 flex flex-col justify-center">
+                <label class="text-[10px] font-bold text-red-500 mb-0.5"><i class="fa-solid fa-user-check"></i> ✍️ 請先選取盤點藥師 (必選核心防錯)</label>
+                <!-- 🎯 核心升級：取消預設劉育伶，強制作為第一個選項，且不選就會鎖死全網頁 -->
+                <select id="pharmacistName" class="w-full font-black text-slate-700 border-2 border-amber-400 rounded-lg p-1.5 text-xs bg-white outline-none focus:border-red-500 cursor-pointer">
+                    <option value="" disabled selected>⚠️ 請選擇盤點藥師名字...</option>
+                    <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
+                    <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
+                    <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
+                    <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
+                    <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
+                    <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
+                    <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
+                    <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
+                    <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
+                    <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
+                </select>
+            </div>
+            <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
+                <input type="file" id="computerExcel" class="hidden">
+                <button onclick="document.getElementById('computerExcel').click()" class="w-full h-full bg-rose-600 hover:bg-rose-700 text-white font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1 py-2 cursor-pointer">
+                    <i class="fa-solid fa-file-upload"></i> 匯入電腦帳
+                </button>
+            </div>
+            <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
+                <button id="btnExport" class="w-full h-full bg-gradient-to-r from-slate-800 to-slate-900 text-white font-black rounded-lg text-xs shadow transition flex items-center justify-center gap-1 py-2 cursor-pointer">
+                    <i class="fa-solid fa-cloud-download-alt"></i> 匯出智慧多維報表
+                </button>
+            </div>
         </div>
 
-        <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs shadow-sm bg-slate-50 border"></div>
+        <!-- 警報與即時誤差分析狀態列 -->
+        <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs shadow-sm bg-slate-50 border">
+            <div id="matchStatusLabel">載入數據中...</div>
+            <div id="errorDetailsLabel" class="mt-1.5 text-[11px] font-medium flex flex-wrap gap-1.5"></div>
+        </div>
 
-        <!-- 手機切換區 -->
+        <!-- 📊 全院管制藥品【即時總量匯總中心】總表看板 -->
+        <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
+            <div class="p-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white flex justify-between items-center">
+                <h3 class="font-black text-xs md:text-sm flex items-center">
+                    <i class="fa-solid fa-chart-pie mr-2 text-amber-400"></i> 全院管制藥品即時總量匯總看板 (💡 點擊藥名可直接呈現 QR Code)
+                </h3>
+                <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">即時同步中</span>
+            </div>
+            <div class="max-h-60 overflow-y-auto overflow-x-auto">
+                <table class="w-full text-left border-collapse text-[11px]">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-600 font-black border-b sticky top-0 shadow-sm text-center">
+                            <th class="py-2 px-2 text-left">藥品商品名 (代碼)</th>
+                            <th class="py-2 px-1 w-24 text-blue-600">📊 實體盤點總量</th>
+                            <th class="py-2 px-1 w-24 text-red-600">💻 電腦帳結存</th>
+                            <th class="py-2 px-1 w-24">🚨 今日落差</th>
+                            <th class="py-2 px-1 w-24 text-slate-400">📈 7日滾動有效均線</th>
+                        </tr>
+                    </thead>
+                    <tbody id="summaryTableBody" class="divide-y divide-slate-100 font-bold text-slate-700 text-center"></tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 🔧 精準調試分析面板 -->
+        <div id="debugBox" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 font-mono">
+            <p class="font-bold mb-1">📢 系統匯入即時診斷分析：</p>
+            <div id="debugContent" class="bg-white/80 p-2 rounded border overflow-x-auto max-h-32 whitespace-pre-wrap"></div>
+        </div>
+
+        <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
         <div class="block lg:hidden space-y-3">
-            <div class="grid grid-cols-4 gap-1.5" id="mobileTabHeader">
-                <button type="button" data-tab="6" class="mobile-tab-btn py-2 text-xs font-black rounded-lg bg-white border">單號台</button>
-                <button type="button" data-tab="0" class="mobile-tab-btn py-2 text-xs font-black rounded-lg bg-white border">雙號台</button>
-                <button type="button" data-tab="1" class="mobile-tab-btn py-2 text-xs font-black rounded-lg bg-white border">罐裝台</button>
-                <button type="button" data-tab="2" class="mobile-tab-btn py-2 text-xs font-black rounded-lg bg-white border">庫存區</button>
+            <div class="bg-slate-200/80 p-2.5 rounded-xl">
+                <span class="text-xs font-black text-slate-700 block mb-2"><i class="fa-solid fa-map-location-dot text-red-600"></i> 請選擇目前所在的盤點儲位：</span>
+                <div class="grid grid-cols-4 gap-1.5" id="mobileTabHeader">
+                    <button type="button" data-tab="6" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">單號台</button>
+                    <button type="button" data-tab="0" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">雙號台</button>
+                    <button type="button" data-tab="1" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">罐裝台</button>
+                    <button type="button" data-tab="2" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">庫存區</button>
+                    <button type="button" data-tab="3" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-1">藥車</button>
+                    <button type="button" data-tab="4" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-1">住院盒</button>
+                    <button type="button" data-tab="5" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-2">門診盒</button>
+                </div>
             </div>
             <div id="mobileZoneCardsContainer" class="space-y-3"></div>
         </div>
 
-        <!-- 電腦表格區 -->
+        <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
-            <table class="w-full text-center text-xs">
-                <thead><tr class="bg-slate-100"><th class="py-3">藥名</th><th class="py-3">規格</th><th class="py-3">盤點值</th></tr></thead>
-                <tbody id="matrixTableBody"></tbody>
-            </table>
+            <div class="p-4 bg-slate-50 border-b">
+                <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽 (小字內含個別儲位負責藥師)</h3>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-100 text-slate-700 font-black text-xs text-center border-b border-slate-200 divide-x divide-slate-200">
+                            <th class="py-3 px-1 w-10" rowspan="2">劑型</th>
+                            <th class="py-3 px-3 text-left w-32" rowspan="2">商品名</th>
+                            <th class="py-3 px-1 w-20" rowspan="2">規格</th>
+                            <th class="py-3 px-1 w-16 text-red-600" rowspan="2">💻電腦帳<br>(總量)</th>
+                            <th class="py-3 px-2" colspan="7">📱 實體調劑台儲位盤點區域</th>
+                            <th class="py-3 px-1 w-16 text-blue-600" rowspan="2">📊實際總計</th>
+                            <th class="py-3 px-2 w-24 text-orange-600" rowspan="2">🚨對帳誤差<br>(7日均)</th>
+                        </tr>
+                        <tr class="bg-slate-50 text-slate-600 font-bold text-[10px] text-center border-b border-slate-200 divide-x divide-slate-200">
+                            <th class="py-1.5 px-0.5 w-16">雙號台</th>
+                            <th class="py-1.5 px-0.5 w-16">罐裝台</th>
+                            <th class="py-1.5 px-0.5 w-16">庫存區</th>
+                            <th class="py-1.5 px-0.5 w-16">藥車Tosho</th>
+                            <th class="py-1.5 px-0.5 w-16">住院Tosho</th>
+                            <th class="py-1.5 px-0.5 w-16">門診Tosho</th>
+                            <th class="py-1.5 px-0.5 w-16">單號台</th>
+                        </tr>
+                    </thead>
+                    <tbody id="matrixTableBody" class="text-slate-700 text-xs divide-y divide-slate-200"></tbody>
+                </table>
+            </div>
         </div>
     </main>
+
+    <!-- QR Code 快顯視窗 -->
+    <div id="qrModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center relative">
+            <button id="closeQrBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <h4 id="qrModalTitle" class="font-black text-slate-800 text-base mb-1 text-center">藥品條碼對齊</h4>
+            <p id="qrModalSub" class="text-[11px] text-slate-400 font-mono font-bold mb-4 text-center"></p>
+            <div id="qrcodeContainer" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner flex justify-center items-center w-52 h-52"></div>
+            <p class="mt-4 text-[10px] text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-full"><i class="fa-solid fa-qrcode mr-1 text-red-600"></i> 現場藥師可用手機直接掃碼盤點</p>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-        
-        const firebaseConfig = { /* ...您原本的設定... */ };
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+            authDomain: "drug--arrive.firebaseapp.com",
+            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
+            projectId: "drug--arrive",
+            storageBucket: "drug--arrive.appspot.com",
+            messagingSenderId: "215426668369",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
+        };
+
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
-        
+
         const oralList = [
             { id: "ATIO01", name: "Anxiedin", spec: "0.5 mg/tab", disabled: [1, 4, 5] }, 
-            { id: "ZOPO01", name: "Apo-Zopiclone", spec: "7.5 mg/tab", disabled: [0, 2, 6] }
-            // ...其他藥品
+            { id: "ZOPO01", name: "Apo-Zopiclone", spec: "7.5 mg/tab", disabled: [0, 2, 6] },
+            { id: "ALPO02", name: "Aprazo", spec: "0.5 mg/tab", disabled: [4, 5] },
+            { id: "BROO19", name: "Bromazin", spec: "3 mg/tab", disabled: [1, 4, 5] },
+            { id: "RIVO03", name: "Clonopam", spec: "2 mg/tab", disabled: [4, 5] },
+            { id: "DIAO29", name: "Diapin", spec: "2 mg/tab", disabled: [1, 4, 5] },
+            { id: "DORO01", name: "Dormicum", spec: "7.5 mg/tab", disabled: [1, 4, 5] },
+            { id: "OXAO13", name: "Elinin", spec: "20 mg/tab", disabled: [0, 2, 3, 4, 6] },
+            { id: "FLUO66", name: "Flupine", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
+            { id: "SANO08", name: "Kinax", spec: "1 mg/tab", disabled: [1, 4, 5] },
+            { id: "EURO02", name: "Kinzolam", spec: "2 mg/tab", disabled: [1, 4, 5] },
+            { id: "ATIO07", name: "Larpam", spec: "2 mg/tab", disabled: [1, 3, 4, 5] }, 
+            { id: "LENO00", name: "Lendormin", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
+            { id: "ATIO12", name: "Lorazepam", spec: "1 mg/tab", disabled: [0, 2, 6] },
+            { id: "TRAO16", name: "Muaction SR", spec: "100 mg/tab", disabled: [0, 2, 3, 4, 6] },
+            { id: "TRAO33", name: "Opicet", spec: "37.5/325 mg", disabled: [1, 4, 5] },
+            { id: "RIVO01", name: "Rivotril", spec: "0.5 mg/tab", disabled: [1, 4, 5] },
+            { id: "ZALO04", name: "Sonaplon", spec: "10mg/cap", disabled: [1, 3, 4, 5] },
+            { id: "TRAO27", name: "Tramtor", spec: "50 mg/cap", disabled: [1, 4, 5] },
+            { id: "ZOLO07", name: "Zolnox", spec: "10 mg/tab", disabled: [1, 4, 5] }
         ];
-        const allDrugs = [...oralList];
-        let currentDayRecords = {};
-        let activeMobileTab = 6;
 
-        function refreshUI() {
-            renderMatrixTable();
-            renderMobileZoneList();
+        const injectList = [
+            { id: "ATII01", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 2, 3, 5, 6] }, 
+            { id: "PRPIO2", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, 
+            { id: "DORI05", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 5, 6] }, 
+            { id: "TRAI11", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 5, 6] }  
+        ];
+
+        const allDrugs = [...oralList, ...injectList];
+        const subZoneNames = ["雙號台", "罐裝台", "庫存區", "藥車", "住院盒", "門診盒", "單號台"];
+        
+        let currentDayRecords = {}; 
+        let historyPastRecords = {}; 
+        let rawAllDatesFirebaseBackup = {}; 
+        let avg7DaysErrors = {}; 
+        let activeMobileTab = 6; 
+        let qrGeneratorInstance = null;
+
+        function getDrugSumAndComputer(drugId, recordsObj) {
+            const dayData = (recordsObj && recordsObj[drugId]) ? recordsObj[drugId] : {};
+            const computerStock = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
+            let sum = 0;
+            for(let i=0; i<7; i++) {
+                sum += dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0;
+            }
+            return { sum, computerStock };
         }
 
-        function renderMatrixTable() {
-            const tbody = document.getElementById('matrixTableBody');
+        const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+        const dateInput = document.getElementById('targetDate');
+        dateInput.value = todayStr;
+
+        // 🎯 核心攔截檢查：有沒有選取藥師？沒有選取一律警告並鎖死
+        function checkPharmacistSelectedMandatory() {
+            const currentSelectedUser = document.getElementById('pharmacistName').value;
+            if(!currentSelectedUser) {
+                alert("🚨 系統阻斷警告！\n請先在最頂端【選取盤點藥師名字】，才能開始點按或修改盤點格子！");
+                document.getElementById('pharmacistName').focus();
+                return false;
+            }
+            return true;
+        }
+
+        function loadDailyData() {
+            const dateStr = dateInput.value;
+            if (!dateStr) return;
+
+            onValue(ref(db, `controlledMatrixRecords`), (snapshot) => {
+                const allDatesData = snapshot.val() || {};
+                rawAllDatesFirebaseBackup = allDatesData; 
+                const sortedDates = Object.keys(allDatesData).sort().reverse();
+                
+                const prevDate = sortedDates.find(d => d !== dateStr);
+                historyPastRecords = prevDate ? (allDatesData[prevDate] || {}) : {};
+                
+                avg7DaysErrors = {};
+                allDrugs.forEach(drug => {
+                    let totalPastErr = 0;
+                    let recordCount = 0;
+                    for (let i = 0; i < sortedDates.length; i++) {
+                        const dStr = sortedDates[i];
+                        if (dStr === dateStr) continue; 
+                        if (recordCount >= 7) break;    
+
+                        const targetDayData = allDatesData[dStr]?.[drug.id];
+                        if (targetDayData && targetDayData.computerStock !== undefined && Number(targetDayData.computerStock) > 0) {
+                            const info = getDrugSumAndComputer(drug.id, allDatesData[dStr]);
+                            totalPastErr += Math.abs(info.sum - info.computerStock); 
+                            recordCount++;
+                        }
+                    }
+                    avg7DaysErrors[drug.id] = recordCount > 0 ? (totalPastErr / recordCount) : 0;
+                });
+
+                currentDayRecords = allDatesData[dateStr] || {};
+                refreshUI();
+            }, (error) => {
+                console.error("Firebase 連線失敗:", error);
+                currentDayRecords = {};
+                refreshUI(); 
+            });
+        }
+
+        function refreshUI() {
+            renderMobileTabButtons(); 
+            renderMobileZoneList();   
+            renderMatrixTable();      
+            renderSummaryTable(); 
+            recalculateWholePage();   
+        }
+
+        function renderSummaryTable() {
+            const tbody = document.getElementById('summaryTableBody');
             if(!tbody) return;
-            tbody.innerHTML = '';
+            tbody.innerHTML = "";
+
             allDrugs.forEach(drug => {
-                let tr = document.createElement('tr');
-                tr.innerHTML = `<td class="p-2 font-black">${drug.name}</td><td class="p-2">${drug.spec}</td><td class="p-2"><input type="number" data-drug="${drug.id}" class="matrix-input border p-1 w-20 text-center"></td>`;
-                tbody.appendChild(tr);
+                const info = getDrugSumAndComputer(drug.id, currentDayRecords);
+                const diff = info.sum - info.computerStock;
+                const avg7 = avg7DaysErrors[drug.id] || 0;
+
+                let rowTr = document.createElement('tr');
+                rowTr.className = "hover:bg-slate-50 transition";
+
+                let diffHtml = `<span>0</span>`;
+                if(diff !== 0) {
+                    const absDiff = Math.abs(diff);
+                    const isOver = absDiff > avg7;
+                    const color = isOver ? "text-red-600 bg-red-50 px-2 py-0.5 rounded shadow-sm font-black" : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded";
+                    diffHtml = `<span class="${color}">${diff > 0 ? '+' + diff : diff}</span>`;
+                }
+
+                rowTr.innerHTML = `
+                    <td class="p-2 text-left font-black text-rose-700 hover:text-rose-900 hover:underline cursor-pointer flex items-center gap-1" data-trigger-qr="${drug.id}" data-trigger-name="${drug.name}">
+                        <i class="fa-solid fa-qrcode text-slate-300 text-[10px]"></i> ${drug.name} 
+                        <span class="text-[9px] text-slate-400 font-mono font-bold">(${drug.id})</span>
+                    </td>
+                    <td class="p-2 text-blue-600 font-black text-sm">${info.sum}</td>
+                    <td class="p-2 text-slate-500">${info.computerStock}</td>
+                    <td class="p-2">${diffHtml}</td>
+                    <td class="p-2 text-slate-400 font-mono text-[10px]">${avg7.toFixed(1)}</td>
+                `;
+                tbody.appendChild(rowTr);
+            });
+        }
+
+        function openQrModal(drugId, drugName) {
+            const modal = document.getElementById('qrModal');
+            const title = document.getElementById('qrModalTitle');
+            const sub = document.getElementById('qrModalSub');
+            const container = document.getElementById('qrcodeContainer');
+
+            if(!modal || !container || !title || !sub) return;
+
+            title.innerText = drugName;
+            sub.innerText = `藥品代碼：${drugId}`;
+            container.innerHTML = ""; 
+
+            qrGeneratorInstance = new QRCode(container, {
+                text: drugId, 
+                width: 180,
+                height: 180,
+                colorDark : "#1e293b", 
+                colorLight : "#f8fafc", 
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            modal.classList.remove('hidden'); 
+        }
+
+        function closeQrModal() {
+            const modal = document.getElementById('qrModal');
+            if(modal) modal.classList.add('hidden');
+        }
+
+        function renderMobileTabButtons() {
+            document.querySelectorAll('.mobile-tab-btn').forEach(btn => {
+                const idx = parseInt(btn.getAttribute('data-tab'));
+                if(idx === activeMobileTab) {
+                    btn.className = "mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-gradient-to-r from-red-600 to-rose-600 text-white border-transparent scale-105 duration-150";
+                } else {
+                    btn.className = "mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 border-slate-200";
+                }
             });
         }
 
         function renderMobileZoneList() {
             const container = document.getElementById('mobileZoneCardsContainer');
-            if(!container) return;
+            if (!container) return;
             container.innerHTML = '';
-            allDrugs.forEach(drug => {
-                if(drug.disabled.includes(activeMobileTab)) return;
-                let div = document.createElement('div');
-                div.className = "bg-white p-3 rounded-xl border flex justify-between";
-                div.innerHTML = `<span>${drug.name}</span><input type="number" class="mobile-input w-20 border p-1 text-center" data-drug="${drug.id}">`;
-                container.appendChild(div);
+
+            let titleBox = document.createElement('div');
+            titleBox.className = "bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm flex justify-between items-center";
+            titleBox.innerHTML = `<span>📍 目前儲位：${subZoneNames[activeMobileTab]}</span> <span class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded">行動模式</span>`;
+            container.appendChild(titleBox);
+
+            let hasItems = false;
+            const records = currentDayRecords || {};
+            const pastRecords = historyPastRecords || {};
+            const currentSelectedUser = document.getElementById('pharmacistName').value;
+
+            allDrugs.forEach((drug) => {
+                if (drug.disabled.includes(activeMobileTab)) return;
+                hasItems = true;
+
+                const dayData = records[drug.id] || {};
+                const cellVal = dayData[`sub_${activeMobileTab}`] !== undefined ? Number(dayData[`sub_${activeMobileTab}`]) : 0;
+                
+                const pastData = pastRecords[drug.id] || {};
+                const pastCellVal = pastData[`sub_${activeMobileTab}`] !== undefined ? `${pastData[`sub_${activeMobileTab}`]} 粒/支` : '—';
+                const cellUser = dayData[`user_${activeMobileTab}`] || '—';
+
+                let isInject = injectList.some(j => j.id === drug.id);
+                let textBorderColor = isInject ? "border-l-rose-500" : "border-l-amber-500";
+
+                let itemCard = document.createElement('div');
+                itemCard.className = `bg-white p-3 rounded-xl shadow-sm border border-slate-200 border-l-4 ${textBorderColor} flex justify-between items-center gap-3`;
+                
+                // 🎯 核心升級：若未選取藥師，欄位加上 readonly 並變灰色
+                let lockAttr = !currentSelectedUser ? 'disabled bg-slate-100 border-slate-200 text-slate-400 cursor-not-allowed shadow-none' : 'bg-blue-50/50 text-blue-700 border-blue-100 shadow-inner';
+
+                itemCard.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-black text-slate-800 truncate">${drug.name}</h4>
+                        <p class="text-[10px] text-slate-400 font-mono font-bold mt-0.5">${drug.id} · ${drug.spec}</p>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">前次：${pastCellVal}</span>
+                            <span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold"><i class="fa-solid fa-user-pen text-[8px]"></i> 儲位藥師:${cellUser}</span>
+                        </div>
+                    </div>
+                    <div class="w-32 flex items-center space-x-1.5 justify-end">
+                        <input type="number" value="${cellVal}" min="0" pattern="[0-9]*" inputmode="numeric" ${lockAttr}
+                               oninput="this.value=this.value.replace(/[^0-9]/g,'');"
+                               data-mobile-drug="${drug.id}" data-mobile-sub="${activeMobileTab}"
+                               class="mobile-input w-20 text-center font-black text-lg rounded-lg py-1 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition">
+                        <span class="text-xs font-bold text-slate-400">粒/支</span>
+                    </div>
+                `;
+                container.appendChild(itemCard);
             });
+
+            if(!hasItems) {
+                container.innerHTML += `<div class="text-center py-8 text-xs text-slate-400 font-bold bg-white rounded-xl border border-dashed">此儲位目前無須盤點四級管制藥品 ✨</div>`;
+            }
         }
 
-        // 初始化
+        function renderMatrixTable() {
+            const tbody = document.getElementById('matrixTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            const records = currentDayRecords || {};
+            const pastRecords = historyPastRecords || {};
+            const currentSelectedUser = document.getElementById('pharmacistName').value;
+
+            function generateRowRows(list, typeName, bgClass) {
+                list.forEach((drug, idx) => {
+                    const dayData = records[drug.id] || {};
+                    const computerCount = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
+                    
+                    let tr = document.createElement('tr');
+                    tr.className = "divide-x divide-slate-100 text-center hover:bg-slate-50/50 text-xs";
+                    
+                    let typeHtml = idx === 0 ? `<td class="font-black ${bgClass} text-xs" rowspan="${list.length}">${typeName}</td>` : '';
+                    let html = `${typeHtml}<td class="p-2 text-left font-black text-slate-800">${drug.name}</td><td class="p-1 text-slate-400 font-mono text-[10px]">${drug.spec}</td><td class="p-1 bg-slate-50 font-bold text-slate-500">${computerCount}</td>`;
+                    
+                    let rowSum = 0;
+                    for (let i = 0; i < 7; i++) {
+                        const cellVal = dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0; 
+                        rowSum += cellVal;
+                        const pastData = pastRecords[drug.id] || {};
+                        const pastCellVal = pastData[`sub_${i}`] !== undefined ? pastData[`sub_${i}`] : '—';
+                        const cellUser = dayData[`user_${i}`] || '—';
+
+                        if (drug.disabled.includes(i)) { 
+                            html += `<td class="bg-slate-100 p-0.5"></td>`; 
+                        } else { 
+                            // 🎯 核心升級：若未選取藥師，電腦版格子同樣加上 disabled 防護色
+                            let lockAttr = !currentSelectedUser ? 'disabled bg-slate-100/70 border-slate-100 text-slate-300 cursor-not-allowed' : 'bg-white text-slate-700 border-slate-200';
+                            
+                            html += `<td class="p-1 bg-white min-w-[75px]">
+                                <input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" ${lockAttr} data-comp-drug="${drug.id}" data-comp-sub="${i}" class="matrix-input w-full text-center font-bold border rounded p-0.5 text-xs outline-none focus:border-red-500">
+                                <div class="text-[8px] text-blue-600 scale-90 mt-0.5 truncate font-bold bg-blue-50/50 rounded py-0.5">✍️:${cellUser}</div>
+                                <div class="text-[8px] text-slate-400 scale-90 mt-0.5 font-medium">前次:${pastCellVal}</div>
+                            </td>`; 
+                        }
+                    }
+                    const err = rowSum - computerCount;
+                    const avg7 = avg7DaysErrors[drug.id] || 0;
+                    
+                    html += `<td id="total-${drug.id}" class="font-black text-blue-600">${rowSum}</td>
+                             <td class="p-1">
+                                <span id="err-${drug.id}" class="${getErrClass(err, avg7)}">${err > 0 ? '+' + err : err}</span>
+                                <div class="text-[9px] text-slate-400 font-medium scale-90 mt-0.5">均:${avg7.toFixed(1)}</div>
+                             </td>`;
+                    tr.innerHTML = html; 
+                    tbody.appendChild(tr);
+                });
+            }
+
+            generateRowRows(oralList, "口服", "bg-amber-50 text-amber-800");
+            generateRowRows(injectList, "針劑", "bg-rose-50 text-rose-800");
+        }
+
+        function liveCalculateMatrixRow(drugId) {
+            let sum = 0;
+            const inputs = document.querySelectorAll(`input[data-comp-drug="${drugId}"]`);
+            inputs.forEach(input => sum += (parseInt(input.value) || 0));
+            
+            const totalDom = document.getElementById('total-' + drugId);
+            if(totalDom) totalDom.innerText = sum;
+            
+            const dayData = (currentDayRecords && currentDayRecords[drugId]) ? currentDayRecords[drugId] : {};
+            const computerCount = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
+            const diff = sum - computerCount;
+            
+            const avg7 = avg7DaysErrors[drugId] || 0;
+            const errSpan = document.getElementById('err-' + drugId);
+            if(errSpan) {
+                errSpan.innerText = diff > 0 ? '+' + diff : diff;
+                errSpan.className = getErrClass(diff, avg7);
+            }
+            renderSummaryTable();
+        }
+
+        function executeSaveCell(drugId, subIdx, val) {
+            const dateStr = dateInput.value;
+            const userName = document.getElementById('pharmacistName').value;
+            if(!userName) return; // 雙重保險
+
+            const cellInt = Math.max(0, parseInt(val) || 0);
+
+            if(!currentDayRecords[drugId]) currentDayRecords[drugId] = {};
+            currentDayRecords[drugId][`sub_${subIdx}`] = cellInt;
+            currentDayRecords[drugId][`user_${subIdx}`] = userName;
+
+            const updateMap = {};
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/sub_${subIdx}`] = cellInt;
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user_${subIdx}`] = userName;
+
+            update(ref(db), updateMap).then(() => {
+                recalculateWholePage();
+            }).catch(e => console.error("儲存失敗:", e));
+        }
+
+        function recalculateWholePage() {
+            let totalErrors = 0;
+            let errorItemsHtml = ""; 
+
+            allDrugs.forEach(drug => {
+                const info = getDrugSumAndComputer(drug.id, currentDayRecords);
+                const diff = info.sum - info.computerStock;
+                totalErrors += Math.abs(diff);
+
+                if (diff !== 0) {
+                    const avg7 = avg7DaysErrors[drug.id] || 0;
+                    const colorClass = Math.abs(diff) > avg7 
+                        ? "bg-red-600 text-white border-red-700 animate-pulse" 
+                        : "bg-amber-100 text-amber-800 border-amber-300";
+                        
+                    const diffText = diff > 0 ? `+${diff}` : `${diff}`;
+                    errorItemsHtml += `<span class="px-2 py-0.5 rounded-md font-black border text-[11px] ${colorClass}">${drug.name} (${diffText}) <span class="text-[9px] opacity-80">7日均:${avg7.toFixed(1)}</span></span>`;
+                }
+            });
+
+            const box = document.getElementById('matchStatusBox');
+            const label = document.getElementById('matchStatusLabel');
+            const errorDetailsLabel = document.getElementById('errorDetailsLabel');
+            
+            if(!box || !label || !errorDetailsLabel) return;
+
+            if (totalErrors === 0) {
+                box.className = "p-3 rounded-xl font-black text-xs shadow-sm bg-green-50 text-green-700 border border-green-200";
+                label.innerHTML = `<i class="fa-solid fa-circle-check text-base mr-1"></i> 彰醫今日管制藥帳物完全相符 (零誤差)`;
+                errorDetailsLabel.innerHTML = `<span class="text-green-600 font-medium text-[11px]">✨ 全品項盤點完畢，全院帳物平衡。</span>`;
+            } else {
+                box.className = "p-3 rounded-xl font-black text-xs shadow-sm bg-red-50 text-red-700 border border-red-200";
+                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> 警告！今日全院累計絕對誤差 ${totalErrors} 粒/支。以下為今日誤差品項與滾動 7 日平均比對：`;
+                errorDetailsLabel.innerHTML = errorItemsHtml;
+            }
+        }
+
+        function getErrClass(err, avg7) {
+            if (err === 0) return "text-green-600 font-black";
+            const absErr = Math.abs(err);
+            if (absErr > avg7) {
+                return "text-white bg-red-600 px-1.5 py-0.5 rounded font-black shadow-sm ring-2 ring-red-300";
+            } else {
+                return "text-amber-700 bg-amber-100 px-1.5 py-0.5 rounded font-black";
+            }
+        }
+
+        // ==================== 事件監聽與智慧多維報表核心大腦 ====================
+        dateInput.addEventListener('change', loadDailyData);
+
+        // 🎯 核心升級：一旦選取了藥師，立刻解鎖畫面上所有格子的唯讀狀態！
+        document.getElementById('pharmacistName').addEventListener('change', () => {
+            refreshUI(); 
+        });
+
         document.getElementById('mobileTabHeader').addEventListener('click', (e) => {
-            if(e.target.tagName === 'BUTTON') {
-                activeMobileTab = parseInt(e.target.getAttribute('data-tab'));
-                refreshUI();
+            const btn = e.target.closest('.mobile-tab-btn');
+            if (!btn) return;
+            activeMobileTab = parseInt(btn.getAttribute('data-tab'));
+            refreshUI();
+        });
+
+        document.body.addEventListener('click', (e) => {
+            const qrTrigger = e.target.closest('[data-trigger-qr]');
+            if(qrTrigger) {
+                const drugId = qrTrigger.getAttribute('data-trigger-qr');
+                const drugName = qrTrigger.getAttribute('data-trigger-name');
+                openQrModal(drugId, drugName);
             }
         });
 
-        loadDailyData(); // 確保開局執行
+        document.getElementById('closeQrBtn').addEventListener('click', closeQrModal);
+        document.getElementById('qrModal').addEventListener('click', (e) => {
+            if(e.target === document.getElementById('qrModal')) closeQrModal();
+        });
+
+        // 🎯 核心升級：在輸入前搶先攔截，未選藥師者直接彈出警告！
+        document.body.addEventListener('keydown', (e) => {
+            if (e.target.classList.contains('matrix-input') || e.target.classList.contains('mobile-input')) {
+                if(!checkPharmacistSelectedMandatory()) {
+                    e.preventDefault();
+                }
+            }
+        }, true);
+
+        document.body.addEventListener('input', (e) => {
+            if (e.target.classList.contains('matrix-input')) {
+                const drugId = e.target.getAttribute('data-comp-drug');
+                liveCalculateMatrixRow(drugId);
+            }
+            if (e.target.classList.contains('mobile-input')) {
+                const drugId = e.target.getAttribute('data-mobile-drug');
+                const subIdx = e.target.getAttribute('data-mobile-sub');
+                const val = parseInt(e.target.value) || 0;
+                
+                const compInput = document.querySelector(`input[data-comp-drug="${drugId}"][data-comp-sub="${subIdx}"]`);
+                if(compInput) compInput.value = val;
+                liveCalculateMatrixRow(drugId);
+            }
+        });
+
+        document.body.addEventListener('change', (e) => {
+            if (e.target.classList.contains('matrix-input')) {
+                const drugId = e.target.getAttribute('data-comp-drug');
+                const subIdx = parseInt(e.target.getAttribute('data-comp-sub'));
+                executeSaveCell(drugId, subIdx, e.target.value);
+            }
+            if (e.target.classList.contains('mobile-input')) {
+                const drugId = e.target.getAttribute('data-mobile-drug');
+                const subIdx = parseInt(e.target.getAttribute('data-mobile-sub'));
+                executeSaveCell(drugId, subIdx, e.target.value);
+            }
+        });
+
+        // Excel 匯入
+        document.getElementById('computerExcel').addEventListener('change', function(e) {
+            const file = e.target.files[0]; 
+            if (!file) return;
+            const dateStr = dateInput.value;
+            const reader = new FileReader();
+            
+            reader.onload = function(evt) {
+                try {
+                    const data = new Uint8Array(evt.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    let codeIdx = -1; let stockIdx = -1; let foundHeaderRowIdx = -1; let logMsg = "";
+
+                    for (let i = 0; i < Math.min(30, jsonRows.length); i++) {
+                        const row = jsonRows[i] || [];
+                        let tempCodeIdx = -1; let tempStockIdx = -1;
+                        for (let j = 0; j < row.length; j++) {
+                            if (row[j] === undefined || row[j] === null) continue;
+                            const cellTxt = String(row[j]).replace(/[\s\r\n\t]/g, '').trim();
+                            if (cellTxt === "物品代碼" || cellTxt === "藥品代碼" || cellTxt === "藥碼") tempCodeIdx = j;
+                            if (cellTxt === "總量") tempStockIdx = j;
+                        }
+                        if (tempCodeIdx !== -1 && tempStockIdx !== -1) {
+                            codeIdx = tempCodeIdx; stockIdx = tempStockIdx; foundHeaderRowIdx = i;
+                            logMsg += `成功比對表頭！物品代碼(第 ${codeIdx+1} 欄)，【總量欄】(第 ${stockIdx+1} 欄)\n`;
+                            break;
+                        }
+                    }
+
+                    if (codeIdx === -1 || stockIdx === -1) {
+                        logMsg += `提示：啟動彰醫二維固定座標與特徵掃描保險...\n`;
+                        for (let i = 0; i < Math.min(100, jsonRows.length); i++) {
+                            const row = jsonRows[i] || [];
+                            for (let j = 0; j < row.length; j++) {
+                                if (row[j] === undefined || row[j] === null) continue;
+                                const val = String(row[j]).replace(/[\s\r\n\t]/g, '').trim().toUpperCase();
+                                if (allDrugs.some(d => val === d.id)) {
+                                    codeIdx = j; foundHeaderRowIdx = Math.max(0, i - 1); break;
+                                }
+                            }
+                            if (codeIdx !== -1) break;
+                        }
+                        stockIdx = 8; if (codeIdx === -1) codeIdx = 1; 
+                        logMsg += `防禦盲測綁定：代碼欄(第 ${codeIdx+1} 欄)，總量欄(第 ${stockIdx+1} 欄)\n`;
+                    }
+
+                    let upload封包 = {};
+                    allDrugs.forEach(d => { 
+                        const existing = (currentDayRecords && currentDayRecords[d.id]) ? currentDayRecords[d.id] : {};
+                        upload封包[d.id] = { ...existing, computerStock: 0 };
+                    });
+
+                    jsonRows.forEach((row, rowIdx) => {
+                        if (rowIdx <= foundHeaderRowIdx || !row || row[codeIdx] === undefined || row[codeIdx] === null) return;
+                        try {
+                            const excelCode = String(row[codeIdx]).replace(/[\s\r\n\t]/g, '').trim().toUpperCase();
+                            if (!excelCode || excelCode.includes("---") || excelCode.includes("填表人")) return;
+
+                            allDrugs.forEach(d => {
+                                const systemCode = d.id.trim().toUpperCase();
+                                if (excelCode === systemCode || excelCode.includes(systemCode) || systemCode.includes(excelCode)) {
+                                    const rawStock = String(row[stockIdx] || '0').replace(/,/g, '').trim();
+                                    upload封包[d.id].computerStock = parseFloat(rawStock) || 0;
+                                }
+                            });
+                        } catch (rowErr) {}
+                    });
+
+                    set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
+                        alert(`🎉 電腦總量勾稽完全成功！`);
+                        loadDailyData();
+                    });
+                } catch (parseErr) { console.error(parseErr); }
+            };
+            reader.readAsArrayBuffer(file);
+        });
+
+        // 報表匯出
+        document.getElementById('btnExport').addEventListener('click', function() {
+            const dateStr = dateInput.value;
+            if(!dateStr) return;
+
+            const sheet1Rows = [
+                [`彰化醫院藥劑科四級管制藥 - 各調劑台/儲位責任盤點明細表 (核帳日期: ${dateStr})`],
+                ["藥品代碼", "藥品名稱", "規格", "電腦總結存", "雙號台", "雙號藥師", "罐裝台", "罐裝藥師", "庫存區", "庫存藥師", "藥車", "藥車藥師", "住院盒", "住院藥師", "門診盒", "門診藥師", "單號台", "單號藥師", "實體總盤點", "對帳誤差"]
+            ];
+
+            allDrugs.forEach(drug => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const info = getDrugSumAndComputer(drug.id, currentDayRecords);
+                
+                sheet1Rows.push([
+                    drug.id, drug.name, drug.spec, info.computerStock,
+                    dayData.sub_0 || 0, dayData.user_0 || '—',
+                    dayData.sub_1 || 0, dayData.user_1 || '—',
+                    dayData.sub_2 || 0, dayData.user_2 || '—',
+                    dayData.sub_3 || 0, dayData.user_3 || '—',
+                    dayData.sub_4 || 0, dayData.user_4 || '—',
+                    dayData.sub_5 || 0, dayData.user_5 || '—',
+                    dayData.sub_6 || 0, dayData.user_6 || '—',
+                    info.sum, (info.sum - info.computerStock)
+                ]);
+            });
+
+            const sheet2Rows = [
+                ["彰化醫院藥劑科四級管制藥 - 過去30日滾動庫差趨勢追蹤總表 (自動過濾週六等未上傳日)"],
+                ["核帳日期", "藥品代碼", "藥品名稱", "電腦帳結存", "全院實盤總量", "當日盤點庫差", "7日滾動絕對誤差均線"]
+            ];
+
+            const baseDate = new Date(dateStr);
+            const dateTimelineArray = [];
+            for (let k = 0; k < 30; k++) {
+                const tempD = new Date(baseDate);
+                tempD.setDate(baseDate.getDate() - k);
+                const isoStr = tempD.toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+                dateTimelineArray.push(isoStr);
+            }
+
+            dateTimelineArray.forEach(histDateStr => {
+                const dayRecords = rawAllDatesFirebaseBackup[histDateStr];
+                if (!dayRecords) return;
+
+                let hasValidStock = false;
+                for (let prop in dayRecords) {
+                    if (dayRecords[prop]?.computerStock !== undefined && Number(dayRecords[prop].computerStock) > 0) {
+                        hasValidStock = true;
+                        break;
+                    }
+                }
+                if (!hasValidStock) return;
+
+                allDrugs.forEach(drug => {
+                    const info = getDrugSumAndComputer(drug.id, dayRecords);
+                    const diff = info.sum - info.computerStock;
+                    const dayAvg7 = avg7DaysErrors[drug.id] || 0;
+
+                    sheet2Rows.push([
+                        histDateStr, drug.id, drug.name, info.computerStock, info.sum, diff, Number(dayAvg7.toFixed(2))
+                    ]);
+                });
+            });
+
+            const wb = XLSX.utils.book_new();
+            const ws1 = XLSX.utils.aoa_to_sheet(sheet1Rows);
+            XLSX.utils.book_append_sheet(wb, ws1, "當日各台簽章明細");
+
+            const ws2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
+            XLSX.utils.book_append_sheet(wb, ws2, "過去30日庫差變化總表");
+
+            XLSX.writeFile(wb, `彰醫管制藥智慧多維對帳表_${dateStr}.xlsx`);
+        });
+
+        loadDailyData();
     </script>
 </body>
 </html>
