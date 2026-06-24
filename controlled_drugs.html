@@ -161,4 +161,354 @@
         const injectList = [
             { id: "ATII01", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 2, 3, 5, 6] }, 
             { id: "PRPIO02", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, 
-            { id: "DORI05", name: "Midatin", spec: "1
+            { id: "DORI05", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 5, 6] }, 
+            { id: "TRAI11", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 5, 6] }  
+        ];
+
+        const allDrugs = [...oralList, ...injectList];
+        const subZoneNames = ["雙號調劑台(5-1~3)", "罐裝調劑台", "庫存區 (針劑庫存)", "藥車Tosho", "住院Tosho (針劑調劑)", "門診Tosho", "單號調劑台(5-1~3)"];
+        
+        let currentDayRecords = {};    
+        let activeMobileTab = 0; 
+
+        window.loadDailyData = function() {
+            const dateStr = document.getElementById('targetDate').value;
+            if (!dateStr) return;
+
+            onValue(ref(db, `controlledMatrixRecords/${dateStr}`), (snapshot) => {
+                currentDayRecords = snapshot.val() || {};
+                renderMobileZoneList(); 
+                renderMatrixTable();    
+                recalculateWholePage();
+            }, (error) => {
+                console.error("Firebase 連線或讀取失敗:", error);
+            });
+        };
+
+        window.switchMobileTab = function(tabIdx) {
+            activeMobileTab = tabIdx;
+            for(let i=0; i<7; i++) {
+                const btn = document.getElementById(`btnTab-${i}`);
+                if(!btn) continue;
+                if(i === tabIdx) {
+                    btn.className = "py-2 text-xs font-black rounded-lg shadow-sm border transition bg-gradient-to-r from-red-600 to-rose-600 text-white border-transparent scale-105 duration-150";
+                } else {
+                    btn.className = "py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 border-slate-200";
+                }
+            }
+            renderMobileZoneList();
+        };
+
+        // 📱 精準恢復：手機版儲位正確對應，不卡死
+        function renderMobileZoneList() {
+            const container = document.getElementById('mobileZoneCardsContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let titleBox = document.createElement('div');
+            titleBox.className = "bg-slate-700 text-white px-3 py-1.5 rounded-lg text-xs font-bold shadow-sm flex justify-between items-center";
+            
+            let zoneTitleText = subZoneNames[activeMobileTab];
+            if(activeMobileTab === 2) zoneTitleText = "庫存區 (包含口服與針劑UD庫存)";
+            if(activeMobileTab === 4) zoneTitleText = "住院Tosho (包含口服與針劑UD調劑)";
+            
+            titleBox.innerHTML = `<span>📍 目前儲位：${zoneTitleText}</span> <span class="bg-white/20 text-[10px] px-1.5 py-0.5 rounded">行動模式</span>`;
+            container.appendChild(titleBox);
+
+            let hasItems = false;
+
+            allDrugs.forEach((drug) => {
+                if (drug.disabled.includes(activeMobileTab)) return;
+
+                hasItems = true;
+                const dayData = currentDayRecords[drug.id] || {};
+                const cellVal = dayData[`sub_${activeMobileTab}`] !== undefined ? Number(dayData[`sub_${activeMobileTab}`]) : 0;
+                
+                let isInject = injectList.some(j => j.id === drug.id);
+                let textBorderColor = isInject ? "border-l-rose-500" : "border-l-amber-500";
+
+                let itemCard = document.createElement('div');
+                itemCard.className = `bg-white p-3 rounded-xl shadow-sm border border-slate-200 border-l-4 ${textBorderColor} flex justify-between items-center gap-3`;
+                
+                itemCard.innerHTML = `
+                    <div class="flex-1 min-w-0">
+                        <h4 class="text-sm font-black text-slate-800 truncate">${drug.name}</h4>
+                        <p class="text-[10px] text-slate-400 font-mono font-bold mt-0.5">${drug.id} · ${drug.spec}</p>
+                    </div>
+                    <div class="w-32 flex items-center space-x-1.5 justify-end">
+                        <input type="number" value="${cellVal}" min="0" pattern="[0-9]*" inputmode="numeric"
+                               oninput="liveUpdateFromMobileZone('${drug.id}', ${activeMobileTab}, this.value)"
+                               onchange="saveMatrixCell('${drug.id}', ${activeMobileTab}, this.value)"
+                               class="w-20 text-center font-black text-lg bg-blue-50/50 text-blue-700 border-2 border-blue-100 rounded-lg py-1 outline-none focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 transition shadow-inner">
+                        <span class="text-xs font-bold text-slate-400">粒/支</span>
+                    </div>
+                `;
+                container.appendChild(itemCard);
+            });
+
+            if(!hasItems) {
+                container.innerHTML += `<div class="text-center py-8 text-xs text-slate-400 font-bold bg-white rounded-xl border border-dashed">此儲位目前無須盤點四級管制藥品 ✨</div>`;
+            }
+        }
+
+        window.liveUpdateFromMobileZone = function(drugId, zoneIdx, val) {
+            const intVal = parseInt(val) || 0;
+            if(!currentDayRecords[drugId]) currentDayRecords[drugId] = {};
+            currentDayRecords[drugId][`sub_${zoneIdx}`] = intVal; 
+            
+            const compInput = document.querySelector(`input[data-comp-drug="${drugId}"][data-comp-sub="${zoneIdx}"]`);
+            if(compInput) {
+                compInput.value = intVal;
+            }
+            const dayData = currentDayRecords[drugId] || {};
+            const computerCount = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
+            liveCalculateMatrix(drugId, computerCount);
+        };
+
+        // 💻 電腦版大矩陣：精準對應、格子全數解鎖可正常點擊輸入
+        function renderMatrixTable() {
+            const tbody = document.getElementById('matrixTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            oralList.forEach((drug, idx) => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const computerCount = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
+                let tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-100 text-center hover:bg-slate-50/50 text-xs";
+                let typeHtml = idx === 0 ? `<td class="font-black bg-amber-50 text-amber-800 text-xs" rowspan="${oralList.length}">口服</td>` : '';
+                
+                let html = `${typeHtml}<td class="p-2 text-left font-black">${drug.name}</td><td class="p-1 text-slate-400 font-mono text-[10px]">${drug.spec}</td><td class="p-1 bg-slate-50 font-bold text-slate-500">${computerCount}</td>`;
+                
+                let rowSum = 0;
+                for (let i = 0; i < 7; i++) {
+                    const cellVal = dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0; 
+                    rowSum += cellVal;
+                    if (drug.disabled.includes(i)) { 
+                        html += `<td class="bg-slate-100 p-0.5"></td>`; 
+                    } else { 
+                        html += `<td class="p-0.5"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="${i}" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', ${i}, this.value)" class="w-full text-center font-bold border rounded p-1 text-xs outline-none focus:border-red-500 bg-white"></td>`; 
+                    }
+                }
+                const err = rowSum - computerCount;
+                html += `<td id="total-${drug.id}" class="font-black text-blue-600">${rowSum}</td><td><span id="err-${drug.id}" class="${getErrClass(err)}">${err>0?'+'+err:err}</span></td><td class="text-[10px] text-slate-400 font-bold">${dayData.user||'—'}</td>`;
+                tr.innerHTML = html; 
+                tbody.appendChild(tr);
+            });
+
+            injectList.forEach((drug, idx) => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const computerCount = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
+                let tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-100 text-center hover:bg-slate-50/50 text-xs";
+                let typeHtml = idx === 0 ? `<td class="font-black bg-rose-50 text-rose-800 text-xs" rowspan="${injectList.length}">針劑</td>` : '';
+                
+                let html = `${typeHtml}<td class="p-2 text-left font-black">${drug.name}</td><td class="p-1 text-slate-400 font-mono text-[10px]">${drug.spec}</td><td class="p-1 bg-slate-50 font-bold text-slate-500">${computerCount}</td>`;
+                
+                let rowSum = 0;
+                for (let i = 0; i < 7; i++) {
+                    const cellVal = dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0; 
+                    rowSum += cellVal;
+                    if (drug.disabled.includes(i)) { 
+                        html += `<td class="bg-slate-100 p-0.5"></td>`; 
+                    } else { 
+                        html += `<td class="p-0.5"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="${i}" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', ${i}, this.value)" class="w-full text-center font-black text-slate-700 bg-white border rounded p-1 text-xs outline-none"></td>`; 
+                    }
+                }
+                const err = rowSum - computerCount;
+                html += `<td id="total-${drug.id}" class="font-black text-blue-600">${rowSum}</td><td><span id="err-${drug.id}" class="${getErrClass(err)}">${err>0?'+'+err:err}</span></td><td class="text-[10px] text-slate-400 font-bold">${dayData.user||'—'}</td>`;
+                tr.innerHTML = html; 
+                tbody.appendChild(tr);
+            });
+        }
+
+        window.liveCalculateMatrix = function(drugId, computerCount) {
+            let sum = 0;
+            const inputs = document.querySelectorAll(`input[data-comp-drug="${drugId}"]`);
+            inputs.forEach(input => sum += (parseInt(input.value) || 0));
+            
+            const totalDom = document.getElementById(`total-${drugId}`);
+            if(totalDom) totalDom.innerText = sum;
+            
+            const errSpan = document.getElementById(`err-${drugId}`);
+            const diff = sum - computerCount;
+            if(errSpan) {
+                errSpan.innerText = diff > 0 ? '+' + diff : diff;
+                errSpan.className = getErrClass(diff);
+            }
+        };
+
+        window.saveMatrixCell = function(drugId, subIdx, val) {
+            const dateStr = document.getElementById('targetDate').value;
+            const userName = document.getElementById('pharmacistName').value || '線上藥師';
+            const cellInt = Math.max(0, parseInt(val) || 0);
+
+            const updateMap = {};
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/sub_${subIdx}`] = cellInt;
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user`] = userName;
+
+            update(ref(db), updateMap).then(() => {
+                recalculateWholePage();
+            }).catch(e => console.error("儲存格更新失敗:", e));
+        };
+
+        function recalculateWholePage() {
+            let totalErrors = 0;
+            allDrugs.forEach(drug => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const computerCount = dayData.computerStock !== undefined ? Number(dayData.computerStock) : 0;
+                let sum = 0;
+                for (let i = 0; i < 7; i++) sum += dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0;
+                totalErrors += Math.abs(sum - computerCount);
+            });
+
+            const box = document.getElementById('matchStatusBox');
+            const label = document.getElementById('matchStatusLabel');
+            if(!box || !label) return;
+
+            if (totalErrors === 0) {
+                box.className = "p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm bg-green-50 text-green-700 border border-green-200";
+                label.innerHTML = `<i class="fa-solid fa-circle-check text-base mr-1"></i> 彰醫今日管制藥帳物完全相符 (零誤差)`;
+            } else {
+                box.className = "p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm bg-red-50 text-red-700 border border-red-200 animate-pulse";
+                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> 警告！今日全院累計誤差 ${totalErrors} 粒/支`;
+            }
+        }
+
+        function getErrClass(err) {
+            if (err > 0) return "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-black";
+            if (err < 0) return "text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-black";
+            return "text-green-600 font-black";
+        }
+
+        window.importComputerStock = function(element) {
+            const file = element.files[0]; 
+            if (!file) return;
+            const dateStr = document.getElementById('targetDate').value;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                    
+                    let codeIdx = -1;
+                    let stockIdx = -1;
+                    let foundHeaderRowIdx = -1;
+                    let logMsg = "";
+
+                    for (let i = 0; i < Math.min(30, jsonRows.length); i++) {
+                        const row = jsonRows[i] || [];
+                        let tempCodeIdx = -1;
+                        let tempStockIdx = -1;
+
+                        for (let j = 0; j < row.length; j++) {
+                            if (row[j] === undefined || row[j] === null) continue;
+                            const cellTxt = String(row[j]).replace(/[\s\r\n\t]/g, '').trim();
+                            if (cellTxt === "物品代碼" || cellTxt === "藥品代碼" || cellTxt === "藥碼") tempCodeIdx = j;
+                            if (cellTxt === "總量") tempStockIdx = j;
+                        }
+
+                        if (tempCodeIdx !== -1 && tempStockIdx !== -1) {
+                            codeIdx = tempCodeIdx;
+                            stockIdx = tempStockIdx;
+                            foundHeaderRowIdx = i;
+                            logMsg += `成功比對表頭！物品代碼(第 ${codeIdx+1} 欄)，【總量欄】(第 ${stockIdx+1} 欄)\n`;
+                            break;
+                        }
+                    }
+
+                    if (codeIdx === -1 || stockIdx === -1) {
+                        logMsg += `提示：啟動彰醫二維固定座標與特徵掃描保險...\n`;
+                        for (let i = 0; i < Math.min(100, jsonRows.length); i++) {
+                            const row = jsonRows[i] || [];
+                            for (let j = 0; j < row.length; j++) {
+                                if (row[j] === undefined || row[j] === null) continue;
+                                const val = String(row[j]).replace(/[\s\r\n\t]/g, '').trim().toUpperCase();
+                                if (allDrugs.some(d => val === d.id)) {
+                                    codeIdx = j;
+                                    foundHeaderRowIdx = Math.max(0, i - 1);
+                                    break;
+                                }
+                            }
+                            if (codeIdx !== -1) break;
+                        }
+                        stockIdx = 8; 
+                        if (codeIdx === -1) codeIdx = 1; 
+                        logMsg += `防禦盲測綁定：代碼欄(第 ${codeIdx+1} 欄)，總量欄(第 ${stockIdx+1} 欄)\n`;
+                    }
+
+                    let upload封包 = {};
+                    allDrugs.forEach(d => { 
+                        const existing = currentDayRecords[d.id] || {};
+                        upload封包[d.id] = { ...existing, computerStock: 0 };
+                    });
+
+                    let matchCount = 0;
+                    let previewSamples = [];
+
+                    jsonRows.forEach((row, rowIdx) => {
+                        if (rowIdx <= foundHeaderRowIdx || !row || row[codeIdx] === undefined || row[codeIdx] === null) return;
+                        
+                        try {
+                            const excelCode = String(row[codeIdx]).replace(/[\s\r\n\t]/g, '').trim().toUpperCase();
+                            if (!excelCode || excelCode.includes("---") || excelCode.includes("填表人")) return;
+
+                            allDrugs.forEach(d => {
+                                const systemCode = d.id.trim().toUpperCase();
+                                if (excelCode === systemCode || excelCode.includes(systemCode) || systemCode.includes(excelCode)) {
+                                    const rawStock = String(row[stockIdx] || '0').replace(/,/g, '').trim();
+                                    upload封包[d.id].computerStock = parseFloat(rawStock) || 0;
+                                    matchCount++;
+                                    
+                                    if (previewSamples.length < 4) {
+                                        previewSamples.push(`${d.name} [${systemCode}] -> 電腦總量: ${upload封包[d.id].computerStock}`);
+                                    }
+                                }
+                            });
+                        } catch (rowErr) {}
+                    });
+
+                    const debugBox = document.getElementById('debugBox');
+                    const debugContent = document.getElementById('debugContent');
+                    if(debugBox && debugContent) {
+                        debugBox.classList.remove('hidden');
+                        debugContent.innerText = `${logMsg}\n字串去噪勾稽範例：\n${previewSamples.join('\n')}\n共計成功勾稽：${matchCount} 項。`;
+                    }
+
+                    set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
+                        alert(`🎉 勾稽完全成功！已精準洗淨隱形字元，成功同步 ${matchCount} 項四級管制藥電腦總量！`);
+                        loadDailyData();
+                    });
+
+                } catch (parseErr) {
+                    console.error(parseErr);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        window.exportMonthlyReport = function() {
+            const dateStr = document.getElementById('targetDate').value;
+            const exportRows = [
+                [`彰化醫院藥劑科 - 四級管制藥儲位分類核帳表 (${dateStr})`],
+                ["藥品代碼", "藥品名稱", "規格", "電腦結存(總量)", "實際總計", "對帳誤差", "簽章藥師"]
+            ];
+            allDrugs.forEach(drug => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const comp = Number(dayData.computerStock) || 0;
+                let sum = 0; for(let i=0; i<7; i++) sum += dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0;
+                exportRows.push([drug.id, drug.name, drug.spec, comp, sum, (sum - comp), dayData.user || '—']);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(exportRows);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "儲位盤點報表");
+            XLSX.writeFile(wb, `彰醫管制藥對帳表_${dateStr}.xlsx`);
+        };
+
+        switchMobileTab(0);
+        loadDailyData();
+    </script>
+</body>
+</html>
