@@ -9,82 +9,96 @@
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
-<body class="bg-slate-50 min-h-screen pb-12">
+<body class="bg-slate-100 min-h-screen pb-12">
 
-    <nav class="bg-gradient-to-r from-rose-700 to-red-800 text-white shadow-lg sticky top-0 z-40">
-        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+    <!-- 頂部導覽列 -->
+    <nav class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-40">
+        <div class="max-w-[1600px] mx-auto px-4 py-4 flex justify-between items-center">
             <div class="flex items-center space-x-3">
                 <a href="index.html" class="hover:opacity-80 transition"><i class="fa-solid fa-arrow-left text-xl"></i></a>
                 <h1 class="text-xl font-bold tracking-wide flex items-center">
-                    <i class="fa-solid fa-capsules mr-2 text-2xl animate-pulse"></i>
-                    四級管制藥每日核帳與誤差分析中心
+                    <i class="fa-solid fa-file-shield mr-2 text-2xl"></i>
+                    四級管制藥每日矩陣核帳中心
                 </h1>
             </div>
             <div class="text-xs bg-white/20 px-3 py-1.5 rounded-full backdrop-blur-sm font-bold">彰化醫院藥劑科</div>
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 mt-6 space-y-6">
+    <main class="max-w-[1600px] mx-auto px-4 mt-6 space-y-6">
         
+        <!-- 控制面板列 -->
         <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
+            <div class="bg-white p-4 rounded-2xl shadow-sm border flex flex-col justify-center">
                 <label class="text-xs font-bold text-slate-400 mb-1">🗓️ 選擇核帳日期</label>
                 <input type="date" id="targetDate" onchange="loadDailyData()" class="w-full font-black text-slate-700 border rounded-xl p-2 bg-slate-50 shadow-inner outline-none focus:border-red-500">
             </div>
-
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-                <label class="text-xs font-bold text-slate-400 mb-1">✍️ 登錄線上藥師姓名</label>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border flex flex-col justify-center">
+                <label class="text-xs font-bold text-slate-400 mb-1">✍️ 登錄線上簽章藥師</label>
                 <input type="text" id="pharmacistName" value="育伶" placeholder="請輸入姓名" class="w-full font-bold text-slate-700 border rounded-xl p-2 bg-slate-50 shadow-inner outline-none focus:border-red-500">
             </div>
-
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-                <label class="text-xs font-bold text-slate-400 mb-1">📤 上傳每日電腦結存明細 (Excel)</label>
+            <div class="bg-white p-4 rounded-2xl shadow-sm border flex flex-col justify-center">
+                <label class="text-xs font-bold text-slate-400 mb-1">📤 匯入醫院每日結存 (Excel)</label>
                 <input type="file" id="computerExcel" accept=".xlsx, .xls" class="hidden" onchange="importComputerStock(this)">
-                <button onclick="document.getElementById('computerExcel').click()" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black py-2 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-file-upload"></i> 匯入當日電腦存量
+                <button onclick="document.getElementById('computerExcel').click()" class="w-full bg-gradient-to-r from-red-600 to-rose-600 hover:from-red-700 hover:to-rose-700 text-white font-black py-2.5 rounded-xl text-xs shadow-md active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-file-upload"></i> 匯入當日電腦帳面存量
                 </button>
             </div>
-
-            <div class="bg-white p-4 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-center">
-                <label class="text-xs font-bold text-slate-400 mb-1">💾 下載歷史核帳統計</label>
-                <button onclick="exportMonthlyReport()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-2 rounded-xl text-xs shadow-sm active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
-                    <i class="fa-solid fa-download"></i> 匯出當月量與誤差表
+            <div class="bg-white p-4 rounded-2xl shadow-sm border flex flex-col justify-center">
+                <label class="text-xs font-bold text-slate-400 mb-1">💾 下載月度對帳統計</label>
+                <button onclick="exportMonthlyReport()" class="w-full bg-slate-800 hover:bg-slate-900 text-white font-black py-2.5 rounded-xl text-xs shadow-md active:scale-95 transition flex items-center justify-center gap-1.5 cursor-pointer">
+                    <i class="fa-solid fa-download"></i> 匯出歷史盤點誤差總表
                 </button>
             </div>
         </div>
 
-        <div class="bg-white p-5 rounded-3xl shadow-sm border border-slate-100">
-            <div class="flex justify-between items-center mb-3">
-                <h3 class="text-sm font-black text-slate-800 flex items-center gap-1"><i class="fa-solid fa-chart-line text-red-500"></i> 本月份每日誤差量趨勢監控 (自動連動線上輸入)</h3>
-                <span class="text-[10px] bg-red-50 text-red-600 font-bold px-2 py-0.5 rounded-md">單位: 粒/支</span>
+        <!-- 月度誤差趨勢圖表 -->
+        <div class="bg-white p-4 rounded-3xl shadow-sm border">
+            <div class="flex justify-between items-center mb-2">
+                <h3 class="text-sm font-black text-slate-800 flex items-center gap-1"><i class="fa-solid fa-chart-line text-red-500"></i> 本月份每日誤差量趨勢分析</h3>
+                <span id="matchStatusLabel" class="text-xs font-black">讀取中...</span>
             </div>
-            <div class="w-full h-[240px] relative">
+            <div class="w-full h-[200px] relative">
                 <canvas id="monthlyErrorChart"></canvas>
             </div>
         </div>
 
-        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
-            <div class="p-5 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 bg-slate-50/50">
+        <!-- 100% 還原紙本二維矩陣表格區 -->
+        <div class="bg-white rounded-3xl shadow-sm border overflow-hidden">
+            <div class="p-4 bg-slate-50 border-b flex justify-between items-center">
                 <div>
-                    <h3 class="font-black text-slate-800 text-md">📋 <span id="currentDateLabel"></span> 管制藥現場對帳表</h3>
-                    <p class="text-[11px] text-slate-400 font-medium mt-0.5">💡 線上藥師可直接在【現場盤點量】格子內輸入或修改，系統會即時存檔並計算誤差！</p>
+                    <h3 class="font-black text-slate-800 text-base">🏥 彰化醫院四級管制藥品盤點表</h3>
+                    <p class="text-xs text-slate-400 font-medium mt-0.5">說明：依盤點順序：雙號 ➔ 罐裝 ➔ 庫存 ➔ 車 ➔ 住 ➔ 門 ➔ 單。每日切點時間為 15:30；假日切點為 14:00。</p>
                 </div>
-                <span class="text-xs font-black" id="matchStatusLabel">讀取數據中...</span>
             </div>
+            
             <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
+                <table class="w-full text-left border-collapse border-slate-200">
                     <thead>
-                        <tr class="bg-slate-100/70 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
-                            <th class="py-4 px-6">藥品代碼</th>
-                            <th class="py-4 px-6">藥品名稱</th>
-                            <th class="py-4 px-6 text-center w-36">💻 當日電腦存量</th>
-                            <th class="py-4 px-6 text-center w-44">📱 現場盤點量 (可直接輸入)</th>
-                            <th class="py-4 px-6 text-center w-36">🚨 盤點誤差量</th>
-                            <th class="py-4 px-6 text-center">最後負責藥師</th>
+                        <!-- 第一層表頭 -->
+                        <tr class="bg-slate-100 text-slate-700 font-black text-xs text-center border-b border-slate-200 divide-x divide-slate-200">
+                            <th class="py-3 px-2 w-12" rowspan="2">劑型</th>
+                            <th class="py-3 px-4 text-left w-36" rowspan="2">商品名</th>
+                            <th class="py-3 px-2 w-24" rowspan="2">規格</th>
+                            <th class="py-3 px-2 w-20 text-red-600" rowspan="2">💻電腦存量</th>
+                            <th class="py-3 px-2" colspan="7">📱 實體調劑台儲位盤點區域 (線上即時填寫)</th>
+                            <th class="py-3 px-2 w-20 text-blue-600" rowspan="2">📊實際總計</th>
+                            <th class="py-3 px-2 w-20 text-orange-600" rowspan="2">🚨盤點誤差</th>
+                            <th class="py-3 px-2 w-20" rowspan="2">核對藥師</th>
+                        </tr>
+                        <!-- 第二層分區表頭（完美對齊紙本欄位） -->
+                        <tr class="bg-slate-50 text-slate-600 font-bold text-[11px] text-center border-b border-slate-200 divide-x divide-slate-200">
+                            <th class="py-2 px-1 w-20">雙號調劑台<br>(5-1~3)</th>
+                            <th class="py-2 px-1 w-20">罐裝<br>調劑台</th>
+                            <th class="py-2 px-1 w-20">庫存區</th>
+                            <th class="py-2 px-1 w-20">藥車<br>Tosho</th>
+                            <th class="py-2 px-1 w-20">住院<br>Tosho</th>
+                            <th class="py-2 px-1 w-20">門診<br>Tosho</th>
+                            <th class="py-2 px-1 w-20">單號調劑台<br>(5-1~3)</th>
                         </tr>
                     </thead>
-                    <tbody id="controlledTableBody" class="text-slate-700 text-sm divide-y divide-slate-50">
-                        <tr><td colspan="6" class="text-center py-8 text-slate-400 font-medium">⏳ 正在與 Firebase 同步即時管制藥數據...</td></tr>
+                    <tbody id="matrixTableBody" class="text-slate-700 text-xs divide-y divide-slate-200">
+                        <tr><td colspan="14" class="text-center py-12 text-slate-400 font-medium">⏳ 正在載入彰醫管制藥專用對帳界面...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -108,145 +122,249 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 設定初始日期
         const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
         document.getElementById('targetDate').value = todayStr;
 
-        let controlledMasterList = []; 
+        // 📝 依據彰醫管制藥紙本自定義口服藥與針劑品項清單（完美對應 Tosho 盒號與灰色禁用塊）
+        const oralList = [
+            { id: "ANXI02", name: "Anxiedin", spec: "0.5 mg/tab", disabled: [] },
+            { id: "APOZ00", name: "Apo-Zopiclone", spec: "7.5 mg/tab", disabled: [] },
+            { id: "APRA02", name: "Aprazo", spec: "0.5 mg/tab", disabled: [] },
+            { id: "BROM01", name: "Bromazin", spec: "3 mg/tab", disabled: [] },
+            { id: "CLON02", name: "Clonopam 2", spec: "2 mg/tab", disabled: [] },
+            { id: "DIAP00", name: "Diapin", spec: "2 mg/tab", disabled: [] },
+            { id: "DORM01", name: "Dormicum", spec: "7.5 mg/tab", disabled: [] },
+            { id: "ELIN00", name: "Elinin", spec: "20 mg/tab", disabled: [5] }, // Elinin 門診Tosho 灰色屏蔽
+            { id: "FLUP01", name: "Flupine", spec: "0.25 mg/tab", disabled: [] },
+            { id: "KINA00", name: "Kinax", spec: "1 mg/tab", disabled: [] },
+            { id: "KINZ00", name: "Kinzolam", spec: "2 mg/tab", disabled: [] },
+            { id: "LARP00", name: "Larpam", spec: "2 mg/tab", disabled: [] },
+            { id: "LEND01", name: "Lendormin", spec: "0.25 mg/tab", disabled: [] },
+            { id: "LORA00", name: "Lorazepam", spec: "1 mg/tab", disabled: [3, 4, 5] }, // 藥車、住院、門診Tosho 灰色
+            { id: "MUAC00", name: "Muaction SR", spec: "100 mg/tab", disabled: [3, 4, 5] }, // 藥車、住院、門診 灰色
+            { id: "OPIC00", name: "Opicet", spec: "37.5/325 mg", disabled: [] },
+            { id: "RIVO00", name: "Rivotril", spec: "0.5 mg/tab", disabled: [] },
+            { id: "SONA00", name: "Sonaplon", spec: "10mg/cap", disabled: [] },
+            { id: "TRAM01", name: "Tramtor", spec: "50 mg/cap", disabled: [] },
+            { id: "ZOLN00", name: "Zolnox", spec: "10 mg/tab", disabled: [] }
+        ];
+
+        const injectList = [
+            { id: "ANXI04", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 3, 4, 5, 6] }, // 針劑只開放：庫存區(index 2) 與 UD調劑區(index 4，此處轉為排版對齊)
+            { id: "FRES00", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 4, 5, 6] },
+            { id: "MIDA00", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 4, 5, 6] },
+            { id: "TRAM03", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 4, 5, 6] }
+        ];
+
         let currentDayRecords = {};    
         let fullMonthRecords = {};     
         let errorChart = null;         
 
-        // 1. 讀取管制藥主品項清單
-        onValue(ref(db, 'masterInjectList'), (snapshot) => {
-            const data = snapshot.val() || {};
-            controlledMasterList = Object.values(data).filter(d => d.subZone && d.subZone.includes('管制藥'));
-            loadDailyData();
-        });
-
-        // 2. 切換日期與讀取歷史
         window.loadDailyData = function() {
             const dateStr = document.getElementById('targetDate').value;
             if (!dateStr) return;
-            document.getElementById('currentDateLabel').innerText = dateStr;
 
-            onValue(ref(db, `controlledDailyRecords/${dateStr}`), (snapshot) => {
+            onValue(ref(db, `controlledMatrixRecords/${dateStr}`), (snapshot) => {
                 currentDayRecords = snapshot.val() || {};
-                renderControlledTable();
+                renderMatrixTable();
             });
 
-            // 讀取整月數據供圖表分析
             const currentYearMonth = dateStr.substring(0, 7);
-            onValue(ref(db, `controlledDailyRecords`), (snapshot) => {
+            onValue(ref(db, `controlledMatrixRecords`), (snapshot) => {
                 fullMonthRecords = snapshot.val() || {};
                 updateMonthlyChart(currentYearMonth);
             });
         };
 
-        // 3. 核心：繪製具有即時輸入格子的對帳表
-        function renderControlledTable() {
-            const tbody = document.getElementById('controlledTableBody');
-            if (!tbody || controlledMasterList.length === 0) return;
-
+        // 🎯 建立與紙本百分之百完全相同的渲染大腦
+        function renderMatrixTable() {
+            const tbody = document.getElementById('matrixTableBody');
+            if (!tbody) return;
             tbody.innerHTML = '';
+
             let totalErrors = 0;
 
-            controlledMasterList.forEach(drug => {
-                const dayData = currentDayRecords[drug.id] || { computerStock: 0, actualStock: 0, user: '—' };
+            // --- A. 渲染口服藥區段 ---
+            oralList.forEach((drug, idx) => {
+                const dayData = currentDayRecords[drug.id] || {};
                 const computerCount = Number(dayData.computerStock) || 0;
-                const actualCount = Number(dayData.actualStock) || 0;
                 
-                // 計算誤差量
-                const errorCount = actualCount - computerCount;
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 divide-x divide-slate-200 text-center";
+                
+                // 劑型直欄跨行
+                let typeHtml = idx === 0 ? `<td class="font-black bg-amber-50/60 text-amber-800 text-sm" rowspan="${oralList.length}">口<br>服</td>` : '';
+                
+                let html = `
+                    ${typeHtml}
+                    <td class="py-3 px-3 text-left font-black text-slate-800">${drug.name}</td>
+                    <td class="py-2 px-1 text-slate-400 font-bold font-mono text-[11px]">${drug.spec}</td>
+                    <td class="py-2 px-1 font-bold bg-slate-50 text-slate-500">${computerCount}</td>
+                `;
+
+                // 產生 7 個實體盤點儲位的輸入格子
+                let rowActualSum = 0;
+                for (let i = 0; i < 7; i++) {
+                    const cellVal = dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0;
+                    rowActualSum += cellVal;
+
+                    const isDisabled = drug.disabled.includes(i);
+                    if (isDisabled) {
+                        html += `<td class="bg-slate-200/80 p-1"></td>`; // 完美還原塗灰不盤點區塊
+                    } else {
+                        html += `
+                            <td class="p-1">
+                                <input type="number" value="${cellVal}" min="0"
+                                       oninput="liveCalculateMatrix('${drug.id}', ${computerCount})"
+                                       onchange="saveMatrixCell('${drug.id}', ${i}, this.value)"
+                                       class="w-full text-center font-bold text-slate-700 border rounded p-1 text-xs outline-none bg-white shadow-sm focus:border-red-500 focus:ring-1 focus:ring-red-100">
+                            </td>`;
+                    }
+                }
+
+                const errorCount = rowActualSum - computerCount;
                 totalErrors += Math.abs(errorCount);
 
-                let errorClass = "text-slate-300 font-bold";
-                if (errorCount > 0) errorClass = "text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg font-black";
-                if (errorCount < 0) errorClass = "text-red-600 bg-red-50 px-2.5 py-1 rounded-lg font-black";
-                if (errorCount === 0 && actualCount > 0) errorClass = "text-green-600 font-black";
-
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50/80 transition text-slate-600 font-medium";
-                
-                tr.innerHTML = `
-                    <td class="py-4 px-6 font-mono font-bold text-slate-800">${drug.id}</td>
-                    <td class="py-4 px-6 font-black text-slate-700">${drug.name}</td>
-                    <td class="py-4 px-6 text-center font-bold text-slate-500">${computerCount}</td>
-                    <td class="py-3 px-6 text-center">
-                        <input type="number" 
-                               value="${actualCount || 0}" 
-                               oninput="liveCalculateError('${drug.id}', this.value, ${computerCount})"
-                               onchange="saveActualStock('${drug.id}', this.value)"
-                               class="w-28 text-center font-black text-blue-600 bg-blue-50/50 border border-blue-200 rounded-xl p-1.5 focus:bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-100 outline-none transition shadow-inner">
-                    </td>
-                    <td class="py-4 px-6 text-center">
-                        <span id="err-${drug.id}" class="${errorClass}">${errorCount > 0 ? '+' + errorCount : errorCount}</span>
-                    </td>
-                    <td class="py-4 px-6 text-center text-xs text-slate-400 font-bold" id="user-${drug.id}">${dayData.user || '—'}</td>
+                html += `
+                    <td id="total-${drug.id}" class="font-black text-blue-600 text-sm bg-blue-50/20">${rowActualSum}</td>
+                    <td class="py-2 px-1"><span id="err-${drug.id}" class="${getErrClass(errorCount)}">${errorCount > 0 ? '+' + errorCount : errorCount}</span></td>
+                    <td id="user-${drug.id}" class="text-[10px] font-bold text-slate-400 truncate max-w-[70px]">${dayData.user || '—'}</td>
                 `;
+                tr.innerHTML = html;
                 tbody.appendChild(tr);
             });
 
-            updateTopStatusLabel(totalErrors);
+            // --- B. 渲染針劑區段（特殊雙區塊排版：中文字換成 UD庫存區、UD調劑區） ---
+            injectList.forEach((drug, idx) => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const computerCount = Number(dayData.computerStock) || 0;
+
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 divide-x divide-slate-200 text-center";
+
+                let typeHtml = idx === 0 ? `<td class="font-black bg-rose-50/60 text-rose-800 text-sm" rowspan="${injectList.length}">針<br>劑</td>` : '';
+                
+                let html = `
+                    ${typeHtml}
+                    <td class="py-3 px-3 text-left font-black text-slate-800">${drug.name}</td>
+                    <td class="py-2 px-1 text-slate-400 font-bold font-mono text-[11px]">${drug.spec}</td>
+                    <td class="py-2 px-1 font-bold bg-slate-50 text-slate-500">${computerCount}</td>
+                `;
+
+                let rowActualSum = 0;
+                for (let i = 0; i < 7; i++) {
+                    const cellVal = dayData[`sub_${i}`] !== undefined ? Number(dayData[`sub_${i}`]) : 0;
+                    
+                    // 針劑在紙本上只有三個格子：中文字跨欄「UD庫存區」、「UD調劑區」，其餘塗灰
+                    // 我們對應：index 2 為 UD庫存區，index 4 為 UD調劑區
+                    if (i === 2) { // UD 庫存區
+                        rowActualSum += cellVal;
+                        html += `
+                            <td class="p-1" colspan="2">
+                                <input type="number" value="${cellVal}" min="0" placeholder="UD庫存"
+                                       oninput="liveCalculateMatrix('${drug.id}', ${computerCount})"
+                                       onchange="saveMatrixCell('${drug.id}', 2, this.value)"
+                                       class="w-full text-center font-black text-emerald-600 bg-emerald-50/40 border border-emerald-200 rounded p-1 text-xs outline-none focus:bg-white focus:border-emerald-500">
+                            </td>`;
+                        i++; // 跳過下一個，因為使用了 colspan="2"
+                    } else if (i === 4) { // UD 調劑區
+                        rowActualSum += cellVal;
+                        html += `
+                            <td class="p-1" colspan="2">
+                                <input type="number" value="${cellVal}" min="0" placeholder="UD調劑"
+                                       oninput="liveCalculateMatrix('${drug.id}', ${computerCount})"
+                                       onchange="saveMatrixCell('${drug.id}', 4, this.value)"
+                                       class="w-full text-center font-black text-indigo-600 bg-indigo-50/40 border border-indigo-200 rounded p-1 text-xs outline-none focus:bg-white focus:border-indigo-500">
+                            </td>`;
+                        i++; // 跳過下一個，使用 colspan="2"
+                    } else {
+                        html += `<td class="bg-slate-200/80 p-1"></td>`; // 灰色屏蔽
+                    }
+                }
+
+                const errorCount = rowActualSum - computerCount;
+                totalErrors += Math.abs(errorCount);
+
+                html += `
+                    <td id="total-${drug.id}" class="font-black text-blue-600 text-sm bg-blue-50/20">${rowActualSum}</td>
+                    <td class="py-2 px-1"><span id="err-${drug.id}" class="${getErrClass(errorCount)}">${errorCount > 0 ? '+' + errorCount : errorCount}</span></td>
+                    <td id="user-${drug.id}" class="text-[10px] font-bold text-slate-400 truncate max-w-[70px]">${dayData.user || '—'}</td>
+                `;
+                tr.innerHTML = html;
+                tbody.appendChild(tr);
+            });
+
+            updateTopStatus(totalErrors);
         }
 
-        // 4. ✨ 貼心小功能：打字的當下「即時計算誤差」，不需要重新整理網頁
-        window.liveCalculateError = function(drugId, val, computerCount) {
-            const actualCount = parseInt(val) || 0;
-            const errorCount = actualCount - computerCount;
+        // 樣式判定大腦
+        function getErrClass(err) {
+            if (err > 0) return "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-black";
+            if (err < 0) return "text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-black";
+            return "text-green-600 font-black";
+        }
+
+        // ✍️ 現場打字當下「即時橫向與縱向加總」
+        window.liveCalculateMatrix = function(drugId, computerCount) {
+            let rowSum = 0;
+            // 找出同一橫列所有輸入框的值
+            const inputs = document.getElementById('matrixTableBody').querySelectorAll(`input[onchange*="'${drugId}'"]`);
+            inputs.forEach(input => {
+                rowSum += (parseInt(input.value) || 0);
+            });
+
+            const totalDom = document.getElementById(`total-${drugId}`);
+            if (totalDom) totalDom.innerText = rowSum;
+
+            const errorCount = rowSum - computerCount;
             const errSpan = document.getElementById(`err-${drugId}`);
-            
             if (errSpan) {
                 errSpan.innerText = errorCount > 0 ? '+' + errorCount : errorCount;
-                errSpan.className = ""; // 清除舊樣式
-                if (errorCount > 0) errSpan.className = "text-amber-600 bg-amber-50 px-2.5 py-1 rounded-lg font-black";
-                else if (errorCount < 0) errSpan.className = "text-red-600 bg-red-50 px-2.5 py-1 rounded-lg font-black";
-                else errSpan.className = "text-green-600 font-black";
+                errSpan.className = getErrClass(errorCount);
             }
         };
 
-        // 5. ✨ 自動存檔：當藥師點擊其他地方或按 Enter 時，自動悄悄寫入 Firebase
-        window.saveActualStock = function(drugId, val) {
+        // 💾 當藥師切換填寫格子時，立即進行單格 Firebase 雲端寫入
+        window.saveMatrixCell = function(drugId, subIdx, val) {
             const dateStr = document.getElementById('targetDate').value;
             const userName = document.getElementById('pharmacistName').value || '線上藥師';
-            const actualCount = parseInt(val) || 0;
+            const cellInt = Math.max(0, parseInt(val) || 0);
 
-            const updateData = {};
-            updateData[`controlledDailyRecords/${dateStr}/${drugId}/actualStock`] = actualCount;
-            updateData[`controlledDailyRecords/${dateStr}/${drugId}/user`] = userName;
+            const updateMap = {};
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/sub_${subIdx}`] = cellInt;
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user`] = userName;
 
-            update(ref(db), updateData).then(() => {
+            update(ref(db), updateMap).then(() => {
                 document.getElementById(`user-${drugId}`).innerText = userName;
-                // 重新計算整頁累計總誤差，點亮頂端警報
-                recalculateTotalPageError();
+                recalculateWholePage();
             });
         };
 
-        // 重新統計整頁總誤差
-        function recalculateTotalPageError() {
+        // 全頁動態統計大總結
+        function recalculateWholePage() {
             let totalErrors = 0;
-            controlledMasterList.forEach(drug => {
+            [...oralList, ...injectList].forEach(drug => {
                 const errSpan = document.getElementById(`err-${drug.id}`);
                 if (errSpan) {
-                    const errVal = parseInt(errSpan.innerText) || 0;
-                    totalErrors += Math.abs(errVal);
+                    const textVal = parseInt(errSpan.innerText) || 0;
+                    totalErrors += Math.abs(textVal);
                 }
             });
-            updateTopStatusLabel(totalErrors);
+            updateTopStatus(totalErrors);
         }
 
-        function updateTopStatusLabel(totalErrors) {
-            const statusLabel = document.getElementById('matchStatusLabel');
+        function updateTopStatus(totalErrors) {
+            const label = document.getElementById('matchStatusLabel');
             if (totalErrors === 0) {
-                statusLabel.className = "text-xs font-black text-green-600 bg-green-50 px-3 py-1.5 rounded-full shadow-sm";
-                statusLabel.innerHTML = `<i class="fa-solid fa-circle-check"></i> 當日帳物完全相符 (零誤差)`;
+                label.className = "text-xs font-black text-green-600 bg-green-50 px-3 py-1.5 rounded-full shadow-sm";
+                label.innerHTML = `<i class="fa-solid fa-circle-check"></i> 帳物完全相符 (零誤差)`;
             } else {
-                statusLabel.className = "text-xs font-black text-red-600 bg-red-50 px-3 py-1.5 rounded-full shadow-sm animate-pulse";
-                statusLabel.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 警告！今日累計誤差 ${totalErrors} 粒/支`;
+                label.className = "text-xs font-black text-red-600 bg-red-50 px-3 py-1.5 rounded-full shadow-sm animate-pulse";
+                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> 警告！全院現存誤差 ${totalErrors} 粒/支`;
             }
         }
 
-        // 6. 解析並匯入每日電腦存量 Excel
+        // 📤 解析並匯入電腦存量 Excel
         window.importComputerStock = function(element) {
             const file = element.files[0];
             if (!file) return;
@@ -269,15 +387,12 @@
                     if(codeIdx !== -1 && stockIdx !== -1) break;
                 }
                 if(codeIdx === -1) codeIdx = 0; 
-                if(stockIdx === -1) stockIdx = 4; 
+                if(stockIdx === -1) stockIdx = 3; 
 
                 let upload封包 = {};
-                controlledMasterList.forEach(d => {
-                    upload封包[d.id] = { 
-                        computerStock: currentDayRecords[d.id]?.computerStock || 0,
-                        actualStock: currentDayRecords[d.id]?.actualStock || 0,
-                        user: currentDayRecords[d.id]?.user || '—'
-                    };
+                // 保留原本已輸入好的多儲位明細
+                [...oralList, ...injectList].forEach(d => {
+                    upload封包[d.id] = currentDayRecords[d.id] || { computerStock: 0 };
                 });
 
                 jsonData.forEach(row => {
@@ -285,118 +400,108 @@
                     const code = String(row[codeIdx]).trim();
                     const stock = parseInt(row[stockIdx]) || 0;
                     
-                    if (controlledMasterList.some(d => d.id === code)) {
-                        if (!upload封包[code]) upload封包[code] = { actualStock: 0, user: userName };
+                    if (upload封包[code]) {
                         upload封包[code].computerStock = stock;
                     }
                 });
 
-                set(ref(db, `controlledDailyRecords/${dateStr}`), upload封包).then(() => {
-                    alert(`🎉 ${dateStr} 電腦帳面結存匯入成功！`);
+                set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
+                    alert(`🎉 ${dateStr} 帳面存量結存批次匯入成功！`);
                     loadDailyData();
                 });
             };
             reader.readAsArrayBuffer(file);
         };
 
-        // 7. 繪製並更新本月份每日誤差量趨勢圖表
+        // 📈 繪製本月份 1~31 天誤差量折線趨勢圖 (以月為單位)
         function updateMonthlyChart(yearMonth) {
             const ctx = document.getElementById('monthlyErrorChart');
             if (!ctx) return;
 
-            let daysInMonth = [];
-            for (let d = 1; d <= 31; d++) daysInMonth.push(`${d}日`);
+            let labels = [];
+            for (let d = 1; d <= 31; d++) labels.push(`${d}日`);
 
-            let datasetMap = {};
-            // 為每款管制藥配置隨機且柔和的線條顏色
-            const colors = ['#e11d48', '#ea580c', '#d97706', '#059669', '#2563eb', '#7c3aed', '#db2777', '#4b5563'];
+            let datasets = [];
+            const colors = ['#dc2626', '#d97706', '#059669', '#2563eb', '#7c3aed', '#db2777', '#4b5563'];
             
-            controlledMasterList.forEach((drug, idx) => {
-                datasetMap[drug.id] = {
-                    label: drug.name.substring(0, 10),
-                    data: new Array(31).fill(0),
-                    borderColor: colors[idx % colors.length],
-                    backgroundColor: colors[idx % colors.length] + '20',
-                    borderWidth: 2,
-                    pointRadius: 3,
-                    tension: 0.1,
-                    fill: false
-                };
-            });
+            // 挑選具體代表性的藥物進行趨勢繪製
+            const sampleDrugs = [...oralList.slice(0, 3), ...injectList.slice(0, 2)];
 
-            // 走查當前月份 1~31 日的所有數據
-            Object.keys(fullMonthRecords).forEach(dateKey => {
-                if (dateKey.startsWith(yearMonth)) {
-                    const dayNum = parseInt(dateKey.split('-')[2]);
-                    if (dayNum >= 1 && dayNum <= 31) {
-                        const dayData = fullMonthRecords[dateKey] || {};
-                        controlledMasterList.forEach(drug => {
-                            if (datasetMap[drug.id] && dayData[drug.id]) {
-                                const comp = Number(dayData[drug.id].computerStock) || 0;
-                                const act = Number(dayData[drug.id].actualStock) || 0;
-                                datasetMap[drug.id].data[dayNum - 1] = (act - comp); // 誤差值
-                            }
-                        });
+            sampleDrugs.forEach((drug, idx) => {
+                let dayArr = new Array(31).fill(0);
+                
+                Object.keys(fullMonthRecords).forEach(dateKey => {
+                    if (dateKey.startsWith(yearMonth)) {
+                        const dNum = parseInt(dateKey.split('-')[2]);
+                        const dayData = fullMonthRecords[dateKey][drug.id] || {};
+                        const comp = Number(dayData.computerStock) || 0;
+                        
+                        let actSum = 0;
+                        for(let i=0; i<7; i++) actSum += Number(dayData[`sub_${i}`] || 0);
+                        
+                        if (dNum >= 1 && dNum <= 31) {
+                            dayArr[dNum - 1] = actSum - comp; // 誤差趨勢
+                        }
                     }
-                }
+                });
+
+                datasets.push({
+                    label: drug.name,
+                    data: dayArr,
+                    borderColor: colors[idx % colors.length],
+                    borderWidth: 1.5,
+                    pointRadius: 2,
+                    fill: false
+                });
             });
 
             if (errorChart) errorChart.destroy();
 
             errorChart = new Chart(ctx, {
                 type: 'line',
-                data: {
-                    labels: daysInMonth,
-                    datasets: Object.values(datasetMap)
-                },
+                data: { labels: labels, datasets: datasets },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     scales: {
-                        y: { 
-                            title: { display: true, text: '誤差值 (實際-電腦)', font: { weight: 'bold', size: 11 } },
-                            grid: { color: '#f1f5f9' }
-                        },
+                        y: { grid: { color: '#f1f5f9' }, title: { display: true, text: '誤差量', font: { size: 10 } } },
                         x: { grid: { display: false } }
                     },
-                    plugins: {
-                        legend: { labels: { font: { size: 10, weight: 'bold' } }, position: 'bottom' }
-                    }
+                    plugins: { legend: { position: 'right', labels: { font: { size: 9 } } } }
                 }
             });
         }
 
-        // 8. 匯出月統計報表明細
+        // 💾 導出本月完整加總與誤差分析 Excel
         window.exportMonthlyReport = function() {
             const dateStr = document.getElementById('targetDate').value;
             const currentYearMonth = dateStr.substring(0, 7);
 
             const exportRows = [
-                [`彰化醫院藥劑科 - 四級管制藥月份盤點量與誤差匯總統計表 (${currentYearMonth})`],
+                [`彰化醫院藥劑科 - 四級管制藥盤點多儲位結存與誤差月報表 (${currentYearMonth})`],
                 ["匯出時間：" + new Date().toLocaleString('zh-TW')],
                 [],
-                ["藥品代碼", "藥品名稱", "電腦帳面存量", "現場實際盤點量", "盤點誤差量", "最後核對藥師"]
+                ["藥品代碼", "藥品名稱", "包裝規格", "電腦結存量", "實際加總總計", "對帳誤差量", "線上盤點簽章"]
             ];
 
-            controlledMasterList.forEach(drug => {
-                const dayData = currentDayRecords[drug.id] || { computerStock: 0, actualStock: 0, user: '—' };
+            [...oralList, ...injectList].forEach(drug => {
+                const dayData = currentDayRecords[drug.id] || {};
                 const comp = Number(dayData.computerStock) || 0;
-                const act = Number(dayData.actualStock) || 0;
+                let actSum = 0;
+                for(let i=0; i<7; i++) actSum += Number(dayData[`sub_${i}`] || 0);
+
                 exportRows.push([
-                    drug.id, 
-                    drug.name, 
-                    comp, 
-                    act, 
-                    (act - comp), 
-                    dayData.user || '—'
+                    drug.id, drug.name, drug.spec, comp, actSum, (actSum - comp), dayData.user || '—'
                 ]);
             });
 
             const ws = XLSX.utils.aoa_to_sheet(exportRows);
             const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "當日管制藥誤差對帳");
-            XLSX.writeFile(wb, `彰醫四級管制藥核帳報表_${dateStr}.xlsx`);
+            XLSX.utils.book_append_sheet(wb, ws, "管制藥月度核帳分析");
+            XLSX.writeFile(wb, `彰醫四級管制藥核帳月報表_${currentYearMonth}.xlsx`);
         };
+
+        loadDailyData();
     </script>
 </body>
 </html>
