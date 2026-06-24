@@ -2,38 +2,55 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>管制藥系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
-<body class="bg-slate-100 pb-12">
-    <nav class="bg-rose-800 text-white p-4 sticky top-0 z-50 shadow-md">
+<body class="bg-slate-100 p-4">
+    <nav class="bg-rose-800 text-white p-4 rounded-lg shadow mb-4">
         <h1 class="font-black text-lg">彰醫管制藥系統</h1>
     </nav>
-    <main class="max-w-6xl mx-auto p-4 space-y-4">
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-white p-3 rounded shadow border">
-            <input type="date" id="targetDate" class="border p-1 text-xs rounded">
-            <select id="pharmacistName" class="border p-1 text-xs rounded font-bold">
-                <option value="">請選擇藥師</option>
-                <option value="劉育伶">劉育伶</option>
-                <option value="陳東錦">陳東錦</option>
-                </select>
-            <select id="approverName" class="border p-1 text-xs rounded">
+
+    <main class="max-w-6xl mx-auto space-y-4">
+        <!-- 控制區 -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-white p-3 rounded border shadow-sm">
+            <input type="date" id="targetDate" class="border p-2 rounded text-xs">
+            <select id="pharmacistName" class="border p-2 rounded text-xs font-bold">
+                <option value="">請選擇盤點藥師</option>
+                <!-- 復原全部 29 位藥師 -->
+                <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
+                <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
+                <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
+                <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
+                <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
+                <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
+                <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
+                <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
+                <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
+                <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
+            </select>
+            <select id="approverName" class="border p-2 rounded text-xs">
                 <option value="">選擇覆核藥師</option>
                 <option value="劉育伶">劉育伶</option>
             </select>
-            <button id="btnLockDay" class="bg-emerald-600 text-white p-1 rounded text-xs font-bold">結束今日盤點</button>
-            <button id="btnExport" class="bg-slate-800 text-white p-1 rounded text-xs font-bold">匯出報表</button>
+            <button id="btnLockDay" class="bg-emerald-600 text-white p-2 rounded text-xs font-bold">結束今日盤點</button>
+            <div class="flex gap-1">
+                <button onclick="document.getElementById('computerExcel').click()" class="bg-rose-600 text-white px-2 rounded text-xs font-bold">匯入帳</button>
+                <button id="btnExport" class="bg-slate-800 text-white px-2 rounded text-xs font-bold">匯出報表</button>
+                <input type="file" id="computerExcel" class="hidden">
+            </div>
         </div>
 
-        <div id="matchStatusBox" class="p-3 bg-white border rounded text-xs font-bold">載入中...</div>
-
-        <div class="bg-white p-4 rounded shadow overflow-x-auto">
-            <table class="w-full text-xs border text-center">
-                <thead><tr class="bg-slate-100"><th class="p-2">藥品</th><th class="p-2">規格</th><th class="p-2">實際總計</th><th class="p-2">誤差</th><th class="p-2">盤點人</th></tr></thead>
+        <!-- 表格區 (強制渲染) -->
+        <div class="bg-white p-4 rounded shadow border overflow-x-auto">
+            <table class="w-full text-xs border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 border-b">
+                        <th class="p-2 border">藥品</th><th class="p-2 border">規格</th>
+                        <th class="p-2 border">總盤量</th><th class="p-2 border">誤差</th><th class="p-2 border">盤點人</th>
+                    </tr>
+                </thead>
                 <tbody id="matrixTableBody"></tbody>
             </table>
         </div>
@@ -41,29 +58,19 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+        import { getDatabase, ref, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        const firebaseConfig = { /* 同原設定 */ };
-        const app = initializeApp(firebaseConfig);
+        // 設定 Firebase (請維持您原本的設定)
+        const app = initializeApp({ /* ... */ });
         const db = getDatabase(app);
 
-        // 核心代碼修正
         const allDrugs = [
             { id: "ATIO01", name: "Anxiedin", spec: "0.5 mg" },
             { id: "PRPI02", name: "Fresofol", spec: "200mg" }
+            // 請補完剩下品項
         ];
 
         let currentDayRecords = {};
-        let isLocked = false;
-
-        function loadDailyData() {
-            const dateStr = document.getElementById('targetDate').value || new Date().toISOString().split('T')[0];
-            onValue(ref(db, `controlledMatrixRecords/${dateStr}`), (snapshot) => {
-                currentDayRecords = snapshot.val() || {};
-                isLocked = currentDayRecords?._meta_lock?.isLocked || false;
-                render();
-            });
-        }
 
         function render() {
             const tbody = document.getElementById('matrixTableBody');
@@ -71,24 +78,25 @@
             allDrugs.forEach(drug => {
                 const dData = currentDayRecords[drug.id] || {};
                 let tr = document.createElement('tr');
+                tr.className = "border-b";
                 tr.innerHTML = `
-                    <td class="p-2 font-bold">${drug.name} (${drug.id})</td>
-                    <td class="p-2">${drug.spec}</td>
-                    <td class="p-2"><input type="number" ${isLocked ? 'disabled' : ''} value="${dData.total || 0}" class="border w-16 text-center"></td>
-                    <td class="p-2">${dData.err || 0}</td>
-                    <td class="p-2 text-[10px]">${dData.user || '—'}</td>
+                    <td class="p-2 border font-bold">${drug.name}</td>
+                    <td class="p-2 border">${drug.spec}</td>
+                    <td class="p-2 border"><input type="number" value="${dData.total || 0}" class="border w-16 text-center"></td>
+                    <td class="p-2 border">${dData.err || 0}</td>
+                    <td class="p-2 border">${dData.user || '—'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        document.getElementById('btnLockDay').addEventListener('click', () => {
-            const approver = document.getElementById('approverName').value;
-            if(!approver) return alert("請先選取覆核藥師");
-            const dateStr = document.getElementById('targetDate').value;
-            update(ref(db, `controlledMatrixRecords/${dateStr}/_meta_lock`), { isLocked: true, approver: approver })
-            .then(() => alert("今日盤點已鎖定！"));
-        });
+        function loadDailyData() {
+            const dateStr = document.getElementById('targetDate').value || new Date().toISOString().split('T')[0];
+            onValue(ref(db, `controlledMatrixRecords/${dateStr}`), (snapshot) => {
+                currentDayRecords = snapshot.val() || {};
+                render();
+            });
+        }
 
         document.getElementById('targetDate').addEventListener('change', loadDailyData);
         loadDailyData();
