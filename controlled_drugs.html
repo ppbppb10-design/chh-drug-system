@@ -45,38 +45,18 @@
                 <input type="date" id="targetDate" class="w-full font-black text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
-                <label class="text-[10px] font-bold text-slate-400 mb-0.5">✍️ 線上簽章藥師</label>
-                <!-- 🎯 核心升級：文字輸入框改為「下拉式名單選單」，完美植入29位彰醫藥師名單，預設停留在您身上 -->
+                <label class="text-[10px] font-bold text-slate-400 mb-0.5">✍️ 當前盤點/簽章藥師 (變更欄位將以此人覆蓋簽章)</label>
                 <select id="pharmacistName" class="w-full font-bold text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500 cursor-pointer">
-                    <option value="陳東錦">陳東錦</option>
-                    <option value="賴錦益">賴錦益</option>
-                    <option value="邱富強">邱富強</option>
-                    <option value="劉孟育">劉孟育</option>
-                    <option value="蘇惠敏">蘇惠敏</option>
-                    <option value="林雅萍">林雅萍</option>
-                    <option value="張幸逢">張幸逢</option>
-                    <option value="洪紹寧">洪紹寧</option>
-                    <option value="黃聖剛">黃聖剛</option>
-                    <option value="陳麗君">陳麗君</option>
-                    <option value="楊德宏">楊德宏</option>
-                    <option value="陳玫君">陳玫君</option>
-                    <option value="馬惠玲">馬惠玲</option>
-                    <option value="吳婉瑄">吳婉瑄</option>
-                    <option value="嚴宗賓">嚴宗賓</option>
-                    <option value="張雨淳">張雨淳</option>
-                    <option value="劉育伶" selected>劉育伶</option>
-                    <option value="邱瑞航">邱瑞航</option>
-                    <option value="吳致寛">吳致寛</option>
-                    <option value="葉儒樺">葉儒樺</option>
-                    <option value="劉子嫣">劉子嫣</option>
-                    <option value="許佳燕">許佳燕</option>
-                    <option value="許藝齡">許藝齡</option>
-                    <option value="劉佳昕">劉佳昕</option>
-                    <option value="黃竹珈">黃竹珈</option>
-                    <option value="胡明哲">胡明哲</option>
-                    <option value="李婉華">李婉華</option>
-                    <option value="邱麒文">邱麒文</option>
-                    <option value="陳宜君">陳宜君</option>
+                    <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
+                    <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
+                    <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
+                    <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
+                    <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
+                    <option value="張雨淳">張雨淳</option><option value="劉育伶" selected>劉育伶</option><option value="邱瑞航">邱瑞航</option>
+                    <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
+                    <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
+                    <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
+                    <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
                 </select>
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
@@ -148,7 +128,7 @@
         <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
-                <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽 (小字為前次盤點儲位藥量)</h3>
+                <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽 (小字內含個別儲位負責藥師)</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -161,7 +141,6 @@
                             <th class="py-3 px-2" colspan="7">📱 實體調劑台儲位盤點區域</th>
                             <th class="py-3 px-1 w-16 text-blue-600" rowspan="2">📊實際總計</th>
                             <th class="py-3 px-2 w-24 text-orange-600" rowspan="2">🚨對帳誤差<br>(7日均)</th>
-                            <th class="py-3 px-1 w-16" rowspan="2">藥師</th>
                         </tr>
                         <tr class="bg-slate-50 text-slate-600 font-bold text-[10px] text-center border-b border-slate-200 divide-x divide-slate-200">
                             <th class="py-1.5 px-0.5 w-16">雙號台</th>
@@ -219,7 +198,8 @@
             { id: "FLUO66", name: "Flupine", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
             { id: "SANO08", name: "Kinax", spec: "1 mg/tab", disabled: [1, 4, 5] },
             { id: "EURO02", name: "Kinzolam", spec: "2 mg/tab", disabled: [1, 4, 5] },
-            { id: "ATIO07", name: "Larpam", spec: "2 mg/tab", disabled: [1, 4, 5] },
+            // 🎯 核心升級：已將 Larpam (ATIO07) 藥車(索引3) 完全拿掉，disabled 加入 3！
+            { id: "ATIO07", name: "Larpam", spec: "2 mg/tab", disabled: [1, 3, 4, 5] }, 
             { id: "LENO00", name: "Lendormin", spec: "0.25 mg/tab", disabled: [1, 4, 5] },
             { id: "ATIO12", name: "Lorazepam", spec: "1 mg/tab", disabled: [0, 2, 6] },
             { id: "TRAO16", name: "Muaction SR", spec: "100 mg/tab", disabled: [0, 2, 3, 4, 6] },
@@ -408,6 +388,9 @@
                 
                 const pastData = pastRecords[drug.id] || {};
                 const pastCellVal = pastData[`sub_${activeMobileTab}`] !== undefined ? `${pastData[`sub_${activeMobileTab}`]} 粒/支` : '—';
+                
+                // 🎯 智慧顯印：手機版小卡片上同時秀出該储位先前由誰簽名
+                const cellUser = dayData[`user_${activeMobileTab}`] || '—';
 
                 let isInject = injectList.some(j => j.id === drug.id);
                 let textBorderColor = isInject ? "border-l-rose-500" : "border-l-amber-500";
@@ -419,7 +402,10 @@
                     <div class="flex-1 min-w-0">
                         <h4 class="text-sm font-black text-slate-800 truncate">${drug.name}</h4>
                         <p class="text-[10px] text-slate-400 font-mono font-bold mt-0.5">${drug.id} · ${drug.spec}</p>
-                        <span class="inline-block mt-1 text-[10px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">前次：${pastCellVal}</span>
+                        <div class="flex flex-wrap gap-1 mt-1">
+                            <span class="text-[9px] bg-slate-100 text-slate-500 px-1.5 py-0.5 rounded font-bold">前次：${pastCellVal}</span>
+                            <span class="text-[9px] bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-bold"><i class="fa-solid fa-user-pen text-[8px]"></i> 儲位藥師:${cellUser}</span>
+                        </div>
                     </div>
                     <div class="w-32 flex items-center space-x-1.5 justify-end">
                         <input type="number" value="${cellVal}" min="0" pattern="[0-9]*" inputmode="numeric"
@@ -463,13 +449,18 @@
 
                         const pastData = pastRecords[drug.id] || {};
                         const pastCellVal = pastData[`sub_${i}`] !== undefined ? pastData[`sub_${i}`] : '—';
+                        
+                        // 🎯 核心升級：精準撈出該儲位獨立的登錄藥師
+                        const cellUser = dayData[`user_${i}`] || '—';
 
                         if (drug.disabled.includes(i)) { 
                             html += `<td class="bg-slate-100 p-0.5"></td>`; 
                         } else { 
-                            html += `<td class="p-1 bg-white">
+                            // 🎯 視覺優化：表格格子內清晰呈現 [負責藥師] 與 (前次數量)
+                            html += `<td class="p-1 bg-white min-w-[75px]">
                                 <input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="${i}" class="matrix-input w-full text-center font-bold border rounded p-0.5 text-xs outline-none focus:border-red-500 bg-white">
-                                <div class="text-[9px] text-slate-400 scale-90 mt-0.5 bg-slate-100 rounded py-0.2 font-medium">前次:${pastCellVal}</div>
+                                <div class="text-[8px] text-blue-600 scale-90 mt-0.5 truncate font-bold bg-blue-50/50 rounded py-0.5">✍️:${cellUser}</div>
+                                <div class="text-[8px] text-slate-400 scale-90 mt-0.5 font-medium">前次:${pastCellVal}</div>
                             </td>`; 
                         }
                     }
@@ -480,8 +471,7 @@
                              <td class="p-1">
                                 <span id="err-${drug.id}" class="${getErrClass(err, avg7)}">${err > 0 ? '+' + err : err}</span>
                                 <div class="text-[9px] text-slate-400 font-medium scale-90 mt-0.5">均:${avg7.toFixed(1)}</div>
-                             </td>
-                             <td class="text-[10px] text-slate-400 font-bold">${dayData.user||'—'}</td>`;
+                             </td>`;
                     tr.innerHTML = html; 
                     tbody.appendChild(tr);
                 });
@@ -512,6 +502,7 @@
             renderSummaryTable();
         }
 
+        // 🎯 核心升級：寫入資料庫時，獨立蓋印儲位藥師印章 `user_${subIdx}`
         function executeSaveCell(drugId, subIdx, val) {
             const dateStr = dateInput.value;
             const userName = document.getElementById('pharmacistName').value || '線上藥師';
@@ -519,11 +510,11 @@
 
             if(!currentDayRecords[drugId]) currentDayRecords[drugId] = {};
             currentDayRecords[drugId][`sub_${subIdx}`] = cellInt;
-            currentDayRecords[drugId]['user'] = userName;
+            currentDayRecords[drugId][`user_${subIdx}`] = userName; // 蓋印專屬儲位藥師
 
             const updateMap = {};
             updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/sub_${subIdx}`] = cellInt;
-            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user`] = userName;
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user_${subIdx}`] = userName; // 即時推送
 
             update(ref(db), updateMap).then(() => {
                 recalculateWholePage();
@@ -580,7 +571,6 @@
         // ==================== 事件監聽綁定 ====================
         dateInput.addEventListener('change', loadDailyData);
 
-        // 🧠 新增：當簽章選單變動時，自動觸發一次同步（保留先前輸入者的姓名更新）
         document.getElementById('pharmacistName').addEventListener('change', () => {
             if (currentDayRecords) refreshUI();
         });
@@ -592,7 +582,7 @@
             refreshUI();
         });
 
-        // 全局點擊藥名快顯條條碼
+        // 全局點擊藥名快顯條碼
         document.body.addEventListener('click', (e) => {
             const qrTrigger = e.target.closest('[data-trigger-qr]');
             if(qrTrigger) {
@@ -733,13 +723,12 @@
             const dateStr = dateInput.value;
             const exportRows = [
                 [`彰化醫院藥劑科 - 四級管制藥儲位分類核帳表 (${dateStr})`],
-                ["藥品代碼", "藥品名稱", "規格", "電腦結存(總量)", "實際總計", "對帳誤差", "7日平均絕對誤差", "簽章藥師"]
+                ["藥品代碼", "藥品名稱", "規格", "電腦結存(總量)", "實際總計", "對帳誤差", "7日平均絕對誤差"]
             ];
             allDrugs.forEach(drug => {
                 const info = getDrugSumAndComputer(drug.id);
-                const dayData = (currentDayRecords && currentDayRecords[drug.id]) ? currentDayRecords[drug.id] : {};
                 const avg7 = avg7DaysErrors[drug.id] || 0;
-                exportRows.push([drug.id, drug.name, drug.spec, info.computerStock, info.sum, (info.sum - info.computerStock), avg7.toFixed(2), dayData.user || '—']);
+                exportRows.push([drug.id, drug.name, drug.spec, info.computerStock, info.sum, (info.sum - info.computerStock), avg7.toFixed(2)]);
             });
             const ws = XLSX.utils.aoa_to_sheet(exportRows);
             const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "儲位盤點報表");
