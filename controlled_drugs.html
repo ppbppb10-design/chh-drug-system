@@ -2,53 +2,42 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>管制藥日盤核帳系統</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>管制藥系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="bg-slate-100 pb-12">
-    <nav class="bg-rose-800 text-white p-4 shadow-lg sticky top-0 z-50">
+    <nav class="bg-rose-800 text-white p-4 sticky top-0 z-50 shadow-md">
         <h1 class="font-black text-lg">彰醫管制藥系統</h1>
     </nav>
-
     <main class="max-w-6xl mx-auto p-4 space-y-4">
-        <div class="grid grid-cols-2 md:grid-cols-4 gap-2 bg-white p-3 rounded-lg shadow border">
-            <input type="date" id="targetDate" class="border p-1 text-sm rounded">
-            <select id="pharmacistName" class="border p-1 text-sm rounded">
-                <option value="">請選擇盤點藥師</option>
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 bg-white p-3 rounded shadow border">
+            <input type="date" id="targetDate" class="border p-1 text-xs rounded">
+            <select id="pharmacistName" class="border p-1 text-xs rounded font-bold">
+                <option value="">請選擇藥師</option>
                 <option value="劉育伶">劉育伶</option>
                 <option value="陳東錦">陳東錦</option>
                 </select>
-            <div class="flex gap-1">
-                <select id="approverName" class="border p-1 text-xs w-full">
-                    <option value="">請選擇覆核藥師</option>
-                    <option value="劉育伶">劉育伶</option>
-                </select>
-                <button id="btnLockDay" class="bg-emerald-600 text-white px-2 rounded text-xs font-bold">結束今日</button>
-            </div>
-            <button id="btnExport" class="bg-slate-800 text-white px-2 rounded text-xs font-bold">匯出報表</button>
+            <select id="approverName" class="border p-1 text-xs rounded">
+                <option value="">選擇覆核藥師</option>
+                <option value="劉育伶">劉育伶</option>
+            </select>
+            <button id="btnLockDay" class="bg-emerald-600 text-white p-1 rounded text-xs font-bold">結束今日盤點</button>
+            <button id="btnExport" class="bg-slate-800 text-white p-1 rounded text-xs font-bold">匯出報表</button>
         </div>
 
-        <div id="matchStatusBox" class="p-3 bg-white rounded border text-xs font-bold">載入中...</div>
-        
+        <div id="matchStatusBox" class="p-3 bg-white border rounded text-xs font-bold">載入中...</div>
+
         <div class="bg-white p-4 rounded shadow overflow-x-auto">
-            <h2 class="font-black text-sm mb-2">盤點清單</h2>
             <table class="w-full text-xs border text-center">
-                <thead><tr class="bg-slate-100"><th>藥品</th><th>規格</th><th>總盤量</th><th>誤差</th><th>盤點藥師</th></tr></thead>
+                <thead><tr class="bg-slate-100"><th class="p-2">藥品</th><th class="p-2">規格</th><th class="p-2">實際總計</th><th class="p-2">誤差</th><th class="p-2">盤點人</th></tr></thead>
                 <tbody id="matrixTableBody"></tbody>
             </table>
         </div>
     </main>
-
-    <div id="qrModal" class="fixed inset-0 bg-black/50 hidden flex items-center justify-center z-[100]">
-        <div class="bg-white p-4 rounded shadow-lg text-center">
-            <h3 id="qrModalTitle" class="font-bold mb-2"></h3>
-            <div id="qrcodeContainer" class="flex justify-center"></div>
-            <button onclick="document.getElementById('qrModal').classList.add('hidden')" class="mt-4 bg-slate-200 px-4 py-1 rounded text-xs">關閉</button>
-        </div>
-    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
@@ -58,11 +47,10 @@
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 修正 Fresofol 代碼
+        // 核心代碼修正
         const allDrugs = [
             { id: "ATIO01", name: "Anxiedin", spec: "0.5 mg" },
             { id: "PRPI02", name: "Fresofol", spec: "200mg" }
-            // 請補完您完整的 drug list
         ];
 
         let currentDayRecords = {};
@@ -81,32 +69,26 @@
             const tbody = document.getElementById('matrixTableBody');
             tbody.innerHTML = "";
             allDrugs.forEach(drug => {
+                const dData = currentDayRecords[drug.id] || {};
                 let tr = document.createElement('tr');
                 tr.innerHTML = `
-                    <td class="p-2 font-bold cursor-pointer text-rose-700" onclick="showQR('${drug.id}', '${drug.name}')">${drug.name}</td>
+                    <td class="p-2 font-bold">${drug.name} (${drug.id})</td>
                     <td class="p-2">${drug.spec}</td>
-                    <td class="p-2"><input type="number" ${isLocked ? 'disabled' : ''} value="${currentDayRecords[drug.id]?.total || 0}" class="border w-16 text-center"></td>
-                    <td class="p-2">${currentDayRecords[drug.id]?.err || 0}</td>
-                    <td class="p-2 text-[10px]">${currentDayRecords[drug.id]?.user || '—'}</td>
+                    <td class="p-2"><input type="number" ${isLocked ? 'disabled' : ''} value="${dData.total || 0}" class="border w-16 text-center"></td>
+                    <td class="p-2">${dData.err || 0}</td>
+                    <td class="p-2 text-[10px]">${dData.user || '—'}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // 結束今日鎖定
         document.getElementById('btnLockDay').addEventListener('click', () => {
             const approver = document.getElementById('approverName').value;
-            if(!approver) return alert("請選覆核藥師");
+            if(!approver) return alert("請先選取覆核藥師");
             const dateStr = document.getElementById('targetDate').value;
-            update(ref(db, `controlledMatrixRecords/${dateStr}/_meta_lock`), { isLocked: true, approver: approver });
+            update(ref(db, `controlledMatrixRecords/${dateStr}/_meta_lock`), { isLocked: true, approver: approver })
+            .then(() => alert("今日盤點已鎖定！"));
         });
-
-        window.showQR = (id, name) => {
-            document.getElementById('qrModal').classList.remove('hidden');
-            document.getElementById('qrModalTitle').innerText = name;
-            document.getElementById('qrcodeContainer').innerHTML = "";
-            new QRCode(document.getElementById('qrcodeContainer'), id);
-        };
 
         document.getElementById('targetDate').addEventListener('change', loadDailyData);
         loadDailyData();
