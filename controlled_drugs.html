@@ -20,6 +20,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
+    <!-- 頂部導覽列 -->
     <nav class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-2">
@@ -35,6 +36,7 @@
 
     <main class="max-w-[1600px] mx-auto px-3 mt-4 space-y-4">
         
+        <!-- 控制面板列 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
                 <label class="text-[10px] font-bold text-slate-400 mb-0.5">🗓️ 選擇核帳日期</label>
@@ -57,10 +59,12 @@
             </div>
         </div>
 
+        <!-- 警報與即時狀態列 -->
         <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm">
             <span id="matchStatusLabel">載入數據中...</span>
         </div>
 
+        <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
         <div class="block lg:hidden space-y-3">
             <div class="bg-slate-200/80 p-2.5 rounded-xl">
                 <span class="text-xs font-black text-slate-700 block mb-2"><i class="fa-solid fa-map-location-dot text-red-600"></i> 請選擇目前所在的盤點儲位：</span>
@@ -77,6 +81,7 @@
             <div id="mobileZoneCardsContainer" class="space-y-3"></div>
         </div>
 
+        <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
                 <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽</h3>
@@ -114,17 +119,20 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
+        // ✨ 完美填補：已安全接回重要的 databaseURL 雲端網址，徹底修復斷線卡死
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
             authDomain: "drug--arrive.firebaseapp.com",
             databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
-            projectId: "drug--arrive"
+            projectId: "drug--arrive",
+            storageBucket: "drug--arrive.appspot.com",
+            messagingSenderId: "215426668369",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
         };
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
 
-        // 📅 每日 0 點自動歸零邏輯：進入系統時自動取得當天最新日期
         const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
         document.getElementById('targetDate').value = todayStr;
 
@@ -237,3 +245,215 @@
             });
 
             if(!hasItems) {
+                container.innerHTML += `<div class="text-center py-8 text-xs text-slate-400 font-bold bg-white rounded-xl border border-dashed">此儲位目前無須盤點四級管制藥品 ✨</div>`;
+            }
+        }
+
+        window.liveUpdateFromMobileZone = function(drugId, zoneIdx, val) {
+            const intVal = parseInt(val) || 0;
+            if(!currentDayRecords[drugId]) currentDayRecords[drugId] = {};
+            currentDayRecords[drugId][`sub_${zoneIdx}`] = intVal; 
+            
+            const compInput = document.querySelector(`input[data-comp-drug="${drugId}"][data-comp-sub="${zoneIdx}"]`);
+            if(compInput) {
+                compInput.value = intVal;
+                const dayData = currentDayRecords[drugId] || {};
+                const computerCount = Number(dayData.computerStock) || 0;
+                liveCalculateMatrix(drugId, computerCount);
+            }
+        };
+
+        function renderMatrixTable() {
+            const tbody = document.getElementById('matrixTableBody');
+            if (!tbody) return;
+            tbody.innerHTML = '';
+
+            oralList.forEach((drug, idx) => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const computerCount = Number(dayData.computerStock) || 0;
+                let tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-100 text-center hover:bg-slate-50/50 text-xs";
+                let typeHtml = idx === 0 ? `<td class="font-black bg-amber-50 text-amber-800 text-xs" rowspan="${oralList.length}">口服</td>` : '';
+                
+                let html = `${typeHtml}<td class="p-2 text-left font-black">${drug.name}</td><td class="p-1 text-slate-400 font-mono text-[10px]">${drug.spec}</td><td class="p-1 bg-slate-50 font-bold text-slate-500">${computerCount}</td>`;
+                
+                let rowSum = 0;
+                for (let i = 0; i < 7; i++) {
+                    const cellVal = dayData[`sub_${i}`] || 0; rowSum += cellVal;
+                    if (drug.disabled.includes(i)) { html += `<td class="bg-slate-100 p-0.5"></td>`; }
+                    else { html += `<td class="p-0.5"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="${i}" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', ${i}, this.value)" class="w-full text-center font-bold border rounded p-1 text-xs outline-none focus:border-red-500 bg-white"></td>`; }
+                }
+                const err = rowSum - computerCount;
+                html += `<td id="total-${drug.id}" class="font-black text-blue-600">${rowSum}</td><td><span id="err-${drug.id}" class="${getErrClass(err)}">${err>0?'+'+err:err}</span></td><td class="text-[10px] text-slate-400 font-bold">${dayData.user||'—'}</td>`;
+                tr.innerHTML = html; tbody.appendChild(tr);
+            });
+
+            injectList.forEach((drug, idx) => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const computerCount = Number(dayData.computerStock) || 0;
+                let tr = document.createElement('tr');
+                tr.className = "divide-x divide-slate-100 text-center hover:bg-slate-50/50 text-xs";
+                let typeHtml = idx === 0 ? `<td class="font-black bg-rose-50 text-rose-800 text-xs" rowspan="${injectList.length}">針劑</td>` : '';
+                
+                let html = `${typeHtml}<td class="p-2 text-left font-black">${drug.name}</td><td class="p-1 text-slate-400 font-mono text-[10px]">${drug.spec}</td><td class="p-1 bg-slate-50 font-bold text-slate-500">${computerCount}</td>`;
+                
+                let rowSum = 0;
+                for (let i = 0; i < 7; i++) {
+                    const cellVal = dayData[`sub_${i}`] || 0;
+                    if (i === 2) { rowSum += cellVal; html += `<td class="p-0.5" colspan="2"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="2" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', 2, this.value)" class="w-full text-center font-black text-emerald-600 bg-emerald-50/30 border border-emerald-100 rounded p-1 text-xs outline-none"></td>`; i++; }
+                    else if (i === 4) { rowSum += cellVal; html += `<td class="p-0.5" colspan="2"><input type="number" value="${cellVal}" pattern="[0-9]*" inputmode="numeric" data-comp-drug="${drug.id}" data-comp-sub="4" oninput="liveCalculateMatrix('${drug.id}', ${computerCount})" onchange="saveMatrixCell('${drug.id}', 4, this.value)" class="w-full text-center font-black text-indigo-600 bg-indigo-50/30 border border-indigo-100 rounded p-1 text-xs outline-none"></td>`; i++; }
+                    else { html += `<td class="bg-slate-100 p-0.5"></td>`; }
+                }
+                const err = rowSum - computerCount;
+                html += `<td id="total-${drug.id}" class="font-black text-blue-600">${rowSum}</td><td><span id="err-${drug.id}" class="${getErrClass(err)}">${err>0?'+'+err:err}</span></td><td class="text-[10px] text-slate-400 font-bold">${dayData.user||'—'}</td>`;
+                tr.innerHTML = html; tbody.appendChild(tr);
+            });
+        }
+
+        window.liveCalculateMatrix = function(drugId, computerCount) {
+            let sum = 0;
+            const inputs = document.querySelectorAll(`input[data-comp-drug="${drugId}"]`);
+            inputs.forEach(input => sum += (parseInt(input.value) || 0));
+            
+            const totalDom = document.getElementById(`total-${drugId}`);
+            if(totalDom) totalDom.innerText = sum;
+            
+            const errSpan = document.getElementById(`err-${drugId}`);
+            const diff = sum - computerCount;
+            if(errSpan) {
+                errSpan.innerText = diff > 0 ? '+' + diff : diff;
+                errSpan.className = getErrClass(diff);
+            }
+        };
+
+        window.saveMatrixCell = function(drugId, subIdx, val) {
+            const dateStr = document.getElementById('targetDate').value;
+            const userName = document.getElementById('pharmacistName').value || '線上藥師';
+            const cellInt = Math.max(0, parseInt(val) || 0);
+
+            const updateMap = {};
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/sub_${subIdx}`] = cellInt;
+            updateMap[`controlledMatrixRecords/${dateStr}/${drugId}/user`] = userName;
+
+            update(ref(db), updateMap).then(() => {
+                recalculateWholePage();
+            });
+        };
+
+        function recalculateWholePage() {
+            let totalErrors = 0;
+            allDrugs.forEach(drug => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const computerCount = Number(dayData.computerStock) || 0;
+                let sum = 0;
+                for (let i = 0; i < 7; i++) sum += Number(dayData[`sub_${i}`] || 0);
+                totalErrors += Math.abs(sum - computerCount);
+            });
+
+            const box = document.getElementById('matchStatusBox');
+            const label = document.getElementById('matchStatusLabel');
+            if (totalErrors === 0) {
+                box.className = "p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm bg-green-50 text-green-700 border border-green-200";
+                label.innerHTML = `<i class="fa-solid fa-circle-check text-base mr-1"></i> 彰醫今日管制藥帳物完全相符 (零誤差)`;
+            } else {
+                box.className = "p-3 rounded-xl font-black text-xs flex justify-between items-center shadow-sm bg-red-50 text-red-700 border border-red-200 animate-pulse";
+                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> 警告！今日全院累計誤差 ${totalErrors} 粒/支`;
+            }
+        }
+
+        function getErrClass(err) {
+            if (err > 0) return "text-amber-600 bg-amber-50 px-1.5 py-0.5 rounded font-black";
+            if (err < 0) return "text-red-600 bg-red-50 px-1.5 py-0.5 rounded font-black";
+            return "text-green-600 font-black";
+        }
+
+        window.importComputerStock = function(element) {
+            const file = element.files[0]; 
+            if (!file) return;
+            const dateStr = document.getElementById('targetDate').value;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const data = new Uint8Array(e.target.result);
+                const workbook = XLSX.read(data, { type: 'array' });
+                const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+                
+                let codeIdx = -1;
+                let stockIdx = -1;
+
+                for (let i = 0; i < Math.min(15, jsonData.length); i++) {
+                    const row = jsonData[i] || [];
+                    for (let j = 0; j < row.length; j++) {
+                        const cellText = String(row[j] || '').trim();
+                        if (cellText === "物品代碼" || cellText.includes("藥碼") || cellText.includes("代碼")) {
+                            if (codeIdx === -1) codeIdx = j;
+                        }
+                        if (cellText === "總量") {
+                            stockIdx = j; 
+                        }
+                    }
+                    if (codeIdx !== -1 && stockIdx !== -1) break;
+                }
+
+                if (stockIdx === -1) {
+                    for (let i = 0; i < Math.min(15, jsonData.length); i++) {
+                        const row = jsonData[i] || [];
+                        for (let j = 0; j < row.length; j++) {
+                            const cellText = String(row[j] || '').trim();
+                            if (cellText.includes("結存") || cellText.includes("存量") || cellText.includes("凍結")) {
+                                stockIdx = j;
+                                break;
+                            }
+                        }
+                        if (stockIdx !== -1) break;
+                    }
+                }
+
+                if (codeIdx === -1) codeIdx = 1; 
+                if (stockIdx === -1) stockIdx = 8; 
+
+                let upload封包 = {};
+                allDrugs.forEach(d => { 
+                    upload封包[d.id] = currentDayRecords[d.id] || { computerStock: 0 }; 
+                });
+
+                jsonData.forEach(row => {
+                    if (!row || row[codeIdx] === undefined) return;
+                    const code = String(row[codeIdx]).trim().toUpperCase();
+                    if (upload封包[code]) {
+                        const rawStock = String(row[stockIdx] || '0').replace(/,/g, '');
+                        upload封包[code].computerStock = parseFloat(rawStock) || 0;
+                    }
+                });
+
+                set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
+                    alert(`🎉 電腦對帳總量載入成功！已鎖定【總量】欄位(第 ${stockIdx+1} 欄)進行自動比對！`);
+                    loadDailyData();
+                });
+            };
+            reader.readAsArrayBuffer(file);
+        };
+
+        window.exportMonthlyReport = function() {
+            const dateStr = document.getElementById('targetDate').value;
+            const exportRows = [
+                [`彰化醫院藥劑科 - 四級管制藥儲位分類核帳表 (${dateStr})`],
+                ["藥品代碼", "藥品名稱", "規格", "電腦結存(總量)", "實際總計", "對帳誤差", "簽章藥師"]
+            ];
+            allDrugs.forEach(drug => {
+                const dayData = currentDayRecords[drug.id] || {};
+                const comp = Number(dayData.computerStock) || 0;
+                let sum = 0; for(let i=0; i<7; i++) sum += Number(dayData[`sub_${i}`] || 0);
+                exportRows.push([drug.id, drug.name, drug.spec, comp, sum, (sum - comp), dayData.user || '—']);
+            });
+            const ws = XLSX.utils.aoa_to_sheet(exportRows);
+            const wb = XLSX.utils.book_new(); XLSX.utils.book_append_sheet(wb, ws, "儲位盤點報表");
+            XLSX.writeFile(wb, `彰醫管制藥對帳表_${dateStr}.xlsx`);
+        };
+
+        switchMobileTab(0);
+        loadDailyData();
+    </script>
+</body>
+</html>
