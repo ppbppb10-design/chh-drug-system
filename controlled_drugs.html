@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- 引入國際標準 QR Code 引擎 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
@@ -20,6 +22,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12">
 
+    <!-- 頂部導覽列 -->
     <nav class="bg-gradient-to-r from-red-700 to-rose-800 text-white shadow-lg sticky top-0 z-40">
         <div class="max-w-[1600px] mx-auto px-4 py-3.5 flex justify-between items-center">
             <div class="flex items-center space-x-2">
@@ -35,6 +38,7 @@
 
     <main class="max-w-[1600px] mx-auto px-3 mt-4 space-y-4">
         
+        <!-- 控制面板列 -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
                 <label class="text-[10px] font-bold text-slate-400 mb-0.5">🗓️ 選擇核帳日期</label>
@@ -42,7 +46,38 @@
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
                 <label class="text-[10px] font-bold text-slate-400 mb-0.5">✍️ 線上簽章藥師</label>
-                <input type="text" id="pharmacistName" value="育伶" placeholder="姓名" class="w-full font-bold text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
+                <!-- 🎯 核心升級：文字輸入框改為「下拉式名單選單」，完美植入29位彰醫藥師名單，預設停留在您身上 -->
+                <select id="pharmacistName" class="w-full font-bold text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500 cursor-pointer">
+                    <option value="陳東錦">陳東錦</option>
+                    <option value="賴錦益">賴錦益</option>
+                    <option value="邱富強">邱富強</option>
+                    <option value="劉孟育">劉孟育</option>
+                    <option value="蘇惠敏">蘇惠敏</option>
+                    <option value="林雅萍">林雅萍</option>
+                    <option value="張幸逢">張幸逢</option>
+                    <option value="洪紹寧">洪紹寧</option>
+                    <option value="黃聖剛">黃聖剛</option>
+                    <option value="陳麗君">陳麗君</option>
+                    <option value="楊德宏">楊德宏</option>
+                    <option value="陳玫君">陳玫君</option>
+                    <option value="馬惠玲">馬惠玲</option>
+                    <option value="吳婉瑄">吳婉瑄</option>
+                    <option value="嚴宗賓">嚴宗賓</option>
+                    <option value="張雨淳">張雨淳</option>
+                    <option value="劉育伶" selected>劉育伶</option>
+                    <option value="邱瑞航">邱瑞航</option>
+                    <option value="吳致寛">吳致寛</option>
+                    <option value="葉儒樺">葉儒樺</option>
+                    <option value="劉子嫣">劉子嫣</option>
+                    <option value="許佳燕">許佳燕</option>
+                    <option value="許藝齡">許藝齡</option>
+                    <option value="劉佳昕">劉佳昕</option>
+                    <option value="黃竹珈">黃竹珈</option>
+                    <option value="胡明哲">胡明哲</option>
+                    <option value="李婉華">李婉華</option>
+                    <option value="邱麒文">邱麒文</option>
+                    <option value="陳宜君">陳宜君</option>
+                </select>
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
                 <input type="file" id="computerExcel" class="hidden">
@@ -57,15 +92,17 @@
             </div>
         </div>
 
+        <!-- 警報與即時誤差分析狀態列 -->
         <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs shadow-sm bg-slate-50 border">
             <div id="matchStatusLabel">載入數據中...</div>
             <div id="errorDetailsLabel" class="mt-1.5 text-[11px] font-medium flex flex-wrap gap-1.5"></div>
         </div>
 
+        <!-- 📊 全院管制藥品【即時總量匯總中心】總表看板 -->
         <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white flex justify-between items-center">
                 <h3 class="font-black text-xs md:text-sm flex items-center">
-                    <i class="fa-solid fa-chart-pie mr-2 text-amber-400"></i> 全院管制藥品即時總量匯總看板 (藥師總覽專用)
+                    <i class="fa-solid fa-chart-pie mr-2 text-amber-400"></i> 全院管制藥品即時總量匯總看板 (💡 點擊藥名可直接呈現 QR Code)
                 </h3>
                 <span class="text-[10px] bg-white/20 px-2 py-0.5 rounded font-bold">即時同步中</span>
             </div>
@@ -85,11 +122,13 @@
             </div>
         </div>
 
+        <!-- 🔧 精準調試分析面板 -->
         <div id="debugBox" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 font-mono">
             <p class="font-bold mb-1">📢 系統匯入即時診斷分析：</p>
             <div id="debugContent" class="bg-white/80 p-2 rounded border overflow-x-auto max-h-32 whitespace-pre-wrap"></div>
         </div>
 
+        <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
         <div class="block lg:hidden space-y-3">
             <div class="bg-slate-200/80 p-2.5 rounded-xl">
                 <span class="text-xs font-black text-slate-700 block mb-2"><i class="fa-solid fa-map-location-dot text-red-600"></i> 請選擇目前所在的盤點儲位：</span>
@@ -98,7 +137,6 @@
                     <button type="button" data-tab="0" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">雙號台</button>
                     <button type="button" data-tab="1" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">罐裝台</button>
                     <button type="button" data-tab="2" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700">庫存區</button>
-                    
                     <button type="button" data-tab="3" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-1">藥車</button>
                     <button type="button" data-tab="4" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-1">住院盒</button>
                     <button type="button" data-tab="5" class="mobile-tab-btn py-2 text-xs font-black rounded-lg shadow-sm border transition bg-white text-slate-700 col-span-2">門診盒</button>
@@ -107,6 +145,7 @@
             <div id="mobileZoneCardsContainer" class="space-y-3"></div>
         </div>
 
+        <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
                 <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽 (小字為前次盤點儲位藥量)</h3>
@@ -139,6 +178,17 @@
             </div>
         </div>
     </main>
+
+    <!-- QR Code 快顯視窗 -->
+    <div id="qrModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4">
+        <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center relative">
+            <button id="closeQrBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
+            <h4 id="qrModalTitle" class="font-black text-slate-800 text-base mb-1 text-center">藥品條碼對齊</h4>
+            <p id="qrModalSub" class="text-[11px] text-slate-400 font-mono font-bold mb-4 text-center"></p>
+            <div id="qrcodeContainer" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner flex justify-center items-center w-52 h-52"></div>
+            <p class="mt-4 text-[10px] text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-full"><i class="fa-solid fa-qrcode mr-1 text-red-600"></i> 現場藥師可用手機直接掃碼盤點</p>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
@@ -193,8 +243,8 @@
         let currentDayRecords = {}; 
         let historyPastRecords = {}; 
         let avg7DaysErrors = {}; 
-        // 🎯 預設預設點開的頁籤改為 6 (單號台)
         let activeMobileTab = 6; 
+        let qrGeneratorInstance = null;
 
         function getDrugSumAndComputer(drugId) {
             const dayData = (currentDayRecords && currentDayRecords[drugId]) ? currentDayRecords[drugId] : {};
@@ -282,7 +332,10 @@
                 }
 
                 rowTr.innerHTML = `
-                    <td class="p-2 text-left font-black text-slate-800">${drug.name} <span class="text-[9px] text-slate-400 font-mono font-bold">(${drug.id})</span></td>
+                    <td class="p-2 text-left font-black text-rose-700 hover:text-rose-900 hover:underline cursor-pointer flex items-center gap-1" data-trigger-qr="${drug.id}" data-trigger-name="${drug.name}">
+                        <i class="fa-solid fa-qrcode text-slate-300 text-[10px]"></i> ${drug.name} 
+                        <span class="text-[9px] text-slate-400 font-mono font-bold">(${drug.id})</span>
+                    </td>
                     <td class="p-2 text-blue-600 font-black text-sm">${info.sum}</td>
                     <td class="p-2 text-slate-500">${info.computerStock}</td>
                     <td class="p-2">${diffHtml}</td>
@@ -290,6 +343,35 @@
                 `;
                 tbody.appendChild(rowTr);
             });
+        }
+
+        function openQrModal(drugId, drugName) {
+            const modal = document.getElementById('qrModal');
+            const title = document.getElementById('qrModalTitle');
+            const sub = document.getElementById('qrModalSub');
+            const container = document.getElementById('qrcodeContainer');
+
+            if(!modal || !container || !title || !sub) return;
+
+            title.innerText = drugName;
+            sub.innerText = `藥品代碼：${drugId}`;
+            container.innerHTML = ""; 
+
+            qrGeneratorInstance = new QRCode(container, {
+                text: drugId, 
+                width: 180,
+                height: 180,
+                colorDark : "#1e293b", 
+                colorLight : "#f8fafc", 
+                correctLevel : QRCode.CorrectLevel.H
+            });
+
+            modal.classList.remove('hidden'); 
+        }
+
+        function closeQrModal() {
+            const modal = document.getElementById('qrModal');
+            if(modal) modal.classList.add('hidden');
         }
 
         function renderMobileTabButtons() {
@@ -372,7 +454,7 @@
                     tr.className = "divide-x divide-slate-100 text-center hover:bg-slate-50/50 text-xs";
                     
                     let typeHtml = idx === 0 ? `<td class="font-black ${bgClass} text-xs" rowspan="${list.length}">${typeName}</td>` : '';
-                    let html = `${typeHtml}<td class="p-2 text-left font-black">${drug.name}</td><td class="p-1 text-slate-400 font-mono text-[10px]">${drug.spec}</td><td class="p-1 bg-slate-50 font-bold text-slate-500">${computerCount}</td>`;
+                    let html = `${typeHtml}<td class="p-2 text-left font-black text-slate-800">${drug.name}</td><td class="p-1 text-slate-400 font-mono text-[10px]">${drug.spec}</td><td class="p-1 bg-slate-50 font-bold text-slate-500">${computerCount}</td>`;
                     
                     let rowSum = 0;
                     for (let i = 0; i < 7; i++) {
@@ -498,11 +580,31 @@
         // ==================== 事件監聽綁定 ====================
         dateInput.addEventListener('change', loadDailyData);
 
+        // 🧠 新增：當簽章選單變動時，自動觸發一次同步（保留先前輸入者的姓名更新）
+        document.getElementById('pharmacistName').addEventListener('change', () => {
+            if (currentDayRecords) refreshUI();
+        });
+
         document.getElementById('mobileTabHeader').addEventListener('click', (e) => {
             const btn = e.target.closest('.mobile-tab-btn');
             if (!btn) return;
             activeMobileTab = parseInt(btn.getAttribute('data-tab'));
             refreshUI();
+        });
+
+        // 全局點擊藥名快顯條條碼
+        document.body.addEventListener('click', (e) => {
+            const qrTrigger = e.target.closest('[data-trigger-qr]');
+            if(qrTrigger) {
+                const drugId = qrTrigger.getAttribute('data-trigger-qr');
+                const drugName = qrTrigger.getAttribute('data-trigger-name');
+                openQrModal(drugId, drugName);
+            }
+        });
+
+        document.getElementById('closeQrBtn').addEventListener('click', closeQrModal);
+        document.getElementById('qrModal').addEventListener('click', (e) => {
+            if(e.target === document.getElementById('qrModal')) closeQrModal();
         });
 
         document.body.addEventListener('input', (e) => {
