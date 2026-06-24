@@ -43,7 +43,7 @@
                 <input type="date" id="targetDate" onchange="loadDailyData()" class="w-full font-black text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center">
-                <label class="text-[10px] font-bold text-slate-400 mb-0.5">✍️ ✍️ 線上簽章藥師</label>
+                <label class="text-[10px] font-bold text-slate-400 mb-0.5">✍️ 線上簽章藥師</label>
                 <input type="text" id="pharmacistName" value="育伶" placeholder="姓名" class="w-full font-bold text-slate-700 border rounded-lg p-1.5 text-xs bg-slate-50 outline-none focus:border-red-500">
             </div>
             <div class="bg-white p-3 rounded-xl shadow-sm border flex flex-col justify-center col-span-1">
@@ -135,7 +135,6 @@
         const todayStr = new Date().toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
         document.getElementById('targetDate').value = todayStr;
 
-        // 🎯 依據 image_61d6e3.png 100% 完全校正的彰醫物品代碼、名稱與灰色屏蔽(NO)對應表
         const oralList = [
             { id: "ATIO01", name: "Anxiedin", spec: "0.5 mg/tab", disabled: [1, 4, 5] }, 
             { id: "ZOPO01", name: "Apo-Zopiclone", spec: "7.5 mg/tab", disabled: [0, 2, 6] },
@@ -160,10 +159,10 @@
         ];
 
         const injectList = [
-            { id: "ATII01", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 2, 3, 5, 6] }, // 只開第4個直欄：住院Tosho (即紙本的 UD調劑區)
-            { id: "PRPIO2", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, // 開放：庫存區(2) 與 住院Tosho(4)
-            { id: "DORI05", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 5, 6] }, // 開放：庫存區(2) 與 住院Tosho(4)
-            { id: "TRAI11", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 5, 6] }  // 開放：庫存區(2) 與 住院Tosho(4)
+            { id: "ATII01", name: "Anxicam", spec: "2 mg/ml/amp", disabled: [0, 1, 2, 3, 5, 6] }, 
+            { id: "PRPIO2", name: "Fresofol", spec: "200mg/20ml", disabled: [0, 1, 3, 5, 6] }, 
+            { id: "DORI05", name: "Midatin", spec: "15 mg/3ml", disabled: [0, 1, 3, 5, 6] }, 
+            { id: "TRAI11", name: "TRAMTOR", spec: "100 mg/2ml", disabled: [0, 1, 3, 5, 6] }  
         ];
 
         const allDrugs = [...oralList, ...injectList];
@@ -366,7 +365,7 @@
             return "text-green-600 font-black";
         }
 
-        // 🧠 智慧對帳大腦：全自動清洗千分位、前後空白，並進行【藥碼精準包含比對】
+        // 🧠 終極大進化：強制定向掃描第 4 行標頭，徹底解決醫院原始 Excel 行政標題雜訊干擾
         window.importComputerStock = function(element) {
             const file = element.files[0]; 
             if (!file) return;
@@ -381,38 +380,36 @@
                 
                 let codeIdx = -1;
                 let stockIdx = -1;
-                let foundHeaders = [];
 
-                for (let i = 0; i < Math.min(15, jsonData.length); i++) {
-                    const row = jsonData[i] || [];
+                // 🎯 核心修正：根據 `{17647ACA-59A5-4A5F-8EAD-74E51C24DF39}.png` 報表結構，精準鎖定在第 4 行（即陣列 index 3 處）作為對帳表頭
+                const targetHeaderRowIdx = 3; 
+                if (jsonData.length > targetHeaderRowIdx) {
+                    const row = jsonData[targetHeaderRowIdx] || [];
                     for (let j = 0; j < row.length; j++) {
                         const cellText = String(row[j] || '').trim();
-                        if(cellText) foundHeaders.push(cellText);
-                        
-                        if (cellText === "物品代碼" || cellText.includes("藥碼") || cellText.includes("代碼")) {
-                            if (codeIdx === -1) codeIdx = j;
+                        if (cellText === "物品代碼" || cellText.includes("藥碼")) {
+                            codeIdx = j;
                         }
                         if (cellText === "總量") {
-                            stockIdx = j; 
+                            stockIdx = j;
                         }
                     }
-                    if (codeIdx !== -1 && stockIdx !== -1) break;
                 }
 
-                if (stockIdx === -1) {
+                // 🛡️ 備用安全兜底（萬一行數有變動，才啟動前15行自動搜尋）
+                if (codeIdx === -1 || stockIdx === -1) {
                     for (let i = 0; i < Math.min(15, jsonData.length); i++) {
                         const row = jsonData[i] || [];
                         for (let j = 0; j < row.length; j++) {
                             const cellText = String(row[j] || '').trim();
-                            if (cellText.includes("結存") || cellText.includes("存量") || cellText.includes("總計")) {
-                                stockIdx = j;
-                                break;
-                            }
+                            if (cellText === "物品代碼" || cellText === "藥品代碼") codeIdx = j;
+                            if (cellText === "總量") stockIdx = j;
                         }
-                        if (stockIdx !== -1) break;
+                        if (codeIdx !== -1 && stockIdx !== -1) break;
                     }
                 }
 
+                // 終極防線：設定為 B 欄與 I 欄
                 if (codeIdx === -1) codeIdx = 1; 
                 if (stockIdx === -1) stockIdx = 8; 
 
@@ -423,15 +420,16 @@
 
                 let matchCount = 0;
 
-                jsonData.forEach(row => {
-                    if (!row || row[codeIdx] === undefined) return;
+                jsonData.forEach((row, rowIdx) => {
+                    // 排除掉前 4 行的標頭跟行政雜訊列，從真實資料列開始讀取
+                    if (rowIdx <= targetHeaderRowIdx || !row || row[codeIdx] === undefined) return;
                     
                     const excelCode = String(row[codeIdx]).trim().toUpperCase();
-                    if (!excelCode) return;
+                    if (!excelCode || excelCode.includes("---")) return; // 過濾掉表格線等虛線雜訊
 
                     allDrugs.forEach(d => {
                         const systemCode = d.id.toUpperCase();
-                        if (excelCode === systemCode || excelCode.includes(systemCode) || systemCode.includes(excelCode)) {
+                        if (excelCode === systemCode) {
                             const rawStock = String(row[stockIdx] || '0').replace(/,/g, '');
                             upload封包[d.id].computerStock = parseFloat(rawStock) || 0;
                             matchCount++;
@@ -439,14 +437,10 @@
                     });
                 });
 
-                if (matchCount === 0) {
-                    alert(`⚠️ 提示：Excel 成功讀取，但「藥品代碼」完全沒對上任何一項管制藥！\n\n系統鎖定的藥碼欄位索引：第 ${codeIdx+1} 欄\nExcel 前幾行偵測到的欄位有：\n${foundHeaders.slice(0,10).join(' | ')}\n\n請確認您的 Excel 管制藥代碼是否為 ATIO01、ZOPO01 等。`);
-                } else {
-                    set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
-                        alert(`🎉 成功比對並載入 ${matchCount} 項管制藥的電腦總量！`);
-                        loadDailyData();
-                    });
-                }
+                set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
+                    alert(`🎉 成功比對並載入 ${matchCount} 項管制藥的電腦總量！`);
+                    loadDailyData();
+                });
             };
             reader.readAsArrayBuffer(file);
         };
