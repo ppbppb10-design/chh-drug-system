@@ -2,42 +2,30 @@
 <html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>彰化醫院藥劑科 - 多筆缺藥調撥系統</title>
+    <title>藥劑科撥補急領系統</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
     <style>
-        .active-form { background-color: #3b82f6 !important; color: white !important; }
-        .mode-arriving { background: #fee2e2; animation: flashRed 1.5s infinite; }
-        .mode-elevator { background: #fff3cd; animation: flashYellow 1.5s infinite; }
-        @keyframes flashRed { 0%, 100% { background: #fee2e2; } 50% { background: #fecaca; } }
-        @keyframes flashYellow { 0%, 100% { background: #fff3cd; } 50% { background: #ffeeba; } }
-        .role-hidden { display: none !important; }
-        .pending-row { background-color: #fffbeb; }
+        .urgent-row { border-left: 6px solid #ef4444; background-color: #fef2f2; }
+        .ice-alert { animation: pulse 2s infinite; border: 2px solid #3b82f6; }
+        @keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }
     </style>
 </head>
-<body id="bodyTag" class="bg-slate-100 min-h-screen transition-colors duration-500">
-
-    <div class="max-w-6xl mx-auto md:p-6 p-2 space-y-4">
-        <div class="bg-white p-4 rounded-xl border flex justify-between items-center shadow-sm">
-            <div class="flex items-center gap-2">
-                <a href="index.html" class="text-slate-400 hover:text-slate-600 text-sm font-bold">🏠 回首頁</a>
-                <span class="text-slate-300">|</span>
-                <h1 class="text-md font-black text-slate-700">🚑 撥補/急領即時系統</h1>
-            </div>
+<body class="bg-slate-50 p-4">
+    <div class="max-w-4xl mx-auto space-y-6">
+        <div class="bg-white p-4 rounded-xl shadow flex justify-between items-center">
+            <h1 class="font-black text-xl text-slate-700">🚑 撥補/急領系統</h1>
             <div class="flex gap-2">
-                <button id="voiceBtn" onclick="enableVoice()" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-bold active:bg-blue-600 active:text-white">📢 開啟提示音</button>
-                <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold">🔄 重設</button>
+                <button onclick="window.speechSynthesis.cancel()" class="bg-gray-200 px-3 py-1 rounded text-xs">停止語音</button>
+                <button onclick="resetSystem()" class="bg-red-500 text-white px-3 py-1 rounded text-xs">重置系統</button>
             </div>
         </div>
 
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
-            <div id="pharmacySection" class="lg:col-span-5 space-y-4 bg-white p-4 rounded-2xl border shadow-sm">
-                <div class="space-y-1">
-                    <label class="text-[10px] font-bold text-slate-500">申請人簽名：</label>
-                    <select id="userSelect" class="w-full p-4 border-2 border-blue-200 rounded-xl font-bold text-blue-800 outline-none text-lg bg-white">
-                        <option value="">請選擇姓名...</option>
-                        <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h2 class="font-bold mb-4">申請藥品</h2>
+                <select id="userSelect" class="w-full p-2 border rounded mb-2">
+                    <option value="">請選擇藥師姓名</option>                        
+                    <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
                         <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
                         <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
                         <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
@@ -47,73 +35,9 @@
                         <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
                         <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
                         <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
-                    </select>
-                </div>
-
-                <div class="grid grid-cols-3 gap-2">
-                    <button onclick="setForm('口服', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">口服</button>
-                    <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">針劑</button>
-                    <button onclick="setForm('外用', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">外用</button>
-                </div>
-
-                <div class="relative">
-                    <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋藥名或藥碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500 bg-white shadow-inner">
-                    <ul id="suggestList" class="absolute z-50 w-full bg-white border rounded-xl mt-1 shadow-2xl hidden max-h-48 overflow-y-auto"></ul>
-                </div>
-
-                <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
-                    <div class="text-[10px] font-black text-blue-400 mb-2">🛒 待送出清單</div>
-                    <ul id="tempList" class="space-y-2"></ul>
-                    <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full mt-3 bg-blue-600 text-white py-4 rounded-xl font-black text-lg opacity-20 shadow-lg">一次送出通知</button>
-                </div>
-
-                <div class="border-t pt-4">
-                    <div class="text-[10px] font-black text-slate-400 mb-2 italic">📜 今日已申請紀錄 (同步藥庫)</div>
-                    <div class="max-h-64 overflow-y-auto border rounded-xl bg-white">
-                        <table class="w-full text-xs">
-                            <tbody id="pharmacyHistoryBody" class="divide-y"></tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-
-            <div id="warehouseSection" class="lg:col-span-7 flex flex-col bg-white p-4 rounded-2xl border shadow-sm">
-                <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 藥庫管理監測中</div>
-                <div class="flex-grow border rounded-2xl bg-white min-h-[500px] overflow-hidden shadow-inner">
-                    <table class="w-full text-sm">
-                        <thead class="bg-slate-800 text-white">
-                            <tr><th class="p-4 text-left">人員 / 藥名</th><th class="p-4 text-center w-16">量</th><th class="p-4 text-right w-24">狀態</th></tr>
-                        </thead>
-                        <tbody id="cartBody" class="divide-y divide-slate-100"></tbody>
-                    </table>
-                </div>
-                <div id="actionArea" class="pt-4 space-y-3">
-                    <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📥 下載「新申請」Excel</button>
-                    <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📦 藥品已入電梯</button>
-                    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">完成處理</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-        import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
-
-        const firebaseConfig = {
-            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
-            authDomain: "drug--arrive.firebaseapp.com",
-            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
-            projectId: "drug--arrive",
-            appId: "1:215426668369:web:eaa94e83974fcec391a570"
-        };
-
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
-        const listRef = ref(db, 'dailyTransferList');
-        const statusRef = ref(db, 'systemStatus');
-
-        // === 直接埋入的 1000 筆藥品庫 ===
+                </select>
+                <select id="drugSelect" class="w-full p-2 border rounded mb-2">
+    <option value="">請選擇藥品...</option>
         let drugDb = [
             { id: 'AKII90', name: 'Bipiden', form: '針劑' },
             { id: 'ALCE91', name: 'Alcaine', form: '外用' },
@@ -1098,166 +1022,107 @@
             { id: 'LORO23', name: ' Lorviqua', form: '口服' },
             { id: 'VINO03', name: 'Vinobin 20', form: '口服' }
         ];
+    </select>
+                placeholder="輸入藥名" class="w-full p-2 border rounded mb-2">
+                <div class="flex gap-4 mb-4">
+                    <label><input type="checkbox" id="isUrgent"> 急件</label>
+                    <label><input type="checkbox" id="isIce"> 冰品</label>
+                </div>
+                <button onclick="addRequest()" class="w-full bg-blue-600 text-white p-3 rounded font-bold">送出需求</button>
+                
+                <div class="mt-6">
+                    <h3 class="text-xs text-slate-400 font-bold mb-2">待確認收藥清單</h3>
+                    <div id="pendingReceiptList" class="space-y-2"></div>
+                </div>
+            </div>
 
-        let tempCart = [];
-        let selectedForm = '';
-        let voiceEnabled = false;
-        let lastCount = 0;
-        let lastStatus = 'idle';
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role');
+            <div class="bg-white p-6 rounded-xl shadow">
+                <h2 class="font-bold mb-4">藥庫處理中心</h2>
+                <div id="warehouseQueue" class="space-y-2"></div>
+            </div>
+        </div>
+    </div>
 
-        window.enableVoice = () => { 
-            voiceEnabled = true; 
-            document.getElementById('voiceBtn').innerText = "🔊 語音通知中";
-            speak("語音功能已啟動");
-        };
-        
-        function speak(text) { 
-            if (voiceEnabled) window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-        }
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, push, onValue, update, remove } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-        // 搜尋與暫存
-        const searchInput = document.getElementById('searchInput');
-        const suggestList = document.getElementById('suggestList');
-
-        if(searchInput) {
-            searchInput.addEventListener('input', () => {
-                const val = searchInput.value.trim().toUpperCase();
-                suggestList.innerHTML = '';
-                if (!val) return suggestList.classList.add('hidden');
-                const matches = drugDb.filter(d => (String(d.id).includes(val) || String(d.name).toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 10);
-                matches.forEach(drug => {
-                    const li = document.createElement('li');
-                    li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between";
-                    li.innerHTML = `<b>${drug.name}</b><small>${drug.id}</small>`;
-                    li.onclick = () => {
-                        tempCart.push({ ...drug, qty: 1 });
-                        renderTempList();
-                        searchInput.value = ''; suggestList.classList.add('hidden');
-                    };
-                    suggestList.appendChild(li);
-                });
-                suggestList.classList.remove('hidden');
-            });
-        }
-
-        window.setForm = (form, btn) => {
-            selectedForm = (selectedForm === form) ? '' : form;
-            document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active-form'));
-            if(selectedForm) btn.classList.add('active-form');
-            searchInput.dispatchEvent(new Event('input'));
+                       const firebaseConfig = {
+            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+            authDomain: "drug--arrive.firebaseapp.com",
+            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
+            projectId: "drug--arrive",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
         };
 
-        function renderTempList() {
-            const list = document.getElementById('tempList');
-            const btn = document.getElementById('submitBtn');
-            list.innerHTML = tempCart.map((item, idx) => `
-                <li class="flex items-center justify-between bg-white p-2 rounded border border-blue-100 text-xs">
-                    <span><b>${item.name}</b></span>
-                    <div class="flex items-center gap-2">
-                        <input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-10 p-1 text-center border rounded">
-                        <button onclick="removeFromTemp(${idx})" class="text-red-400">✕</button>
-                    </div>
-                </li>`).join('');
-            btn.disabled = tempCart.length === 0;
-            btn.classList.toggle('opacity-20', tempCart.length === 0);
-        }
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const listRef = ref(db, 'requests');
 
-        window.updateQty = (idx, val) => { tempCart[idx].qty = val; };
-        window.removeFromTemp = (idx) => { tempCart.splice(idx, 1); renderTempList(); };
+        let iceTimer = null;
 
-        window.submitTransfer = () => {
-            const user = document.getElementById('userSelect').value;
-            if (!user) return alert("⚠️ 請選擇簽名");
-            tempCart.forEach(item => {
-                push(listRef, {
-                    user: user, name: item.name, id: item.id, qty: item.qty,
-                    status: 'pending', time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-                });
-            });
-            set(statusRef, { state: 'arriving' });
-            tempCart = []; renderTempList();
-            alert("✅ 通知已傳送");
-        };
-
-        // 狀態監聽
-        onValue(statusRef, (snap) => {
-            const state = snap.val()?.state || 'idle';
-            const body = document.getElementById('bodyTag');
-            const btns = [document.getElementById('downloadNewBtn'), document.getElementById('elevatorBtn'), document.getElementById('doneBtn')];
+window.addRequest = () => {
+    const user = document.getElementById('userSelect').value;
+    const drug = document.getElementById('drugSelect').value; // 讀取選單的值
+    if(!user || !drug) return alert("請選擇藥師與藥品");
             
-            btns.forEach(b => b.classList.add('hidden'));
-            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
-
-            if (state === 'arriving') {
-                body.classList.add('mode-arriving');
-                btns[0].classList.remove('hidden');
-            } else if (state === 'preparing') {
-                btns[1].classList.remove('hidden');
-            } else if (state === 'in_elevator') {
-                body.classList.add('mode-elevator');
-                btns[2].classList.remove('hidden');
-                if (role === 'pharmacy' && lastStatus !== 'in_elevator') {
-                    speak("藥品已放入電梯，請前往領取");
-                }
-            }
-            lastStatus = state;
-        });
+            push(listRef, {
+                user, drug, 
+                isUrgent: document.getElementById('isUrgent').checked,
+                isIce: document.getElementById('isIce').checked,
+                status: 'pending' // pending -> preparing -> shipping -> done
+            });
+        };
 
         onValue(listRef, (snap) => {
-            const data = snap.val();
-            const cartBody = document.getElementById('cartBody');
-            const phBody = document.getElementById('pharmacyHistoryBody');
-            if (!data) { if(cartBody) cartBody.innerHTML = ""; if(phBody) phBody.innerHTML = ""; lastCount = 0; return; }
-            
-            const items = Object.values(data);
-            if (role === 'warehouse' && items.length > lastCount && lastCount !== 0) {
-                speak(`收到來自${items[items.length-1].user}的申請`);
-            }
-            lastCount = items.length;
+            const data = snap.val() || {};
+            const queue = document.getElementById('warehouseQueue');
+            const receipt = document.getElementById('pendingReceiptList');
+            queue.innerHTML = '';
+            receipt.innerHTML = '';
 
-            const html = Object.values(data).reverse().map(i => `
-                <tr class="${i.status === 'pending' ? 'pending-row' : ''}">
-                    <td class="p-4"><b>【${i.user}】</b><br>${i.name}</td>
-                    <td class="p-4 text-center font-bold text-red-500 text-lg">${i.qty}</td>
-                    <td class="p-4 text-right text-[10px] font-bold text-slate-400">
-                        ${i.status === 'pending' ? '🔴 新申請' : '⚪ 已下載'}
-                    </td>
-                </tr>`).join('');
-            
-            if(cartBody) cartBody.innerHTML = html;
-            if(phBody) phBody.innerHTML = html;
+            let hasPendingIce = false;
+
+            Object.entries(data).forEach(([key, val]) => {
+                // 藥庫處理介面
+                if (val.status !== 'done') {
+                    const div = document.createElement('div');
+                    div.className = `p-3 border rounded ${val.isUrgent ? 'urgent-row' : ''} ${val.isIce ? 'ice-alert' : ''}`;
+                    div.innerHTML = `
+                        <div class="flex justify-between">
+                            <span><b>${val.user}</b>: ${val.drug} ${val.isUrgent ? '🔥' : ''} ${val.isIce ? '❄️' : ''}</span>
+                            ${val.status === 'pending' ? `<button onclick="updateStatus('${key}', 'preparing')" class="bg-green-500 text-white px-2 py-1 text-xs">接收</button>` : 
+                              val.status === 'preparing' ? `<button onclick="updateStatus('${key}', 'shipping')" class="bg-blue-500 text-white px-2 py-1 text-xs">已送出</button>` : '運送中'}
+                        </div>`;
+                    queue.appendChild(div);
+                }
+
+                // 藥局確認收藥介面
+                if (val.status === 'shipping') {
+                    receipt.innerHTML += `
+                        <div class="bg-yellow-50 p-2 rounded flex justify-between">
+                            ${val.drug} 已送達
+                            <button onclick="updateStatus('${key}', 'done')" class="bg-orange-500 text-white px-2 py-1 text-xs">確認收藥</button>
+                        </div>`;
+                }
+
+                if (val.isIce && val.status !== 'done') hasPendingIce = true;
+            });
+
+            // 冰品呼叫邏輯
+            if (hasPendingIce && !iceTimer) {
+                iceTimer = setInterval(() => {
+                    const msg = new SpeechSynthesisUtterance("系統提醒：有冰品需求尚未處理");
+                    window.speechSynthesis.speak(msg);
+                }, 30000);
+            } else if (!hasPendingIce) {
+                clearInterval(iceTimer);
+                iceTimer = null;
+            }
         });
 
-        window.downloadAndProcess = () => {
-            onValue(listRef, (snap) => {
-                const data = snap.val();
-                if (!data) return;
-                const entries = Object.entries(data);
-                const pending = entries.filter(e => e[1].status === 'pending');
-                if (pending.length === 0) return alert("無新申請可下載");
-
-                const ws = XLSX.utils.json_to_sheet(pending.map(e => e[1]));
-                const wb = XLSX.utils.book_new();
-                XLSX.utils.book_append_sheet(wb, ws, "調撥清單");
-                XLSX.writeFile(wb, `彰醫調撥_${new Date().getTime()}.xlsx`);
-
-                pending.forEach(e => update(ref(db, `dailyTransferList/${e[0]}`), { status: 'processed' }));
-                set(statusRef, { state: 'preparing' });
-            }, { onlyOnce: true });
-        };
-
-        window.updateStatus = (s) => set(statusRef, { state: s });
-        window.resetToIdle = () => { if(confirm("確定重設今日清單？")) { remove(listRef); set(statusRef, {state:'idle'}); }};
-
-        // 介面初始控制
-        if (role === 'pharmacy') {
-            document.getElementById('warehouseSection').classList.add('role-hidden');
-        } else if (role === 'warehouse') {
-            document.getElementById('pharmacySection').classList.add('role-hidden');
-            document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
-        }
+        window.updateStatus = (key, status) => update(ref(db, `requests/${key}`), { status });
+        window.resetSystem = () => remove(listRef);
     </script>
 </body>
 </html>
