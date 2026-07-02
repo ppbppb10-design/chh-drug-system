@@ -390,29 +390,40 @@
             });
         }
 
-        function openQrModal(drugId, drugName) {
-            const modal = document.getElementById('qrModal');
-            const title = document.getElementById('qrModalTitle');
-            const sub = document.getElementById('qrModalSub');
-            const container = document.getElementById('qrcodeContainer');
+       function openQrModal(drugId, drugName) {
 
-            if(!modal || !container || !title || !sub) return;
+    const modal = document.getElementById('qrModal');
+    const title = document.getElementById('qrModalTitle');
+    const sub = document.getElementById('qrModalSub');
+    const container = document.getElementById('qrcodeContainer');
 
-            title.innerText = drugName;
-            sub.innerText = `藥品代碼：${drugId}`;
-            container.innerHTML = ""; 
+    // 新增
+    const qty = document.getElementById("qrTotalQty");
 
-            qrGeneratorInstance = new QRCode(container, {
-                text: drugId, 
-                width: 180,
-                height: 180,
-                colorDark : "#1e293b", 
-                colorLight : "#f8fafc", 
-                correctLevel : QRCode.CorrectLevel.H
-            });
+    if(!modal || !container || !title || !sub) return;
 
-            modal.classList.remove('hidden'); 
-        }
+    title.innerText = drugName;
+    sub.innerText = `藥品代碼：${drugId}`;
+
+    // 取得今日盤點量
+    const info = getDrugSumAndComputer(drugId, currentDayRecords);
+
+    // 顯示今日總盤點量
+    qty.innerText = info.sum.toLocaleString();
+
+    container.innerHTML = "";
+
+    qrGeneratorInstance = new QRCode(container, {
+        text: drugId,
+        width: 180,
+        height: 180,
+        colorDark : "#1e293b",
+        colorLight : "#f8fafc",
+        correctLevel : QRCode.CorrectLevel.H
+    });
+
+    modal.classList.remove('hidden');
+}
 
         function closeQrModal() {
             const modal = document.getElementById('qrModal');
