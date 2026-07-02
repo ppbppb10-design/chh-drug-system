@@ -189,10 +189,37 @@
     <div id="qrModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4">
         <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center relative">
             <button id="closeQrBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
-            <h4 id="qrModalTitle" class="font-black text-slate-800 text-base mb-1 text-center">藥品條碼對齊</h4>
-            <p id="qrModalSub" class="text-[11px] text-slate-400 font-mono font-bold mb-4 text-center"></p>
-            <div id="qrcodeContainer" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner flex justify-center items-center w-52 h-52"></div>
-            <p class="mt-4 text-[10px] text-slate-400 font-medium bg-slate-50 px-3 py-1 rounded-full"><i class="fa-solid fa-qrcode mr-1 text-red-600"></i> 現場藥師可用手機直接掃碼盤點</p>
+            <h4 id="qrModalTitle"
+    class="font-black text-2xl text-slate-800 text-center">
+</h4>
+
+<p id="qrModalSub"
+   class="text-slate-400 font-bold text-sm mt-1">
+</p>
+
+<!-- 今日總盤點量 -->
+<div class="w-full bg-red-50 border border-red-200 rounded-2xl mt-5 p-4 text-center">
+
+    <div class="text-sm font-bold text-slate-500">
+        今日總盤點量
+    </div>
+
+    <div id="qrTotalQty"
+         class="text-4xl font-black text-red-600 mt-1">
+        0
+    </div>
+
+</div>
+
+<!-- QR -->
+<div id="qrcodeContainer"
+     class="mt-5 p-5 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner flex justify-center items-center">
+</div>
+
+<p class="mt-5 text-xs text-slate-500 font-bold bg-slate-100 px-4 py-2 rounded-full">
+    <i class="fa-solid fa-mobile-screen-button text-red-600 mr-1"></i>
+    現場藥師掃描即可開始盤點
+</p>
         </div>
     </div>
 
