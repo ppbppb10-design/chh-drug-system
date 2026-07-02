@@ -197,45 +197,7 @@
     </div>
 
     <script type="module">
-// 監聽結束按鈕
-document.getElementById('btnLockDay').addEventListener('click', () => {
-    const approver = document.getElementById('approverName').value;
-    if (!approver) return alert("⚠️ 請先選取覆核藥師！");
-    if (!confirm(`確定由【${approver}】覆核並永久鎖定今日盤點資料嗎？\n鎖定後將無法再修改任何數據。`)) return;
 
-    const dateStr = dateInput.value;
-    const lockRef = ref(db, `controlledMatrixRecords/${dateStr}/_meta_lock`);
-    
-    set(lockRef, {
-        isLocked: true,
-        approver: approver,
-        lockedAt: new Date().toLocaleString()
-    }).then(() => {
-        alert("🎉 資料已成功簽章鎖定！");
-    });
-});
-
-// 資料載入時檢查鎖定狀態
-onValue(ref(db, `controlledMatrixRecords/${dateInput.value}/_meta_lock`), (snapshot) => {
-    const lockData = snapshot.val();
-    const isLocked = lockData?.isLocked;
-    
-    // 控制顯示介面
-    const lockMessage = document.getElementById('lockMessage');
-    const inputs = document.querySelectorAll('input, select');
-    
-    if (isLocked) {
-        lockMessage.classList.remove('hidden');
-        document.getElementById('lockedBy').innerText = lockData.approver;
-        // 封鎖所有輸入框
-        inputs.forEach(i => i.disabled = true);
-        document.getElementById('btnLockDay').classList.add('hidden');
-    } else {
-        lockMessage.classList.add('hidden');
-        inputs.forEach(i => i.disabled = false);
-        document.getElementById('btnLockDay').classList.remove('hidden');
-    }
-});
 
         
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
