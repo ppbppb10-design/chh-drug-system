@@ -306,6 +306,53 @@
             }
             return true;
         }
+        // --- 核心邏輯處理：覆核鎖定機制 ---
+
+// 1. 監聽「結束盤點」按鈕
+document.getElementById('btnLockDay').addEventListener('click', () => {
+    const approver = document.getElementById('approverName').value;
+    if (!approver) return alert("⚠️ 請先選取覆核藥師！");
+    if (!confirm(`確定由【${approver}】覆核並永久鎖定今日盤點資料嗎？\n鎖定後將無法再修改任何數據。`)) return;
+
+    const dateStr = dateInput.value;
+    const lockRef = ref(db, `controlledMatrixRecords/${dateStr}/_meta_lock`);
+    
+    set(lockRef, {
+        isLocked: true,
+        approver: approver,
+        lockedAt: new Date().toLocaleString()
+    }).then(() => {
+        alert("🎉 資料已成功簽章鎖定！");
+    }).catch(e => alert("鎖定失敗: " + e.message));
+});
+
+// 2. 資料載入時同步檢查鎖定狀態 (即時同步)
+onValue(ref(db, `controlledMatrixRecords/${dateInput.value}/_meta_lock`), (snapshot) => {
+    const lockData = snapshot.val();
+    const isLocked = lockData?.isLocked;
+    
+    const lockMessage = document.getElementById('lockMessage');
+    const btnLockDay = document.getElementById('btnLockDay');
+    
+    // 取得頁面上所有輸入框 (包含電腦版矩陣與手機版輸入)
+    const inputs = document.querySelectorAll('input, select');
+    
+    if (isLocked) {
+        // 顯示鎖定訊息
+        if (lockMessage) {
+            lockMessage.classList.remove('hidden');
+            document.getElementById('lockedBy').innerText = lockData.approver;
+        }
+        // 鎖定 UI
+        inputs.forEach(i => i.disabled = true);
+        if(btnLockDay) btnLockDay.classList.add('hidden');
+    } else {
+        // 解鎖 UI
+        if (lockMessage) lockMessage.classList.add('hidden');
+        inputs.forEach(i => i.disabled = false);
+        if(btnLockDay) btnLockDay.classList.remove('hidden');
+    }
+});
 
         function loadDailyData() {
             const dateStr = dateInput.value;
