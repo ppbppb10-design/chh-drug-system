@@ -189,7 +189,7 @@
             { id: 'IDAI01', name: 'Praxbind', font: '針劑' },
             { id: 'INSI91', name: 'Humalog Mix', form: '針劑' },
             { id: 'MBZO90', name: 'Cowbalin', form: '口服' },
-            { id: 'N09E90', name: 'N.S. Irrigation 2000ml', form: '外用' },
+            { id: 'N09E90', name: 'N.S. Irrigation ml', form: '外用' },
             { id: 'SAXO90', name: 'Onglyza 5', form: '口服' },
             { id: 'TISE90', name: 'Tisseel 2ml', form: '外用' },
             { id: 'WATE91', name: 'Water For Irrig. 2000ml', form: '外用' },
@@ -1322,7 +1322,7 @@ if (lastStatus !== 'in_elevator') {
 
             coldVoiceTimer = setInterval(() => {
                 speak("冰藥已放入電梯，請立即領取");
-            }, 20000);   // 每20秒提醒一次
+            }, 15000);   // 每15秒提醒一次
 
         } else {
 
