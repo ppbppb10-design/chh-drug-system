@@ -66,6 +66,13 @@
                     <ul id="tempList" class="space-y-2"></ul>
                     <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full mt-3 bg-blue-600 text-white py-4 rounded-xl font-black text-lg opacity-20 shadow-lg">一次送出通知</button>
                 </div>
+                <div class="mt-3">
+    <button id="pickupBtn"
+            onclick="pickupComplete()"
+            class="hidden w-full bg-green-600 text-white py-4 rounded-xl font-black text-xl shadow-lg">
+        ✅ 取藥完成
+    </button>
+</div>
 
                 <div class="border-t pt-4">
                     <div class="text-[10px] font-black text-slate-400 mb-2 italic">📜 今日已申請紀錄 (同步藥庫)</div>
@@ -90,7 +97,6 @@
                 <div id="actionArea" class="pt-4 space-y-3">
                     <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📥 下載「新申請」Excel</button>
                     <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📦 藥品已入電梯</button>
-                    <button id="pickupBtn" onclick="pickupComplete()" class="hidden w-full bg-blue-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl"> ✅ 取藥完成</button>
                 </div>
             </div>
         </div>
