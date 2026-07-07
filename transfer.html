@@ -1140,7 +1140,11 @@
                     li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between";
                     li.innerHTML = `<b>${drug.name}</b><small>${drug.id}</small>`;
                     li.onclick = () => {
-                        tempCart.push({ ...drug, qty: 1 });
+                        tempCart.push({
+    ...drug,
+    qty: 1,
+    cold: false
+});
                         renderTempList();
                         searchInput.value = ''; suggestList.classList.add('hidden');
                     };
@@ -1161,28 +1165,69 @@
             const list = document.getElementById('tempList');
             const btn = document.getElementById('submitBtn');
             list.innerHTML = tempCart.map((item, idx) => `
-                <li class="flex items-center justify-between bg-white p-2 rounded border border-blue-100 text-xs">
-                    <span><b>${item.name}</b></span>
-                    <div class="flex items-center gap-2">
-                        <input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-10 p-1 text-center border rounded">
-                        <button onclick="removeFromTemp(${idx})" class="text-red-400">✕</button>
-                    </div>
-                </li>`).join('');
+<li class="bg-white p-3 rounded border border-blue-100 text-xs space-y-2">
+
+    <div class="flex items-center justify-between">
+
+        <span>
+            <b>${item.name}</b><br>
+            <small class="text-slate-400">${item.id}</small>
+        </span>
+
+        <div class="flex items-center gap-2">
+
+            <input type="number"
+                   value="${item.qty}"
+                   onchange="updateQty(${idx}, this.value)"
+                   class="w-12 p-1 text-center border rounded">
+
+            <button onclick="removeFromTemp(${idx})"
+                    class="text-red-500 font-bold">
+                ✕
+            </button>
+
+        </div>
+
+    </div>
+
+    <label class="flex items-center gap-2 text-blue-700 font-bold">
+
+        <input type="checkbox"
+               ${item.cold ? "checked" : ""}
+               onchange="updateCold(${idx}, this.checked)">
+
+        ❄️ 冰藥
+
+    </label>
+
+</li>
+`).join('');
             btn.disabled = tempCart.length === 0;
             btn.classList.toggle('opacity-20', tempCart.length === 0);
         }
 
         window.updateQty = (idx, val) => { tempCart[idx].qty = val; };
+        window.updateCold = (idx, checked) => {
+    tempCart[idx].cold = checked;
+};
         window.removeFromTemp = (idx) => { tempCart.splice(idx, 1); renderTempList(); };
 
         window.submitTransfer = () => {
             const user = document.getElementById('userSelect').value;
             if (!user) return alert("⚠️ 請選擇簽名");
             tempCart.forEach(item => {
-                push(listRef, {
-                    user: user, name: item.name, id: item.id, qty: item.qty,
-                    status: 'pending', time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'})
-                });
+               push(listRef,{
+    user:user,
+    name:item.name,
+    id:item.id,
+    qty:item.qty,
+    cold:item.cold,
+    status:'pending',
+    time:new Date().toLocaleTimeString([],{
+        hour:'2-digit',
+        minute:'2-digit'
+    })
+});
             });
             set(statusRef, { state: 'arriving' });
             tempCart = []; renderTempList();
