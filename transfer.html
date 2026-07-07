@@ -88,30 +88,104 @@
                     </table>
                 </div>
                 <div id="actionArea" class="pt-4 space-y-3">
-                    <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📥 下載「新申請」Excel</button>
-                    <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📦 藥品已入電梯</button>
-                    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">完成處理</button>
+    <button id="downloadNewBtn" onclick="downloadAndProcess()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black">📥 下載「新申請」Excel</button>
+    
+    <button onclick="toggleIceCall()" class="w-full bg-sky-500 text-white py-4 rounded-xl font-black">🧊 冰品呼叫 (持續)</button>
+    
+    <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-4 rounded-xl font-black">📦 藥品已入電梯</button>
+    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-4 rounded-xl font-black">完成處理</button>
+</div>
                 </div>
             </div>
         </div>
     </div>
-
+<button id="receivedBtn" onclick="confirmReceived()" class="hidden w-full bg-slate-800 text-white py-4 rounded-xl font-black mt-4">✅ 確認已取藥 (藥局端專用)</button>
+   </div> 
+    
     <script type="module">
+       <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
         import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
-            authDomain: "drug--arrive.firebaseapp.com",
             databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
             projectId: "drug--arrive",
             appId: "1:215426668369:web:eaa94e83974fcec391a570"
         };
 
-        const app = initializeApp(firebaseConfig);
-        const db = getDatabase(app);
+        const db = getDatabase(initializeApp(firebaseConfig));
         const listRef = ref(db, 'dailyTransferList');
         const statusRef = ref(db, 'systemStatus');
+        
+        let callInterval = null; // 用於持續呼叫的計時器
+        let voiceEnabled = false;
+
+        // --- 語音系統 ---
+        window.enableVoice = () => { 
+            voiceEnabled = true; 
+            document.getElementById('voiceBtn').innerText = "🔊 語音通知中";
+            speak("語音功能已啟動");
+        };
+
+        function speak(text) { 
+            if (voiceEnabled) {
+                const msg = new SpeechSynthesisUtterance(text);
+                msg.lang = 'zh-TW';
+                msg.rate = 1.1;
+                window.speechSynthesis.speak(msg);
+            }
+        }
+
+        // --- 冰品鍵邏輯 (持續呼叫) ---
+        window.toggleIceCall = () => {
+            if (callInterval) {
+                // 如果已經在呼叫，則停止
+                clearInterval(callInterval);
+                callInterval = null;
+                speak("呼叫已停止");
+                alert("🛑 呼叫已停止");
+            } else {
+                // 開始持續呼叫
+                const user = document.getElementById('userSelect').value || "藥師";
+                const msg = `${user}，您的藥品已放入電梯，請前往領取。`;
+                speak(msg);
+                callInterval = setInterval(() => speak(msg), 5000); // 每5秒重複
+                alert("🧊 冰品持續呼叫已啟動 (自動重複提醒)");
+            }
+        };
+
+        // --- 狀態控制 ---
+        window.updateStatus = (s) => {
+            // 如果按下入電梯或完成，強制清除呼叫
+            if (s === 'in_elevator' || s === 'idle') {
+                clearInterval(callInterval);
+                callInterval = null;
+            }
+            set(statusRef, { state: s });
+        };
+
+        // --- 藥局端：確認已取藥 ---
+        window.confirmReceived = () => {
+            speak("確認收到，感謝配合。");
+            updateStatus('idle');
+        };
+
+        // --- 狀態監聽與介面同步 ---
+        onValue(statusRef, (snap) => {
+            const state = snap.val()?.state || 'idle';
+            // 藥庫按鈕顯示邏輯
+            document.getElementById('elevatorBtn').classList.toggle('hidden', state !== 'preparing');
+            document.getElementById('doneBtn').classList.toggle('hidden', state !== 'in_elevator');
+            
+            // 藥局端：只有在「已入電梯」時，顯示「確認取藥」按鈕
+            const receivedBtn = document.getElementById('receivedBtn');
+            if(receivedBtn) receivedBtn.classList.toggle('hidden', state !== 'in_elevator');
+            
+            document.getElementById('statusLabel').innerText = 
+                state === 'in_elevator' ? "📦 電梯運送中 (等待藥局確認)" : "🟢 監測中";
+        });
+
 
         // === 直接埋入的 1000 筆藥品庫 ===
         let drugDb = [
