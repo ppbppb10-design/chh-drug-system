@@ -88,70 +88,30 @@
                     </table>
                 </div>
                 <div id="actionArea" class="pt-4 space-y-3">
-    <button id="downloadNewBtn" onclick="downloadAndProcess()" class="w-full bg-red-600 text-white py-4 rounded-xl font-black">📥 下載「新申請」Excel</button>
-    
-    <button onclick="toggleIceCall()" class="w-full bg-sky-500 text-white py-4 rounded-xl font-black">🧊 冰品呼叫 (持續)</button>
-    
-    <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-4 rounded-xl font-black">📦 藥品已入電梯</button>
-    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-4 rounded-xl font-black">完成處理</button>
-                    <button id="receivedBtn" onclick="confirmReceived()" 
-    class="hidden w-full bg-slate-800 text-white py-6 rounded-3xl font-black text-2xl shadow-xl mt-4">
-    ✅ 確認已取藥
-</button>
-</div>
+                    <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📥 下載「新申請」Excel</button>
+                    <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📦 藥品已入電梯</button>
+                    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">完成處理</button>
                 </div>
             </div>
         </div>
     </div>
-<button id="receivedBtn" onclick="confirmReceived()" class="hidden w-full bg-slate-800 text-white py-4 rounded-xl font-black mt-4">✅ 確認已取藥 (藥局端專用)</button>
-   </div> 
-    
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.17.1/firebase-database-compat.js"></script>
 
-<script>
-    // 使用兼容模式 (compat)，確保函數可以直接被 window 存取
-    const firebaseConfig = {
-        apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
-        databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
-        projectId: "drug--arrive",
-        appId: "1:215426668369:web:eaa94e83974fcec391a570"
-    };
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push, remove, update } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.database();
-    const listRef = db.ref('dailyTransferList');
-    const statusRef = db.ref('systemStatus');
+        const firebaseConfig = {
+            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+            authDomain: "drug--arrive.firebaseapp.com",
+            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
+            projectId: "drug--arrive",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
+        };
 
-    // 這些函數現在會掛載到 window 下，HTML 的 onclick 就能找到了
-    window.enableVoice = () => {
-        voiceEnabled = true;
-        document.getElementById('voiceBtn').innerText = "🔊 語音通知中";
-        alert("語音功能已啟動");
-    };
-
-    window.resetToIdle = () => {
-        if(confirm("確定重設今日清單？")) {
-            listRef.remove();
-            statusRef.set({ state: 'idle' });
-        }
-    };
-
-    // 藥庫按鈕邏輯
-    window.toggleIceCall = () => {
-        // ... (保持您原本的持續呼叫邏輯)
-        alert("🧊 冰品呼叫已觸發");
-    };
-
-    // 藥局端取藥確認
-    window.confirmReceived = () => {
-        statusRef.set({ state: 'idle' });
-        alert("✅ 確認已取藥");
-    };
-    
-    // ... 其他原本的邏輯
-</script>
-
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        const listRef = ref(db, 'dailyTransferList');
+        const statusRef = ref(db, 'systemStatus');
 
         // === 直接埋入的 1000 筆藥品庫 ===
         let drugDb = [
@@ -1146,18 +1106,9 @@
         let voiceEnabled = false;
         let lastCount = 0;
         let lastStatus = 'idle';
-       const urlParams = new URLSearchParams(window.location.search);
-const role = urlParams.get('role'); // 從網址取得角色 (?role=pharmacy 或 ?role=warehouse)
+        const urlParams = new URLSearchParams(window.location.search);
+        const role = urlParams.get('role');
 
-if (role === 'pharmacy') {
-    // 藥局端：隱藏藥庫的所有按鈕與表格
-    document.getElementById('warehouseSection').classList.add('role-hidden');
-    // 藥局端：只顯示取藥確認鍵 (透過狀態機控制顯示)
-} else if (role === 'warehouse') {
-    // 藥庫端：隱藏藥局的申請區
-    document.getElementById('pharmacySection').classList.add('role-hidden');
-    document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
-}
         window.enableVoice = () => { 
             voiceEnabled = true; 
             document.getElementById('voiceBtn').innerText = "🔊 語音通知中";
