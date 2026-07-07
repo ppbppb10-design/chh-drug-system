@@ -90,7 +90,6 @@
                 <div id="actionArea" class="pt-4 space-y-3">
                     <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📥 下載「新申請」Excel</button>
                     <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">📦 藥品已入電梯</button>
-                    <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-6 rounded-3xl font-black text-2xl shadow-xl">完成處理</button>
                 </div>
             </div>
         </div>
@@ -1187,7 +1186,7 @@
         onValue(statusRef, (snap) => {
             const state = snap.val()?.state || 'idle';
             const body = document.getElementById('bodyTag');
-            const btns = [document.getElementById('downloadNewBtn'), document.getElementById('elevatorBtn'), document.getElementById('doneBtn')];
+            const btns = [document.getElementById('downloadNewBtn'), document.getElementById('elevatorBtn')];
             
             btns.forEach(b => b.classList.add('hidden'));
             body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
@@ -1198,12 +1197,12 @@
             } else if (state === 'preparing') {
                 btns[1].classList.remove('hidden');
             } else if (state === 'in_elevator') {
-                body.classList.add('mode-elevator');
-                btns[2].classList.remove('hidden');
-                if (role === 'pharmacy' && lastStatus !== 'in_elevator') {
-                    speak("藥品已放入電梯，請前往領取");
-                }
-            }
+    body.classList.add('mode-elevator');
+
+    if (role === 'pharmacy' && lastStatus !== 'in_elevator') {
+        speak("藥品已放入電梯，請前往領取");
+    }
+}
             lastStatus = state;
         });
 
