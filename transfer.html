@@ -94,6 +94,10 @@
     
     <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-4 rounded-xl font-black">📦 藥品已入電梯</button>
     <button id="doneBtn" onclick="updateStatus('idle')" class="hidden w-full bg-slate-700 text-white py-4 rounded-xl font-black">完成處理</button>
+                    <button id="receivedBtn" onclick="confirmReceived()" 
+    class="hidden w-full bg-slate-800 text-white py-6 rounded-3xl font-black text-2xl shadow-xl mt-4">
+    ✅ 確認已取藥
+</button>
 </div>
                 </div>
             </div>
@@ -1180,9 +1184,18 @@
         let voiceEnabled = false;
         let lastCount = 0;
         let lastStatus = 'idle';
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role');
+       const urlParams = new URLSearchParams(window.location.search);
+const role = urlParams.get('role'); // 從網址取得角色 (?role=pharmacy 或 ?role=warehouse)
 
+if (role === 'pharmacy') {
+    // 藥局端：隱藏藥庫的所有按鈕與表格
+    document.getElementById('warehouseSection').classList.add('role-hidden');
+    // 藥局端：只顯示取藥確認鍵 (透過狀態機控制顯示)
+} else if (role === 'warehouse') {
+    // 藥庫端：隱藏藥局的申請區
+    document.getElementById('pharmacySection').classList.add('role-hidden');
+    document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
+}
         window.enableVoice = () => { 
             voiceEnabled = true; 
             document.getElementById('voiceBtn').innerText = "🔊 語音通知中";
