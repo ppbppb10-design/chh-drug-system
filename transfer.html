@@ -1111,7 +1111,14 @@
         let selectedForm = '';
         let voiceEnabled = false;
         let lastCount = 0;
-        let lastStatus = 'idle';
+let lastStatus = 'idle';
+
+// 冰藥語音計時器
+let coldVoiceTimer = null;
+
+// 目前清單資料
+let currentTransferData = {};
+        let coldVoiceTimer = null;
         const urlParams = new URLSearchParams(window.location.search);
         const role = urlParams.get('role');
 
@@ -1122,12 +1129,26 @@
         };
         
         function speak(text) { 
-            if (voiceEnabled) window.speechSynthesis.speak(new SpeechSynthesisUtterance(text));
-        }
+    if (voiceEnabled) {
+        window.speechSynthesis.speak(
+            new SpeechSynthesisUtterance(text)
+        );
+    }
+}
 
-        // 搜尋與暫存
-        const searchInput = document.getElementById('searchInput');
-        const suggestList = document.getElementById('suggestList');
+// 停止冰藥循環語音
+function stopColdVoice() {
+
+    if (coldVoiceTimer) {
+        clearInterval(coldVoiceTimer);
+        coldVoiceTimer = null;
+    }
+
+}
+
+// 搜尋與暫存
+const searchInput = document.getElementById('searchInput');
+const suggestList = document.getElementById('suggestList');
 
         if(searchInput) {
             searchInput.addEventListener('input', () => {
@@ -1272,9 +1293,38 @@ onValue(statusRef, (snap) => {
 
             if (pickupBtn) pickupBtn.classList.remove('hidden');
 
-            if (lastStatus !== 'in_elevator') {
-                speak("藥品已放入電梯，請前往領取");
-            }
+           if (lastStatus !== 'in_elevator') {
+
+   onValue(listRef, (snap) => {
+
+    currentTransferData = snap.val() || {};
+
+    const data = snap.val();
+
+
+        const hasCold = Object.values(data).some(item => item.cold === true);
+
+        stopColdVoice();
+
+        if (hasCold) {
+
+            speak("冰藥已放入電梯，請立即領取");
+
+            coldVoiceTimer = setInterval(() => {
+
+                speak("冰藥已放入電梯，請立即領取");
+
+            }, 15000);
+
+        } else {
+
+            speak("藥品已放入電梯，請前往領取");
+
+        }
+
+    }, { onlyOnce: true });
+
+}
         }
     }
 
@@ -1357,13 +1407,25 @@ const html = entries.map(([key, i]) => `
 
 };
         window.updateStatus = (s) => set(statusRef, { state: s });
-        window.pickupComplete = () => { if (!confirm("確認已完成取藥？")) return;
+        window.pickupComplete = () => {
 
-    remove(listRef);
+    if (!confirm("確認已完成取藥？")) return;
 
-    set(statusRef, {
-        state: "idle"
+    stopColdVoice();
+
+    Object.keys(currentTransferData).forEach(key => {
+
+        update(ref(db, `dailyTransferList/${key}`), {
+            status:"completed"
+        });
+
     });
+
+    set(statusRef,{
+        state:"idle"
+    });
+
+};
 
 }
         window.resetToIdle = () => { if(confirm("確定重設今日清單？")) { remove(listRef); set(statusRef, {state:'idle'}); }};
