@@ -1118,10 +1118,9 @@ let coldVoiceTimer = null;
 
 // 目前清單資料
 let currentTransferData = {};
-        let coldVoiceTimer = null;
-        const urlParams = new URLSearchParams(window.location.search);
-        const role = urlParams.get('role');
 
+const urlParams = new URLSearchParams(window.location.search);
+const role = urlParams.get('role');
         window.enableVoice = () => { 
             voiceEnabled = true; 
             document.getElementById('voiceBtn').innerText = "🔊 語音通知中";
