@@ -1303,6 +1303,7 @@ onValue(statusRef, (snap) => {
             if (pickupBtn) pickupBtn.classList.remove('hidden');
 
 if (lastStatus !== 'in_elevator') {
+    console.log("進入 in_elevator");
 
     stopColdVoice();
 
@@ -1313,6 +1314,7 @@ if (lastStatus !== 'in_elevator') {
         const data = currentTransferData;
 
         const hasCold = Object.values(data).some(item => item.cold === true);
+        console.log("是否有冰藥：", hasCold);
 
         if (hasCold) {
 
@@ -1412,12 +1414,9 @@ const html = entries.map(([key, i]) => `
     });
 
 };
-        window.updateStatus = (s) => set(statusRef, { state: s });
-        window.pickupComplete = () => {
-
-    if (!confirm("確認已完成取藥？")) return;
-
-    stopColdVoice();
+        window.updateStatus = (s) => {console.log("切換狀態：", s);set(statusRef, { state: s });
+};
+        window.pickupComplete = () => {if (!confirm("確認已完成取藥？")) return; stopColdVoice();
 
     Object.keys(currentTransferData).forEach(key => {
 
