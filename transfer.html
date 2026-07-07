@@ -176,19 +176,34 @@
         };
 
         // --- 狀態監聽與介面同步 ---
-        onValue(statusRef, (snap) => {
-            const state = snap.val()?.state || 'idle';
-            // 藥庫按鈕顯示邏輯
-            document.getElementById('elevatorBtn').classList.toggle('hidden', state !== 'preparing');
-            document.getElementById('doneBtn').classList.toggle('hidden', state !== 'in_elevator');
-            
-            // 藥局端：只有在「已入電梯」時，顯示「確認取藥」按鈕
-            const receivedBtn = document.getElementById('receivedBtn');
-            if(receivedBtn) receivedBtn.classList.toggle('hidden', state !== 'in_elevator');
-            
-            document.getElementById('statusLabel').innerText = 
-                state === 'in_elevator' ? "📦 電梯運送中 (等待藥局確認)" : "🟢 監測中";
-        });
+        // === 監聽狀態變化 (加入防錯保護) ===
+onValue(statusRef, (snap) => {
+    const state = snap.val()?.state || 'idle';
+    
+    // 藥庫端按鈕：加入 null 檢查，避免找不到元素導致程式崩潰
+    const elevatorBtn = document.getElementById('elevatorBtn');
+    const doneBtn = document.getElementById('doneBtn');
+    if (elevatorBtn) elevatorBtn.classList.toggle('hidden', state !== 'preparing');
+    if (doneBtn) doneBtn.classList.toggle('hidden', state !== 'in_elevator');
+    
+    // 藥局端確認鍵：加入 null 檢查
+    const receivedBtn = document.getElementById('receivedBtn');
+    if (receivedBtn && role === 'pharmacy') {
+        receivedBtn.classList.toggle('hidden', state !== 'in_elevator');
+    }
+    
+    // 狀態文字：加入 null 檢查
+    const statusLabel = document.getElementById('statusLabel');
+    if (statusLabel) {
+        statusLabel.innerText = state === 'in_elevator' ? "📦 電梯運送中 (藥局請確認)" : "🟢 監測中";
+    }
+
+    // 播放語音提示 (僅在狀態變更時發聲)
+    if (role === 'pharmacy' && state === 'in_elevator' && lastStatus !== 'in_elevator') {
+        speak("藥品已放入電梯，請前往領取。");
+    }
+    lastStatus = state;
+});
 
 
         // === 直接埋入的 1000 筆藥品庫 ===
