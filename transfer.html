@@ -1186,13 +1186,16 @@
         // 狀態監聽
 onValue(statusRef, (snap) => {
     const state = snap.val()?.state || 'idle';
+
+    console.log("目前狀態：", state);
+    console.log("目前角色：", role);
+
     const body = document.getElementById('bodyTag');
 
     const btns = [
         document.getElementById('downloadNewBtn'),
         document.getElementById('elevatorBtn')
     ];
-
     const pickupBtn = document.getElementById('pickupBtn');
 
     // 先全部隱藏
