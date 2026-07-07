@@ -1127,12 +1127,19 @@ const role = urlParams.get('role');
             speak("語音功能已啟動");
         };
         
-        function speak(text) { 
-    if (voiceEnabled) {
-        window.speechSynthesis.speak(
-            new SpeechSynthesisUtterance(text)
-        );
-    }
+function speak(text) {
+
+    if (!voiceEnabled) return;
+
+    // 避免語音重疊
+    window.speechSynthesis.cancel();
+
+    const msg = new SpeechSynthesisUtterance(text);
+    msg.lang = "zh-TW";
+    msg.rate = 1;
+    msg.pitch = 1;
+
+    window.speechSynthesis.speak(msg);
 }
 
 // 停止冰藥循環語音
@@ -1142,6 +1149,9 @@ function stopColdVoice() {
         clearInterval(coldVoiceTimer);
         coldVoiceTimer = null;
     }
+
+    // 同時停止目前正在播放的語音
+    window.speechSynthesis.cancel();
 
 }
 
@@ -1292,28 +1302,25 @@ onValue(statusRef, (snap) => {
 
             if (pickupBtn) pickupBtn.classList.remove('hidden');
 
-           if (lastStatus !== 'in_elevator') {
+if (lastStatus !== 'in_elevator') {
 
-   onValue(listRef, (snap) => {
+    stopColdVoice();
 
-    currentTransferData = snap.val() || {};
+    onValue(listRef, (snap) => {
 
-    const data = snap.val();
+        currentTransferData = snap.val() || {};
 
+        const data = currentTransferData;
 
         const hasCold = Object.values(data).some(item => item.cold === true);
-
-        stopColdVoice();
 
         if (hasCold) {
 
             speak("冰藥已放入電梯，請立即領取");
 
             coldVoiceTimer = setInterval(() => {
-
                 speak("冰藥已放入電梯，請立即領取");
-
-            }, 15000);
+            }, 20000);   // 每20秒提醒一次
 
         } else {
 
