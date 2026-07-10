@@ -380,8 +380,8 @@ onValue(ref(db, `controlledMatrixRecords/${dateInput.value}/_meta_lock`), (snaps
     approverSelect.disabled = false;
 
     if(btnLockDay) btnLockDay.classList.remove('hidden');
-
 }
+    });
         function loadDailyData() {
             const dateStr = dateInput.value;
             if (!dateStr) return;
