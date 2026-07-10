@@ -344,25 +344,44 @@ onValue(ref(db, `controlledMatrixRecords/${dateInput.value}/_meta_lock`), (snaps
     const btnLockDay = document.getElementById('btnLockDay');
     
     // 取得頁面上所有輸入框 (包含電腦版矩陣與手機版輸入)
-    const inputs = document.querySelectorAll('input, select');
+    const matrixInputs = document.querySelectorAll('.matrix-input');
+    const mobileInputs = document.querySelectorAll('.mobile-input');
+    const pharmacistSelect = document.getElementById('pharmacistName');
+    const approverSelect = document.getElementById('approverName');
     
-    if (isLocked) {
-        // 顯示鎖定訊息
-        if (lockMessage) {
-            lockMessage.classList.remove('hidden');
-            document.getElementById('lockedBy').innerText = lockData.approver;
-        }
-        // 鎖定 UI
-        inputs.forEach(i => i.disabled = true);
-        if(btnLockDay) btnLockDay.classList.add('hidden');
-    } else {
-        // 解鎖 UI
-        if (lockMessage) lockMessage.classList.add('hidden');
-        inputs.forEach(i => i.disabled = false);
-        if(btnLockDay) btnLockDay.classList.remove('hidden');
-    }
-});
+   if (isLocked) {
 
+    // 顯示鎖定訊息
+    if (lockMessage) {
+        lockMessage.classList.remove('hidden');
+        document.getElementById('lockedBy').innerText = lockData.approver;
+    }
+
+    // 只鎖盤點輸入
+    matrixInputs.forEach(i => i.disabled = true);
+    mobileInputs.forEach(i => i.disabled = true);
+
+    // 鎖藥師選單
+    pharmacistSelect.disabled = true;
+    approverSelect.disabled = true;
+
+    // 隱藏鎖定按鈕
+    if(btnLockDay) btnLockDay.classList.add('hidden');
+
+} else {
+
+    // 解鎖
+    if (lockMessage) lockMessage.classList.add('hidden');
+
+    matrixInputs.forEach(i => i.disabled = false);
+    mobileInputs.forEach(i => i.disabled = false);
+
+    pharmacistSelect.disabled = false;
+    approverSelect.disabled = false;
+
+    if(btnLockDay) btnLockDay.classList.remove('hidden');
+
+}
         function loadDailyData() {
             const dateStr = dateInput.value;
             if (!dateStr) return;
