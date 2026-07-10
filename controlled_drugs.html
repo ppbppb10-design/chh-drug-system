@@ -376,19 +376,37 @@ onValue(ref(db, `controlledMatrixRecords/${dateInput.value}/_meta_lock`), (snaps
                 historyPastRecords = prevDate ? (allDatesData[prevDate] || {}) : {};
                 
                 avg7DaysErrors = {};
-                allDrugs.forEach(drug => {
-                    let totalPastErr = 0;
-                    let recordCount = 0;
-                   for (let i = 0; i < sortedDates.length; i++) { const dStr = sortedDates[i]; if (dStr === dateStr) continue; const dayData = allDatesData[dStr];
-    // 只有正式匯入電腦帳的日期才計算
-    if (!isImportedDay(dayData)) continue;
-    if (recordCount >= 7) break; const info = getDrugSumAndComputer(drug.id, dayData);
-    totalPastErr += Math.abs(info.sum - info.computerStock);
-    recordCount++;
-}
-                    }
-                    avg7DaysErrors[drug.id] = recordCount > 0 ? (totalPastErr / recordCount) : 0;
-                });
+
+allDrugs.forEach(drug => {
+
+    let totalPastErr = 0;
+    let recordCount = 0;
+
+    for (let i = 0; i < sortedDates.length; i++) {
+
+        const dStr = sortedDates[i];
+
+        if (dStr === dateStr) continue;
+
+        const dayData = allDatesData[dStr];
+
+        // 只有正式匯入電腦帳的日期才計算
+        if (!isImportedDay(dayData)) continue;
+
+        if (recordCount >= 7) break;
+
+        const info = getDrugSumAndComputer(drug.id, dayData);
+
+        totalPastErr += Math.abs(info.sum - info.computerStock);
+
+        recordCount++;
+
+    }
+
+    avg7DaysErrors[drug.id] =
+        recordCount > 0 ? (totalPastErr / recordCount) : 0;
+
+});
 
                 currentDayRecords = allDatesData[dateStr] || {};
                 refreshUI();
