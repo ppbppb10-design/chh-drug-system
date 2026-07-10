@@ -857,6 +857,11 @@ allDrugs.forEach(drug => {
                     // 新增匯入標記
                     upload封包["_meta"] = { imported: true, importedAt: new Date().toISOString()
                                         };
+                   // 新增正式匯入標記
+                    upload封包["_meta"] = {
+                        imported: true,
+                        importedAt: new Date().toISOString()
+                    };
                     set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
                         alert(`🎉 電腦總量勾稽完全成功！`);
                         loadDailyData();
