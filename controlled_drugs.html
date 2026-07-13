@@ -521,6 +521,22 @@ allDrugs.forEach(drug => {
                 tbody.appendChild(rowTr);
             });
         }
+        // =======================
+        // 載入假日藥品清單
+        // =======================
+        function loadHolidayDrugList() {
+            const select = document.getElementById("holidayDrug");
+    if (!select) return;
+    select.innerHTML = "";
+    allDrugs.forEach(drug => {
+        const option = document.createElement("option");
+        option.value = drug.id;
+        option.textContent = `${drug.id} - ${drug.name}`;
+        select.appendChild(option);
+
+    });
+
+}
 
        function openQrModal(drugId, drugName) {
 
@@ -1019,8 +1035,9 @@ allDrugs.forEach(drug => {
 
         if (btnHoliday && holidayModal && btnCloseHoliday) {
 
-    btnHoliday.addEventListener("click", () => {
-        holidayModal.classList.remove("hidden");
+    btnHoliday.addEventListener("click", function () {
+    loadHolidayDrugList();
+    holidayModal.classList.remove("hidden");
     });
 
     btnCloseHoliday.addEventListener("click", () => {
