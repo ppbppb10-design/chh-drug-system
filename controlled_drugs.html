@@ -1009,6 +1009,110 @@ allDrugs.forEach(drug => {
         });
 
         loadDailyData();
+        
+        // =======================
+        // 假日異動按鈕
+        // =======================
+        const btnHoliday = document.getElementById("btnHoliday");
+        const holidayModal = document.getElementById("holidayModal");
+        const btnCloseHoliday = document.getElementById("btnCloseHoliday");
+
+        if (btnHoliday && holidayModal && btnCloseHoliday) {
+
+    btnHoliday.addEventListener("click", () => {
+        holidayModal.classList.remove("hidden");
+    });
+
+    btnCloseHoliday.addEventListener("click", () => {
+        holidayModal.classList.add("hidden");
+    });
+
+}
     </script>
+    <!-- ================= 假日異動中心 ================= -->
+<div id="holidayModal"
+     class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+
+    <div class="bg-white rounded-2xl shadow-xl w-[95%] max-w-6xl p-6">
+
+        <div class="flex justify-between items-center mb-4">
+
+            <h2 class="text-2xl font-black text-indigo-700">
+                📋 假日異動中心
+            </h2>
+
+            <button id="btnCloseHoliday"
+                    class="text-red-600 text-2xl font-black">
+                ✕
+            </button>
+
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+            <!-- 左側 -->
+            <div>
+
+                <label class="font-bold"> 藥品
+                </label>
+
+                <select id="holidayDrug"
+                        class="w-full border rounded-lg p-2 mt-1">
+                </select>
+
+                <label class="font-bold mt-4 block"> 異動種類
+                </label>
+
+                <select id="holidayType"
+                        class="w-full border rounded-lg p-2 mt-1">
+
+                    <option value="issue">調劑</option>
+
+                    <option value="return">退藥</option>
+
+                </select>
+
+                <label class="font-bold mt-4 block"> 數量
+                </label>
+
+                <input
+                    type="number"
+                    id="holidayQty"
+                    class="w-full border rounded-lg p-2 mt-1">
+
+                <label class="font-bold mt-4 block"> 備註
+                </label>
+
+                <textarea id="holidayRemark"
+                    rows="3"
+                    class="w-full border rounded-lg p-2 mt-1"></textarea>
+
+                <button id="btnHolidaySave"
+                    class="mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3 font-black"> ➕ 新增異動
+
+                </button>
+
+            </div>
+
+            <!-- 右側 -->
+
+            <div>
+
+                <div class="text-xl font-black text-slate-700 mb-3"> 今日假日異動
+
+                </div>
+
+                <div id="holidayList"
+                     class="border rounded-xl h-[420px] overflow-auto p-3 bg-slate-50">
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 </body>
 </html>
