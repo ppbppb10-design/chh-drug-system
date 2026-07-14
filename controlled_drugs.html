@@ -492,44 +492,82 @@ allDrugs.forEach(drug => {
             recalculateWholePage();   
         }
 
-        function renderSummaryTable() {
-            const tbody = document.getElementById('summaryTableBody');
-            if(!tbody) return;
-            tbody.innerHTML = "";
+function renderSummaryTable() {
 
-            allDrugs.forEach(drug => {
-                const info = getDrugSumAndComputer(drug.id, currentDayRecords);
-                const diff = info.sum - info.computerStock;
-                const avg7 = avg7DaysErrors[drug.id] || 0;
+    const tbody = document.getElementById('summaryTableBody');
+    if (!tbody) return;
 
-                let rowTr = document.createElement('tr');
-                rowTr.className = "hover:bg-slate-50 transition";
+    tbody.innerHTML = "";
 
-                let diffHtml = `<span>0</span>`;
-                if(diff !== 0) {
-                    const absDiff = Math.abs(diff);
-                    const isOver = absDiff > avg7;
-                    const color = isOver ? "text-red-600 bg-red-50 px-2 py-0.5 rounded shadow-sm font-black" : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded";
-                    diffHtml = `<span class="${color}">${diff > 0 ? '+' + diff : diff}</span>`;
-                }
-                //======================
-                // 📈 趨勢分析藥品清單
-                //======================
+    allDrugs.forEach(drug => {
 
-function loadTrendDrugList(){
+        const info = getDrugSumAndComputer(drug.id, currentDayRecords);
+        const diff = info.sum - info.computerStock;
+        const avg7 = avg7DaysErrors[drug.id] || 0;
+
+        let rowTr = document.createElement("tr");
+        rowTr.className = "hover:bg-slate-50 transition";
+
+        let diffHtml = `<span>0</span>`;
+
+        if (diff !== 0) {
+
+            const absDiff = Math.abs(diff);
+
+            const isOver = absDiff > avg7;
+
+            const color = isOver
+                ? "text-red-600 bg-red-50 px-2 py-0.5 rounded shadow-sm font-black"
+                : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded";
+
+            diffHtml = `<span class="${color}">${diff > 0 ? "+" + diff : diff}</span>`;
+
+        }
+
+        rowTr.innerHTML = `
+            <td class="p-2 text-left font-black text-rose-700 hover:text-rose-900 hover:underline cursor-pointer flex items-center gap-1"
+                data-trigger-qr="${drug.id}"
+                data-trigger-name="${drug.name}">
+                <i class="fa-solid fa-qrcode text-slate-300 text-[10px]"></i>
+                ${drug.name}
+                <span class="text-[9px] text-slate-400 font-mono font-bold">
+                    (${drug.id})
+                </span>
+            </td>
+
+            <td class="p-2 text-blue-600 font-black text-sm">${info.sum}</td>
+
+            <td class="p-2 text-slate-500">${info.computerStock}</td>
+
+            <td class="p-2">${diffHtml}</td>
+
+            <td class="p-2 text-slate-400 font-mono text-[10px]">
+                ${avg7.toFixed(1)}
+            </td>
+        `;
+
+        tbody.appendChild(rowTr);
+
+    });
+
+}
+        //======================
+        // 📈 趨勢分析藥品清單
+        //======================
+
+function loadTrendDrugList() {
 
     const select = document.getElementById("trendDrug");
 
-    if(!select) return;
+    if (!select) return;
 
     select.innerHTML = "";
 
-    allDrugs.forEach(drug=>{
+    allDrugs.forEach(drug => {
 
         const op = document.createElement("option");
 
         op.value = drug.id;
-
         op.textContent = `${drug.id} - ${drug.name}`;
 
         select.appendChild(op);
@@ -537,21 +575,6 @@ function loadTrendDrugList(){
     });
 
 }
-
-
-                rowTr.innerHTML = `
-                    <td class="p-2 text-left font-black text-rose-700 hover:text-rose-900 hover:underline cursor-pointer flex items-center gap-1" data-trigger-qr="${drug.id}" data-trigger-name="${drug.name}">
-                        <i class="fa-solid fa-qrcode text-slate-300 text-[10px]"></i> ${drug.name} 
-                        <span class="text-[9px] text-slate-400 font-mono font-bold">(${drug.id})</span>
-                    </td>
-                    <td class="p-2 text-blue-600 font-black text-sm">${info.sum}</td>
-                    <td class="p-2 text-slate-500">${info.computerStock}</td>
-                    <td class="p-2">${diffHtml}</td>
-                    <td class="p-2 text-slate-400 font-mono text-[10px]">${avg7.toFixed(1)}</td>
-                `;
-                tbody.appendChild(rowTr);
-            });
-        }
         // =======================
         // 載入假日藥品清單
         // =======================
