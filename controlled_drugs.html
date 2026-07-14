@@ -7,6 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- 引入國際標準 QR Code 引擎 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
     <style>
@@ -128,6 +130,8 @@
         <button id="btnExport"
             class="bg-slate-800 hover:bg-slate-900 text-white rounded-xl py-4 font-black"> 📤 匯出智慧報表
         </button>
+         <button id="btnTrend" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black rounded-lg py-3 text-xs"> 📈 盤差趨勢
+         </button>
         <button id="btnHoliday"
             class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-4 font-black"> 📋 假日異動
         </button>
@@ -508,6 +512,32 @@ allDrugs.forEach(drug => {
                     const color = isOver ? "text-red-600 bg-red-50 px-2 py-0.5 rounded shadow-sm font-black" : "text-amber-600 bg-amber-50 px-2 py-0.5 rounded";
                     diffHtml = `<span class="${color}">${diff > 0 ? '+' + diff : diff}</span>`;
                 }
+                //======================
+                // 📈 趨勢分析藥品清單
+                //======================
+
+function loadTrendDrugList(){
+
+    const select = document.getElementById("trendDrug");
+
+    if(!select) return;
+
+    select.innerHTML = "";
+
+    allDrugs.forEach(drug=>{
+
+        const op = document.createElement("option");
+
+        op.value = drug.id;
+
+        op.textContent = `${drug.id} - ${drug.name}`;
+
+        select.appendChild(op);
+
+    });
+
+}
+
 
                 rowTr.innerHTML = `
                     <td class="p-2 text-left font-black text-rose-700 hover:text-rose-900 hover:underline cursor-pointer flex items-center gap-1" data-trigger-qr="${drug.id}" data-trigger-name="${drug.name}">
@@ -1025,6 +1055,17 @@ allDrugs.forEach(drug => {
             XLSX.writeFile(wb, `彰醫管制藥智慧多維對帳表_${dateStr}.xlsx`);
         });
 
+        // =========================
+        // 📈 趨勢分析
+        // =========================
+        document.getElementById("btnTrend")?.addEventListener("click", () => {
+            document.getElementById("trendModal").classList.remove("hidden");
+            loadTrendDrugList();
+        });
+        document.getElementById("btnCloseTrend")?.addEventListener("click", () => {
+            document.getElementById("trendModal").classList.add("hidden");
+        });
+
         loadDailyData();
         
         // =======================
@@ -1130,6 +1171,39 @@ allDrugs.forEach(drug => {
         </div>
 
     </div>
+
+</div>
+    <div id="trendModal"
+class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
+
+<div class="bg-white rounded-2xl w-[95%] max-w-6xl p-6">
+
+<div class="flex justify-between">
+
+<h2 class="text-2xl font-black">
+
+📈 管制藥盤差趨勢分析
+
+</h2>
+
+<button id="btnCloseTrend">
+
+✕
+
+</button>
+
+</div>
+
+<select
+id="trendDrug"
+class="border rounded-lg p-2 my-4 w-full">
+
+</select>
+
+<canvas id="trendChart"
+height="120"></canvas>
+
+</div>
 
 </div>
 </body>
