@@ -116,29 +116,38 @@
             </button>
         </div>
     </div>
-    <!-- 第二列 -->
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+<!-- 電腦版功能列 (手機隱藏) -->
+<div class="hidden md:grid md:grid-cols-3 gap-3 mt-3">
+
+    <!-- 匯入電腦帳 -->
+    <div>
         <input
-        type="file"
-        id="computerExcel"
-        accept=".xlsx,.xls"
-        class="hidden">
+            type="file"
+            id="computerExcel"
+            accept=".xlsx,.xls"
+            class="hidden">
+
         <button
             onclick="document.getElementById('computerExcel').click()"
-            class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-4 font-black"> 📥 匯入電腦帳
-        </button>
-        <button id="btnExport"
-            class="bg-slate-800 hover:bg-slate-900 text-white rounded-xl py-4 font-black"> 📤 匯出智慧報表
-        </button>
-         <button id="btnTrend" class="w-full bg-cyan-600 hover:bg-cyan-700 text-white font-black rounded-lg py-3 text-xs"> 📈 盤差趨勢
-         </button>
-        <button id="btnHoliday"
-            class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-4 font-black"> 📋 假日異動
-        </button>
-        <button id="btnHistory"
-            class="bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl py-4 font-black"> 📜 歷史紀錄
+            class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-4 font-black shadow">
+            📥 匯入電腦帳
         </button>
     </div>
+
+    <!-- 智慧報表 -->
+    <button
+        id="btnReportCenter"
+        class="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl py-4 font-black shadow">
+        📊 智慧報表中心
+    </button>
+
+    <!-- 假日異動 -->
+    <button
+        id="btnHoliday"
+        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-4 font-black shadow">
+        📋 假日異動
+    </button>
+
 </div>
         <div id="lockMessage" class="hidden mt-3 p-4 rounded-xl bg-green-600 text-white text-center font-black">
 🔒 今日已由
