@@ -1012,11 +1012,16 @@ function loadTrendDrugList() {
             reader.readAsArrayBuffer(file);
         });
 
-        // 報表匯出
-        document.getElementById('btnReportCenter').addEventListener('click', function() {
-            const dateStr = dateInput.value;
-            if(!dateStr) return;
+       document.getElementById("btnReportCenter").addEventListener("click", () => {
 
+    document.getElementById("reportModal").classList.remove("hidden");
+
+    loadTrendDrugList();   //載入藥品
+    loadHistoryList();     //歷史紀錄
+});
+        document.getElementById("btnDownloadExcel").addEventListener("click", exportExcelReport);
+        
+        function exportExcelReport(){
             const sheet1Rows = [
                 [`彰化醫院藥劑科四級管制藥 - 各調劑台/儲位責任盤點明細表 (核帳日期: ${dateStr})`],
                 ["藥品代碼", "藥品名稱", "規格", "電腦總結存", "雙號台", "雙號藥師", "罐裝台", "罐裝藥師", "庫存區", "庫存藥師", "藥車", "藥車藥師", "住院盒", "住院藥師", "門診盒", "門診藥師", "單號台", "單號藥師", "實體總盤點", "對帳誤差"]
@@ -1236,6 +1241,26 @@ class="border rounded-lg p-2 my-4 w-full">
 height="120"></canvas>
 
 </div>
+
+</div>
+    <button id="btnTodayReport"
+                class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-5 font-black">
+                📄<br>今日智慧報表
+            </button>
+
+            <button id="btnStatistics"
+                class="bg-amber-500 hover:bg-amber-600 text-white rounded-xl py-5 font-black">
+                📊<br>統計分析
+            </button>
+
+            <button id="btnExportExcel"
+                class="bg-slate-800 hover:bg-black text-white rounded-xl py-5 font-black">
+                ⬇️<br>匯出 Excel
+            </button>
+
+        </div>
+
+    </div>
 
 </div>
 </body>
