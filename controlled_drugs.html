@@ -1092,17 +1092,6 @@ function loadTrendDrugList() {
             XLSX.writeFile(wb, `彰醫管制藥智慧多維對帳表_${dateStr}.xlsx`);
         });
 
-        // =========================
-        // 📈 趨勢分析
-        // =========================
-        document.getElementById("btnTrend")?.addEventListener("click", () => {
-            document.getElementById("trendModal").classList.remove("hidden");
-            loadTrendDrugList();
-        });
-        document.getElementById("btnCloseTrend")?.addEventListener("click", () => {
-            document.getElementById("trendModal").classList.add("hidden");
-        });
-
         loadDailyData();
         
         // =======================
