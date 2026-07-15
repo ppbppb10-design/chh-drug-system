@@ -219,9 +219,23 @@ Version 2.0
     <script>
         document.getElementById("btnImportExcel").addEventListener("click",()=>{ document.getElementById("computerExcel").click();
 });
+        document.getElementById("btnHome").addEventListener("click",()=>{ window.location.href="index.html";
+});
+        function updateClock(){
+    const now = new Date(); document.getElementById("todayTime").innerHTML=
+    now.toLocaleDateString("zh-TW")+
+    "<br>"+
+    now.toLocaleTimeString("zh-TW");
+
+}
+
+updateClock();
+
+setInterval(updateClock,1000);
+        
         //========================
-// Firebase 初始化
-//========================
+        // Firebase 初始化
+        //========================
 
 
 //========================
@@ -314,6 +328,54 @@ async function initializeSystem(){
        initializeSystem();
 
 </script>
+    <header class="bg-gradient-to-r from-slate-800 to-slate-900 text-white shadow-lg">
+
+    <div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
+
+        <div class="flex items-center gap-4">
+
+            <button id="btnHome"
+                class="bg-white/10 hover:bg-white/20 px-4 py-2 rounded-xl font-bold transition">
+
+                <i class="fa-solid fa-house"></i>
+                回系統首頁
+
+            </button>
+
+            <div>
+
+                <h1 class="text-2xl font-black"> 🏥 彰醫四級管制藥智慧盤點系統 V2
+
+                </h1>
+
+                <div class="text-sm text-slate-300"> Changhua Christian Hospital
+
+                </div>
+
+            </div>
+
+        </div>
+
+        <div class="text-right">
+            <div id="todayTime" class="font-bold"></div>
+            <div class="text-xs text-slate-300"> Version 2.0
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+    <main class="max-w-7xl mx-auto p-6 space-y-5">
+        
+    <!-- Control Center -->
+
+    <!-- Dashboard -->
+
+    <!-- Matrix -->
+
+</main>
 
 </body>
 </html>
