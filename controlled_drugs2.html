@@ -69,10 +69,95 @@ Version 2.0
 
 </nav>
 
-<main class="max-w-7xl mx-auto p-5">
+<main class="max-w-7xl mx-auto p-5 space-y-6">
+
+    <!-- Control Center -->
+
+    <div class="bg-white rounded-2xl shadow-lg p-6">
+
+        <div class="grid lg:grid-cols-4 gap-4">
+
+            <!-- 日期 -->
+
+            <div>
+
+                <label class="block text-sm font-bold text-slate-500 mb-2"> 🗓️ 核帳日期
+
+                </label>
+
+                <input type="date" id="targetDate" class="w-full border rounded-xl p-3 font-bold">
+
+            </div>
+
+            <!-- 盤點藥師 -->
+
+            <div>
+
+                <label class="block text-sm font-bold text-slate-500 mb-2"> 👨‍⚕️ 盤點藥師
+
+                </label>
+
+                <select id="pharmacistName" class="w-full border rounded-xl p-3">
+                    <option value="">請選擇</option>
+                </select>
+            </div>
+
+            <!-- 覆核藥師 -->
+
+            <div>
+
+                <label class="block text-sm font-bold text-slate-500 mb-2"> 🕵️ A2 覆核藥師
+                </label>
+                <select id="approverName" class="w-full border rounded-xl p-3">
+                    <option value="">請選擇</option>
+                </select>
+            </div>
+
+            <!-- 完成盤點 -->
+
+            <div class="flex items-end">
+
+                <button id="btnLockDay"
+                    class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-4 text-lg font-black"> 🔒 簽章並完成盤點
+
+                </button>
+
+            </div>
+
+        </div>
+
+    </div>
 
 </main>
+  <!-- Tool Center -->
+
+<div class="bg-white rounded-2xl shadow-lg p-6">
+
+    <div class="grid md:grid-cols-3 gap-4">
+
+        <button
+            id="btnImportExcel"
+            class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-5 text-lg font-black"> 📥 匯入電腦帳
+
+        </button>
+
+        <button
+            id="btnReportCenter"
+            class="bg-cyan-600 hover:bg-cyan-700 text-white rounded-xl py-5 text-lg font-black"> 📊 智慧報表中心
+
+        </button>
+
+        <button
+            id="btnHoliday"
+            class="bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-5 text-lg font-black"> 📋 假日異動中心
+
+        </button>
+
+    </div>
+
+</div>
+
+<input type="file" id="computerExcel" accept=".xlsx,.xls" class="hidden">
 
 </body>
-
 </html>
