@@ -1199,57 +1199,55 @@ function loadTrendDrugList() {
     </div>
 
 </div>
-    <div id="trendModal"
+<!-- ================= 智慧報表中心 ================= -->
+<div id="reportModal"
 class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center">
 
-<div class="bg-white rounded-2xl w-[95%] max-w-6xl p-6">
+<div class="bg-white rounded-2xl shadow-xl w-[95%] max-w-7xl p-6">
 
-<div class="flex justify-between">
+<div class="flex justify-between items-center mb-5">
 
-<h2 class="text-2xl font-black">
-
-📈 管制藥盤差趨勢分析
-
+<h2 class="text-2xl font-black text-slate-700">
+📊 智慧報表中心
 </h2>
 
-<button id="btnCloseTrend">
-
+<button id="btnCloseReport"
+class="text-red-600 text-2xl font-black">
 ✕
+</button>
 
+</div>
+
+<div class="grid grid-cols-3 gap-4 mb-6">
+
+<button id="btnTodayReport"
+class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-5 font-black">
+📄<br>今日智慧報表
+</button>
+
+<button id="btnStatistics"
+class="bg-amber-500 hover:bg-amber-600 text-white rounded-xl py-5 font-black">
+📊<br>統計分析
+</button>
+
+<button id="btnExportExcel"
+class="bg-slate-800 hover:bg-black text-white rounded-xl py-5 font-black">
+⬇️<br>匯出 Excel
 </button>
 
 </div>
 
 <select
 id="trendDrug"
-class="border rounded-lg p-2 my-4 w-full">
-
+class="border rounded-lg p-2 mb-4 w-full">
 </select>
 
-<canvas id="trendChart"
-height="120"></canvas>
+<canvas id="trendChart" height="120"></canvas>
 
 </div>
 
 </div>
-    <button id="btnTodayReport"
-                class="bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl py-5 font-black">
-                📄<br>今日智慧報表
-            </button>
-
-            <button id="btnStatistics"
-                class="bg-amber-500 hover:bg-amber-600 text-white rounded-xl py-5 font-black">
-                📊<br>統計分析
-            </button>
-
-            <button id="btnExportExcel"
-                class="bg-slate-800 hover:bg-black text-white rounded-xl py-5 font-black">
-                ⬇️<br>匯出 Excel
-            </button>
-
-        </div>
-
-    </div>
+  
 
 </div>
 </body>
