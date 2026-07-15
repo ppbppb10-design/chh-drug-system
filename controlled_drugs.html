@@ -1090,7 +1090,7 @@ function loadTrendDrugList() {
             XLSX.utils.book_append_sheet(wb, ws2, "過去30日庫差變化總表");
 
             XLSX.writeFile(wb, `彰醫管制藥智慧多維對帳表_${dateStr}.xlsx`);
-        });
+        }
 
         loadDailyData();
         
