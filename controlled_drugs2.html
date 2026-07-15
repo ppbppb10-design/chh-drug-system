@@ -1,27 +1,65 @@
 <!DOCTYPE html>
 <html lang="zh-TW">
 
+<head>
+
+    <meta charset="UTF-8">
+    <title>彰醫四級管制藥智慧盤點系統 V2</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+</head>
+
+<body class="bg-slate-100">
 
     <!-- Header -->
-    <header id="headerArea"></header>
-    <div class="bg-red-700 text-white shadow-lg">
+    <header>
 
-    <div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
-        <div class="flex items-center gap-4">
+        <div class="bg-red-700 text-white shadow-lg">
 
-            <button id="btnHome"
-                class="bg-white/20 hover:bg-white/30 rounded-xl px-4 py-2">
-                <i class="fa-solid fa-house"></i> 回系統首頁
+            <div class="max-w-7xl mx-auto flex justify-between items-center px-6 py-4">
 
-            </button>
+                <div class="flex items-center gap-4">
 
-            <div>
+                    <button id="btnHome"
+                        class="bg-white/20 hover:bg-white/30 rounded-xl px-4 py-2">
 
-                <div class="text-3xl font-black"> 💊 彰醫四級管制藥智慧盤點系統 V2
+                        <i class="fa-solid fa-house"></i>
+
+                        回系統首頁
+
+                    </button>
+
+                    <div>
+
+                        <div class="text-3xl font-black">
+
+                            💊 彰醫四級管制藥智慧盤點系統 V2
+
+                        </div>
+
+                        <div class="text-sm">
+
+                            Changhua Christian Hospital
+
+                        </div>
+
+                    </div>
 
                 </div>
 
-                <div class="text-sm">  Changhua Christian Hospital
+                <div class="text-right">
+
+                    <div id="clock"></div>
+
+                    <div class="text-xs">
+
+                        Version 2.0
+
+                    </div>
 
                 </div>
 
@@ -29,61 +67,53 @@
 
         </div>
 
-        <div class="text-right">
-
-            <div id="clock"></div>
-
-            <div class="text-xs"> Version 2.0
-
-            </div>
-
-        </div>
-
-    </div>
-
-</div>
+    </header>
 
     <!-- 主內容 -->
     <main class="max-w-7xl mx-auto p-5 space-y-5">
 
-        <!-- Control Center -->
         <section id="controlCenter"></section>
 
-        <!-- Dashboard -->
         <section id="dashboardArea"></section>
 
-        <!-- Tool Center -->
         <section id="toolCenter"></section>
 
-        <!-- Matrix -->
         <section id="matrixArea"></section>
 
-        <!-- Summary -->
         <section id="summaryArea"></section>
 
     </main>
 
     <!-- Footer -->
-    <footer id="footerArea"></footer>
-    <div class="bg-slate-800 text-white mt-10">
+    <footer>
 
-    <div class="max-w-7xl mx-auto p-6 flex justify-between">
+        <div class="bg-slate-800 text-white mt-10">
 
-        <div>
-            彰化醫院藥劑科
-            <br>
-            四級管制藥智慧管理系統
+            <div class="max-w-7xl mx-auto p-6 flex justify-between">
+
+                <div>
+
+                    彰化醫院藥劑科<br>
+
+                    四級管制藥智慧管理系統
+
+                </div>
+
+                <div>
+
+                    Version 2.0
+
+                </div>
+
+            </div>
 
         </div>
-        <div>
-            Version 2.0
-        </div>
-    </div>
 
-</div>
+    </footer>
 
     <!-- Modal -->
     <div id="modalArea"></div>
 
 </body>
+
 </html>
