@@ -73,8 +73,155 @@
     <main class="max-w-7xl mx-auto p-5 space-y-5">
 
         <section id="controlCenter"></section>
+        <section id="controlCenter">
+
+<div class="bg-white rounded-3xl shadow-lg p-6">
+
+<div class="grid lg:grid-cols-4 gap-5">
+
+    <!-- 日期 -->
+    <div>
+
+        <div class="text-sm font-bold text-slate-600 mb-2">
+
+            📅 核帳日期
+
+        </div>
+
+        <input
+            type="date"
+            id="dateInput"
+            class="w-full rounded-xl border p-4 text-lg">
+
+    </div>
+
+    <!-- 盤點藥師 -->
+    <div>
+
+        <div class="text-sm font-bold text-orange-700 mb-2">
+
+            ✍️ 盤點藥師
+
+        </div>
+
+        <select
+            id="pharmacistName"
+            class="w-full rounded-xl border p-4">
+
+            <option value="">請選擇</option>
+
+        </select>
+
+    </div>
+
+    <!-- 覆核 -->
+    <div>
+
+        <div class="text-sm font-bold text-emerald-700 mb-2">
+
+            🕵️ A2覆核藥師
+
+        </div>
+
+        <select
+            id="approverName"
+            class="w-full rounded-xl border p-4">
+
+            <option value="">請選擇</option>
+
+        </select>
+
+    </div>
+
+    <!-- 完成 -->
+    <div class="flex items-end">
+
+        <button
+            id="btnLockDay"
+            class="w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl p-4 font-black"> 🔒 簽章並完成盤點
+
+        </button>
+
+    </div>
+
+</div>
+
+</div>
+
+</section>
 
         <section id="dashboardArea"></section>
+        <section id="dashboardArea">
+
+<div class="grid md:grid-cols-4 gap-5">
+
+    <div class="bg-white rounded-2xl shadow p-5">
+
+        <div class="text-slate-500">
+
+            📦 今日藥品
+
+        </div>
+
+        <div id="cardDrugCount"
+            class="text-5xl font-black text-red-600 mt-4">
+
+            0
+
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-5">
+
+        <div class="text-slate-500">
+
+            ✅ 已盤點
+
+        </div>
+
+        <div id="cardFinished"
+            class="text-5xl font-black text-emerald-600 mt-4">
+
+            0
+
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-5">
+
+        <div class="text-slate-500">
+
+            ⚠ 今日盤差
+
+        </div>
+
+        <div id="cardDiff"
+            class="text-5xl font-black text-orange-500 mt-4">
+
+            0
+
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl shadow p-5">
+
+        <div class="text-slate-500"> 🔒 覆核狀態
+
+        </div>
+
+        <div id="cardLock"
+            class="text-4xl font-black text-blue-600 mt-4"> 未完成
+
+        </div>
+
+    </div>
+
+</div>
+
+</section>
 
         <section id="toolCenter"></section>
 
