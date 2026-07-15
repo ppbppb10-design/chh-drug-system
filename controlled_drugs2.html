@@ -130,6 +130,63 @@ Version 2.0
 
 </main>
   <!-- Tool Center -->
+    <!-- Dashboard -->
+
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+
+    <div class="bg-white rounded-2xl shadow-lg p-5">
+
+        <div class="text-slate-500 font-bold"> 📦 今日藥品
+        </div>
+
+        <div id="dashDrugCount" class="text-4xl font-black text-red-600 mt-3">
+
+            0
+
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-5">
+
+        <div class="text-slate-500 font-bold"> ✅ 已盤點
+        </div>
+
+        <div id="dashFinished" class="text-4xl font-black text-emerald-600 mt-3">
+
+            0
+
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-5">
+
+        <div class="text-slate-500 font-bold"> ⚠️ 今日盤差
+        </div>
+
+        <div id="dashDiff" class="text-4xl font-black text-orange-500 mt-3">
+
+            0
+
+        </div>
+
+    </div>
+
+    <div class="bg-white rounded-2xl shadow-lg p-5">
+
+        <div class="text-slate-500 font-bold"> 🔒 覆核狀態
+        </div>
+
+        <div id="dashLock" class="text-2xl font-black text-blue-600 mt-4">
+
+            未完成
+
+        </div>
+
+    </div>
+
+</div>
 
 <div class="bg-white rounded-2xl shadow-lg p-6">
 
@@ -162,6 +219,83 @@ Version 2.0
     <script>
         document.getElementById("btnImportExcel").addEventListener("click",()=>{ document.getElementById("computerExcel").click();
 });
+        //========================
+// Firebase 初始化
+//========================
+
+
+//========================
+// 全域變數
+//========================
+
+
+//========================
+// Event Listener
+//========================
+
+
+//========================
+// Dashboard
+//========================
+        function refreshDashboard(){
+
+    document.getElementById("dashDrugCount").innerText = 0;
+    document.getElementById("dashFinished").innerText = 0;
+    document.getElementById("dashDiff").innerText = 0;
+    document.getElementById("dashLock").innerText = "未完成";
+
+}
+
+//========================
+// Matrix
+//========================
+
+
+//========================
+// Holiday Center
+//========================
+
+
+//========================
+// Report Center
+//========================
+
+
+//========================
+// Excel
+//========================
+
+
+//========================
+// QRCode
+//========================
+
+//========================
+// Matrix
+//========================
+
+
+//========================
+// Holiday Center
+//========================
+
+
+//========================
+// Report Center
+//========================
+
+
+//========================
+// Excel
+//========================
+
+
+//========================
+// QRCode
+//========================
+
+        
+        refreshDashboard();
 
 </script>
 
