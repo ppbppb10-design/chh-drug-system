@@ -237,6 +237,15 @@ let trendChart = null;
 let qrGenerator = null;
 
 //========================
+// 系統初始化
+//========================
+
+async function initializeSystem(){
+    console.log("🚀 啟動 V2 系統");
+    refreshDashboard();
+}
+        
+//========================
 // Event Listener
 //========================
 
@@ -302,7 +311,7 @@ let qrGenerator = null;
 //========================
 
         
-        refreshDashboard();
+       initializeSystem();
 
 </script>
 
