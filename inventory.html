@@ -252,33 +252,34 @@
                             </div>
                         `;
                     }
-// 修改 renderGrid 中的 else 區塊 (純散裝部分)
+// ... 在 renderGrid 函式內的 else 區塊
 } else {
     const singleUnit = drug.unitPiece || '支';
+    const hasWeightMode = (drug.weightPer10 !== undefined && drug.weightPer10 > 0);
     
-    // 判斷是否需要顯示秤重功能 (假設藥品資料有 weightPer10 欄位)
-    const hasWeightMode = drug.weightPer10 > 0;
+    cardHtml += `<div class="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">`;
     
-    cardHtml += `
-        <div class="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">
-            ${hasWeightMode ? `
-                <div class="mb-2 grid grid-cols-2 gap-2 text-center">
-                    <div>
-                        <label class="text-[9px] text-slate-400 font-black">輸入重量 (g)</label>
-                        <input type="number" step="0.01" placeholder="秤重" 
-                               oninput="calculateByWeight('${currentKey}', ${drug.weightPer10}, this.value)"
-                               class="w-full text-center font-bold border rounded-lg p-1.5 text-sm outline-none focus:border-emerald-500">
-                    </div>
-                    <div>
-                        <label class="text-[9px] text-slate-400 font-black">換算顆數</label>
-                        <div id="display-qty-${currentKey}" class="w-full text-center font-black text-emerald-600 bg-white border rounded-lg p-1.5 text-sm">
-                            ${record.total || 0}
-                        </div>
+    if (hasWeightMode) {
+        cardHtml += `
+            <div class="mb-3 grid grid-cols-2 gap-2 text-center bg-white p-2 rounded-xl border border-emerald-100">
+                <div>
+                    <label class="text-[9px] text-slate-400 font-black">秤重(g)</label>
+                    <input type="number" step="0.01" placeholder="輸入重量" 
+                           oninput="calculateByWeight('${currentKey}', ${drug.weightPer10}, this.value)"
+                           class="w-full text-center font-bold border rounded p-1 text-sm outline-none focus:border-emerald-500">
+                </div>
+                <div>
+                    <label class="text-[9px] text-emerald-600 font-black">換算顆數</label>
+                    <div id="display-qty-${currentKey}" class="w-full text-center font-black text-emerald-600 p-1 text-sm">
+                        ${record.total || 0}
                     </div>
                 </div>
-            ` : ''}
-            <div class="flex items-center justify-between mt-2">
-                <span class="text-xs font-black text-slate-500 ml-2">散裝總量 (${singleUnit})</span>
+            </div>`;
+    }
+
+    cardHtml += `
+            <div class="flex items-center justify-between">
+                <span class="text-xs font-black text-slate-500 ml-2">總量 (${singleUnit})</span>
                 <div class="w-24">
                     <input type="number" value="${record.total || 0}" min="0" 
                            id="input-single-${currentKey}"
@@ -286,17 +287,8 @@
                            class="w-full text-center font-black text-slate-800 border rounded-xl p-2 text-md outline-none focus:border-blue-500 bg-white shadow-sm">
                 </div>
             </div>
-        </div>
-    `;
+        </div>`;
 }
-                    cardHtml += `</div>`;
-                    card.innerHTML = cardHtml;
-                    grid.appendChild(card);
-                } catch (cardError) {
-                    // 防護
-                }
-            });
-        }
 
         // 純散裝儲存
         window.updateSingleCount = function(dbKey, val) {
