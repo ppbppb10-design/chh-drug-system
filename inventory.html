@@ -286,13 +286,34 @@ card.innerHTML = cardHtml;
 
 
         // 純散裝儲存
-        window.updateSingleCount = function(dbKey, val) {
-            const intVal = Math.max(0, parseInt(val) || 0);
-            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
-                total: intVal,
-                user: loginUser
-            });
-        };
+       // 請更新您的 updateSingleCount 函式
+window.updateSingleCount = function(dbKey, val) {
+    // 改用 parseFloat 允許小數點，並保留適當的小數位數
+    const floatVal = parseFloat(val) || 0; 
+    set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
+        total: floatVal, // 這裡儲存浮點數
+        user: loginUser
+    });
+};
+
+// 請更新您的 calculateByWeight 函式
+window.calculateByWeight = function(dbKey, weightPer10, weightVal) {
+    if (!weightPer10 || weightPer10 <= 0) return;
+    
+    const weight = parseFloat(weightVal) || 0;
+    const singleWeight = weightPer10 / 10;
+    // 這裡我們不強制取整數，允許保留小數或根據業務需求處理
+    const calculatedQty = weight / singleWeight; 
+    
+    const display = document.getElementById(`display-qty-${dbKey}`);
+    if (display) display.innerText = calculatedQty.toFixed(2); // 顯示兩位小數
+    
+    const mainInput = document.getElementById(`input-single-${dbKey}`);
+    if (mainInput) {
+        mainInput.value = calculatedQty.toFixed(2);
+        updateSingleCount(dbKey, calculatedQty.toFixed(2));
+    }
+};
 
         // 智慧型換算大腦
         window.updateMultiCount = function(dbKey, specIdx, val) {
