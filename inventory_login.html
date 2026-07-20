@@ -154,10 +154,21 @@
 
             if (zone === 'odd') {
                 const oddZones = [
-                    { val: '口服A', name: '💊 口服藥區 (調A ~ 調D)' },
-                    { val: '口服B', name: '💊 口服藥區 (調E ~ 調H)' },
-                    { val: '口服鐵架', name: '🗄️ 散裝口服鐵架區' },
-                    { val: '管制口服', name: '🔒 2~4級管制口服藥櫃' }
+                    { val: '盤點表 _O(調單1A)  ', name: '💊 盤點表 _O(調單1A) ' },
+                    { val: '盤點表 _O(調單2A)  ', name: '💊 盤點表 _O(調單2A) ' },
+                    { val: '盤點表 _O(調單3A)  ', name: '💊 盤點表 _O(調單3A) ' },                    
+                    { val: '盤點表 _O(調單1B)  ', name: '💊 盤點表 _O(調單1B) ' },
+                    { val: '盤點表 _O(調單2B)  ', name: '💊 盤點表 _O(調單2B) ' },
+                    { val: '盤點表 _O(調單3B)  ', name: '💊 盤點表 _O(調單3B) ' },
+                    { val: '盤點表 _O(調單1C)  ', name: '💊 盤點表 _O(調單1C) ' },
+                    { val: '盤點表 _O(調雙2C)  ', name: '💊 盤點表 _O(調雙2C)' },                    
+                    { val: '小藥庫', name: '🗄️ 小藥庫' },
+                    { val: '預包', name: '🎨 預包' },
+                    { val: 'D2調劑台', name: '🧩 D2調劑台' },
+                    { val: '罐裝秤重 (2)', name: '🏢 罐裝秤重 ' },
+                    { val: '兒', name: '🧪 兒科調劑區' },
+                    { val: '盤點表 _O (調特)', name: '🎯 盤點表 _O (調特)' },
+                    { val: '小藥庫領用', name: '⚠️ 小藥庫領用' }
                 ];
                 oddZones.forEach(z => {
                     subSelect.innerHTML += `<option value="${z.val}">${z.name}</option>`;
@@ -171,7 +182,7 @@
                     { val: '外用庫存區', name: '🏢 外用庫存區' },
                     { val: '外用調單一', name: '🎯 外用調單一' },
                     { val: '外用調單三', name: '🧩 外用調單三' },
-                    { val: '外用調雙', name: '🎨 外用調雙' },
+                    { val: '外用調雙', name: '🎨 外用調雙' },                    
                     { val: '外用少用區', name: '⚠️ 外用少用區' }
                 ];
                 evenZones.forEach(z => {
