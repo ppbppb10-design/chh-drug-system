@@ -276,9 +276,13 @@
         </div>`;
 }
 
-cardHtml += `</div>`; // 這裡是該品項 div 的結尾
 card.innerHTML = cardHtml;
-grid.appendChild(card);
+            grid.appendChild(card);
+        } catch (cardError) {
+            console.error("渲染錯誤:", cardError);
+        }
+    });
+}
 
 
         // 純散裝儲存
