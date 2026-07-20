@@ -250,9 +250,9 @@
             <div class="mb-3 grid grid-cols-2 gap-2 text-center bg-white p-2 rounded-xl border border-emerald-100">
                 <div>
                     <label class="text-[9px] text-slate-400 font-black">秤重(g)</label>
-                    <input type="number" step="0.01" placeholder="輸入重量" 
-                           oninput="calculateByWeight('${currentKey}', ${drug.weightPer10}, this.value)"
-                           class="w-full text-center font-bold border rounded p-1 text-sm outline-none focus:border-emerald-500">
+                    <input type="number" step="any" placeholder="輸入重量" 
+                    oninput="calculateByWeight('${currentKey}', ${drug.weightPer10}, this.value)"
+       class="w-full text-center font-bold border rounded p-1 text-sm outline-none ...">
                 </div>
                 <div>
                     <label class="text-[9px] text-emerald-600 font-black">換算顆數</label>
@@ -339,7 +339,7 @@ card.innerHTML = cardHtml;
             document.getElementById('progressBar').style.width = percent + '%';
         }
 
-        document.getElementById('inventorySearch').addEventListener('input', renderGrid);
+        document.getElementById('inventorySearch').addEventListener('input', );
         window.calculateByWeight = function(dbKey, weightPer10, weightVal) {
     if (!weightPer10 || weightPer10 <= 0) return;
     
