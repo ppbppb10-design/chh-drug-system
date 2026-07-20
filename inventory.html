@@ -238,20 +238,13 @@
                             `;
                         });
                         cardHtml += `</div>`;
-                    } else {
-                        const singleUnit = drug.unitPiece || ((drug.subZone && (drug.subZone.includes('外用') || drug.subZone.includes('少用'))) ? '罐' : '支');
-                        cardHtml += `
-                            <div class="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
-                                <span class="text-xs font-black text-slate-500 ml-2">散裝總量 (${singleUnit})</span>
-                                <div class="w-32">
-                                    <input type="number" value="${record.total || 0}" min="0" 
-                                           id="input-single-${currentKey}"
-                                           onchange="updateSingleCount('${currentKey}', this.value)" 
-                                           class="w-full text-center font-black text-slate-800 border rounded-xl p-2 text-md outline-none focus:border-blue-500 bg-white shadow-sm"> 
-                                           const hasWeightMode = (drug.weightPer10 !== undefined && drug.weightPer10 > 0);
-    
+                    // ... 在 renderGrid 函式中，當 hasArray 為 false 時的 else 區塊：
+} else {
+    const singleUnit = drug.unitPiece || ((drug.subZone && (drug.subZone.includes('外用') || drug.subZone.includes('少用'))) ? '罐' : '支');
+    const hasWeightMode = (drug.weightPer10 !== undefined && drug.weightPer10 > 0);
+
     cardHtml += `<div class="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100">`;
-    
+
     if (hasWeightMode) {
         cardHtml += `
             <div class="mb-3 grid grid-cols-2 gap-2 text-center bg-white p-2 rounded-xl border border-emerald-100">
@@ -272,7 +265,7 @@
 
     cardHtml += `
             <div class="flex items-center justify-between">
-                <span class="text-xs font-black text-slate-500 ml-2">總量 (${singleUnit})</span>
+                <span class="text-xs font-black text-slate-500 ml-2">散裝總量 (${singleUnit})</span>
                 <div class="w-24">
                     <input type="number" value="${record.total || 0}" min="0" 
                            id="input-single-${currentKey}"
@@ -282,6 +275,11 @@
             </div>
         </div>`;
 }
+
+cardHtml += `</div>`; // 這裡是該品項 div 的結尾
+card.innerHTML = cardHtml;
+grid.appendChild(card);
+
 
         // 純散裝儲存
         window.updateSingleCount = function(dbKey, val) {
