@@ -7,7 +7,7 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
-<body class="bg-slate-100 min-h-screen pb-12">
+<body class="bg-slate-100 min-h-screen pb-12 pt-36 md:pt-28">
 
     <!-- 頂部狀態橫幅 -->
     <div class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-40">
@@ -424,16 +424,27 @@ function renderGrid() {
         document.getElementById('inventorySearch').addEventListener('input', renderGrid);
 
        // ===============================
-        // 手機版鍵盤彈出防護：點擊輸入框時自動置中並預留表頭空間
+        // 確保點擊輸入框時，完美停在藍色表頭下方而不被遮擋
         // ===============================
         document.addEventListener('focusin', function(e) {
             if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
                 setTimeout(() => {
-                    // 使用 scrollIntoView 並指定 block 為 center，強制把整張卡片拉到畫面正中間
-                    e.target.closest('.rounded-2xl')?.scrollIntoView({
-                        behavior: 'smooth',
-                        block: 'center'
-                    });
+                    // 取得目前頂部藍色表頭的實際高度（會隨手機畫面自動計算）
+                    const stickyHeader = document.querySelector('.sticky');
+                    const headerHeight = stickyHeader ? stickyHeader.offsetHeight : 140;
+
+                    // 取得輸入框目前相對於視窗的位置
+                    const rect = e.target.getBoundingClientRect();
+
+                    // 如果輸入框的頂端小於表頭高度（代表被表頭蓋住或太靠近頂部）
+                    if (rect.top < headerHeight + 20) {
+                        // 計算需要往下捲動的精準距離
+                        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
+                        window.scrollTo({
+                            top: scrollY + rect.top - headerHeight - 20,
+                            behavior: 'smooth'
+                        });
+                    }
                 }, 350);
             }
         });
