@@ -317,7 +317,7 @@
        window.updateBottleDrug = function(dbKey){
            const drug = masterDrugDb.find(d =>
                d.dbKey === dbKey || d.id === dbKey
-                                         );
+                                         };
     if(!drug) return;
     // 讀取三個輸入框
     const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
