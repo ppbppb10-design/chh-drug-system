@@ -259,16 +259,33 @@ function renderGrid() {
                         </div>
                         `;
                         
-                    } else if (hasArray) {
-                        // ② 多規格
+                    } else 
+                        if (hasArray) {
+                        // ① 多規格 (🌟 依照大到小排序：盒/瓶 -> 束 -> 排 -> 顆)
                         cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
-                        drug.specArray.forEach((spec, idx)=>{
-                            const value = record[`spec_${idx}`] ?? (idx===0 ? record.u1 : record.u3) ?? 0;
+                        
+                        // 建立一份複本並進行排序或反轉，讓「束」或「盒」的大單位排在前面
+                        const sortedSpecs = [...drug.specArray].sort((a, b) => {
+                            // 定義單位權重：束 > 排 > 其他
+                            const getWeight = (label) => {
+                                if (label.includes('盒') || label.includes('瓶')) return 3;
+                                if (label.includes('束')) return 2;
+                                if (label.includes('排') || label.includes('片')) return 1;
+                                return 0;
+                            };
+                            return getWeight(b.label) - getWeight(a.label); // 大單位在前
+                        });
+
+                        sortedSpecs.forEach((spec, idx)=>{
+                            // 找出原本在陣列中的真實索引，確保寫入 Firebase 時對應正確的欄位
+                            const realIdx = drug.specArray.findIndex(s => s.label === spec.label);
+                            const value = record[`spec_${realIdx}`] ?? 0;
+                            
                             cardHtml += `
                             <div class="bg-slate-50 p-2 rounded-xl border flex-1">
                                 <div class="text-xs font-bold text-center text-indigo-600">${spec.label}</div>
-                                <input id="input-${currentKey}-${idx}" type="number" value="${value}" min="0"
-                                onchange="updateMultiCount('${currentKey}',${idx},this.value)"
+                                <input id="input-${currentKey}-${realIdx}" type="number" value="${value}" min="0"
+                                onchange="updateMultiCount('${currentKey}',${realIdx},this.value)"
                                 class="w-full text-center border rounded-lg p-1">
                             </div>`;
                         });
