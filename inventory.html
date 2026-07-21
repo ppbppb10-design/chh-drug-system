@@ -214,7 +214,6 @@
                                 ${tagHtml}
                             </div>
                     `;
-
                     if (hasArray) {
                         cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
                         const safeArray = JSON.parse(JSON.stringify(drug.specArray));
@@ -222,31 +221,29 @@
                             let currentVal = record[`spec_${idx}`];
                             if (currentVal === undefined) {
                                 if (safeArray.length === 2) {
-                                    currentVal = (idx === 0) ? (record.u1 || 0) : (record.u3 || 0);
+                                    currentVal = (idx === 0)
+                                        ? (record.u1 || 0)
+                                        : (record.u3 || 0);
                                 } else {
                                     currentVal = 0;
                                 }
-                            }
+                            } 
                             cardHtml += `
-                                <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100 text-center flex-1 min-w-0">
-                                    <span class="text-[10px] font-black text-indigo-500 block mb-0.5 tracking-tighter truncate">${spec.label || '規格'}</span>
-                                    <input type="number" value="${currentVal}" min="0" 
-                                           id="input-${currentKey}-${idx}" 
-                                           onchange="updateMultiCount('${currentKey}', ${idx}, this.value)" 
-                                           class="w-full text-center font-black text-slate-700 border rounded-lg p-1 text-xs outline-none focus:border-indigo-500 bg-white shadow-sm">
-                                </div>
+                            <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100 text-center flex-1">
+                            <span class="text-[10px] font-black text-indigo-500">
+                            ${spec.label || "規格"}
+                            </span>
+                            <input
+                            type="number"
+                            value="${currentVal}" min="0"
+                            id="input-${currentKey}-${idx}"
+                            onchange="updateMultiCount('${currentKey}',${idx},this.value)"
+                            class="w-full text-center border rounded-lg p-1">
+                            </div>
                             `;
                         });
-                        }
-                    cardHtml += `</div>`;
-                    card.innerHTML = cardHtml;
-                    grid.appendChild(card);
-                } catch (cardError) {
-                    console.error(cardError);
-                }
-            });   // ← masterDrugDb.forEach 結束
-        }      // ← renderGrid() 結束
-        } else {
+                        cardHtml += `</div>`;
+                    }else{
 
     const singleUnit = drug.unitPiece || "顆";
     cardHtml += `
@@ -315,9 +312,9 @@
                         );                     
 };
        window.updateBottleDrug = function(dbKey){
-           const drug = masterDrugDb.find(d =>
-               d.dbKey === dbKey || d.id === dbKey
-                                         };
+           const drug = masterDrugDb.find(
+               d => d.dbKey === dbKey || d.id === dbKey
+           );
     if(!drug) return;
     // 讀取三個輸入框
     const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
