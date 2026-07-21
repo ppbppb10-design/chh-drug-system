@@ -298,15 +298,15 @@
         // ===============================
         // 純散裝儲存
         // ===============================
-        window.updateSingleCount = function(dbKey, val) {
-            const intVal = Math.max(0, parseInt(val) || 0);
+        window.updateSingleCount = function(dbKey,val){
+            const intVal = Math.max(0,parseInt(val)||0);
             const old = firebaseRecords[dbKey] || {};
             set(
-                ref(db, `inventoryRecords/${subZone}/${dbKey}`),
+                ref(db,`inventoryRecords/${subZone}/${dbKey}`),
                 {
                     ...old,
-                    total: intVal,
-                    user: loginUser
+                    total:intVal,
+                    user:loginUser
                 }
             );
         };
@@ -353,6 +353,11 @@
         // 離開欄位才存Firebase
         // ===============================
         window.updateBottleDrug = function(dbKey){
+            if(!subZone.includes("罐裝秤重")) return;
+            const drug=masterDrugDb.find(
+                d=>d.dbKey===dbKey||d.id===dbKey
+            );
+            if(!drug) return;
             const result = updateBottlePreview(dbKey);
             if(!result) return;
             set(
