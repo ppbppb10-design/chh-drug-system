@@ -237,8 +237,16 @@
                                 </div>
                             `;
                         });
-                        cardHtml += `</div>`;
-} else {
+                        }
+                    cardHtml += `</div>`;
+                    card.innerHTML = cardHtml;
+                    grid.appendChild(card);
+                } catch (cardError) {
+                    console.error(cardError);
+                }
+            });   // ← masterDrugDb.forEach 結束
+        }      // ← renderGrid() 結束
+        } else {
 
     const singleUnit = drug.unitPiece || "顆";
     cardHtml += `
@@ -290,18 +298,21 @@
     </div>
     `;
 }
-                    cardHtml += `</div>`;
+                    ;
 
         // 純散裝儲存
-        window.updateSingleCount = function(dbKey, val) {
-            const intVal = Math.max(0, parseInt(val) || 0);
-            const old = firebaseRecords[dbKey] || {};
-            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
-                ...old,
-                total: intVal,
-                gram: old.gram || 0,
-                user: loginUser
-    });
+                    window.updateSingleCount = function(dbKey,val){
+                        const intVal = Math.max(0, parseInt(val)||0);
+                        const old = firebaseRecords[dbKey] || {};
+                        set(
+                            ref(db,`inventoryRecords/${subZone}/${dbKey}`),
+                            {
+                                ...old,
+                                total:intVal,
+                                gram:old.gram||0,
+                                user:loginUser
+                            }
+                        );                     
 };
        window.updateBottleDrug = function(dbKey){
            const drug = masterDrugDb.find(d =>
@@ -356,25 +367,8 @@
         }
     );
 
-}             
-        window.calculateTotal = function(dbKey) {
-            const drug = masterDrugDb.find(d =>
-                d.dbKey === dbKey || d.id === dbKey
-                                          );
-            if (!drug) return;
-            if (!drug.weight10) return;
-            const gram = parseFloat( document.getElementById(`gram-${dbKey}`).value ) || 0;
-            const pieceWeight = drug.weight10 / 10;
-            const qty = Math.round(gram / pieceWeight);
-            const old = firebaseRecords[dbKey] || {};
-            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
-                ...old,
-                gram: gram,
-                total: qty,
-                user: loginUser
-    });
+};           
 
-};
 
         // 智慧型換算大腦
         window.updateMultiCount = function(dbKey, specIdx, val) {
