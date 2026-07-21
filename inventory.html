@@ -188,7 +188,7 @@ function renderGrid() {
                     if (Number(record.total) > 0) card.classList.add('border-green-400', 'bg-green-50/10');
 
                     const hasArray = !!(drug.specArray && Array.isArray(drug.specArray) && drug.specArray.length > 0);
-                    const isWeightZone = subZone.includes("罐裝秤重");
+                    const isWeightZone = subZone.replace(/\s+/g, "").includes("罐裝秤重");
                     
                     let tagHtml = "";
                     if (hasArray && drug.desc) {
