@@ -422,6 +422,23 @@ function renderGrid() {
         }
 
         document.getElementById('inventorySearch').addEventListener('input', renderGrid);
+
+        // ===============================
+        // 提升手機版 UX：輸入時自動將欄位置中
+        // ===============================
+        document.addEventListener('focus', function(e) {
+            // 確認觸發的是輸入框
+            if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
+                // 設定 300 毫秒的延遲，等待手機虛擬鍵盤完全彈出後再滑動，計算才會精準
+                setTimeout(() => {
+                    e.target.scrollIntoView({ 
+                        behavior: 'smooth', // 平滑滑動
+                        block: 'center'     // 將元素對齊到畫面正中間
+                    });
+                }, 300);
+            }
+        }, true); // 使用 Capture 階段來捕捉 focus 事件
+        
     </script>
 
     <style>
