@@ -303,6 +303,60 @@
                 user: loginUser
     });
 };
+       window.updateBottleDrug = function(dbKey){
+           const drug = masterDrugDb.find(d =>
+               d.dbKey === dbKey || d.id === dbKey
+                                         );
+    if(!drug) return;
+    // 讀取三個輸入框
+    const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
+    const gram = parseFloat(document.getElementById(`gram-${dbKey}`)?.value) || 0;
+    const piece = parseInt(document.getElementById(`piece-${dbKey}`)?.value) || 0;
+    //-------------------------
+    // 算重量換算成顆數
+    //-------------------------
+    let weightPiece = 0;
+    if(drug.weight10 > 0){
+        const onePieceWeight = drug.weight10 / 10; weightPiece = Math.round( gram / onePieceWeight
+        );
+    }
+    //-------------------------
+    // 算一瓶有幾顆
+    //-------------------------
+    let bottleRate = 0;
+    if(drug.specArray && drug.specArray.length){
+        bottleRate = drug.specArray[0].rate || 0;
+    }
+    //-------------------------
+    // 總量
+    //-------------------------
+    const total =
+        bottle * bottleRate +
+        piece +
+        weightPiece;
+    //-------------------------
+    // 更新畫面
+    //-------------------------
+    const display =
+        document.getElementById(`display-total-${dbKey}`);
+    if(display){
+        display.innerText = total;
+    }
+    //-------------------------
+    // 存Firebase
+    //-------------------------
+    set(
+        ref(db,`inventoryRecords/${subZone}/${dbKey}`),
+        {
+            bottle,
+            gram,
+            piece,
+            total,
+            user:loginUser
+        }
+    );
+
+}             
         window.calculateTotal = function(dbKey) {
             const drug = masterDrugDb.find(d =>
                 d.dbKey === dbKey || d.id === dbKey
