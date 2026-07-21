@@ -52,112 +52,272 @@
         </div>
     </main>
 
-   <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
-    import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-database.js";
 
-    const firebaseConfig = {
-        apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
-        authDomain: "drug--arrive.firebaseapp.com",
-        databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
-        projectId: "drug--arrive",
-        storageBucket: "drug--arrive.appspot.com",
-        messagingSenderId: "215426668369",
-        appId: "1:215426668369:web:eaa94e83974fcec391a570"
-    };
+        const firebaseConfig = {
+            apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+            authDomain: "drug--arrive.firebaseapp.com",
+            databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
+            projectId: "drug--arrive",
+            storageBucket: "drug--arrive.appspot.com",
+            messagingSenderId: "215426668369",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
+        };
 
-    const app = initializeApp(firebaseConfig);
-    const db = getDatabase(app);
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const loginUser = urlParams.get('user') || '公用帳號';
-    const mainZone = urlParams.get('mainZone') || 'even';
-    const subZone = urlParams.get('subZone') || '冰箱';
+        const urlParams = new URLSearchParams(window.location.search);
+        const loginUser = urlParams.get('user') || '公用帳號';
+        const mainZone = urlParams.get('mainZone') || 'even';
+        const subZone = urlParams.get('subZone') || '冰箱';
 
-    document.getElementById('currentUserLabel').innerText = loginUser;
-    document.getElementById('currentZoneLabel').innerText = subZone;
+        document.getElementById('currentUserLabel').innerText = loginUser;
+        document.getElementById('currentZoneLabel').innerText = subZone;
 
-    let masterDrugDb = [];
-    let firebaseRecords = {};
-    let activeLocationFilter = "";
+        let masterDrugDb = [];
+        let firebaseRecords = {};
+        let activeLocationFilter = ""; 
 
-    // 基礎邏輯：監聽資料庫
-    onValue(ref(db, (mainZone === 'odd') ? 'masterOralList' : 'masterInjectList'), (snapshot) => {
-        const data = snapshot.val() || {};
-        let list = Object.values(data).filter(d => d.subZone === subZone);
-        list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
-        masterDrugDb = list.map(d => ({...d, dbKey: d.id || d.dbKey}));
-        generateLocationBadges();
-        renderGrid();
-        calculateProgress();
-    });
+        const masterNode = (mainZone === 'odd') ? 'masterOralList' : 'masterInjectList';
+        
+        onValue(ref(db, masterNode), (snapshot) => {
+            const data = snapshot.val() || {};
+            
+            Object.keys(data).forEach(k => {
+                if (data[k].subZone === subZone && !data[k].dbKey) {
+                    data[k].dbKey = data[k].id || k;
+                }
+            });
+            let list = Object.values(data).filter(d => d.subZone === subZone);
 
-    onValue(ref(db, `inventoryRecords/${subZone}`), (snapshot) => {
-        firebaseRecords = snapshot.val() || {};
-        renderGrid();
-        calculateProgress();
-    });
-
-    // 核心渲染函式
-    window.renderGrid = function() {
-        const grid = document.getElementById('inventoryGrid');
-        if (!grid) return;
-        const searchVal = document.getElementById('inventorySearch').value.toUpperCase();
-        grid.innerHTML = '';
-
-        masterDrugDb.forEach(drug => {
-            if (activeLocationFilter && getShortLocLabel(drug.location) !== activeLocationFilter) return;
-            if (searchVal && !drug.name.toUpperCase().includes(searchVal) && !drug.id.toUpperCase().includes(searchVal)) return;
-
-            const currentKey = drug.dbKey || drug.id;
-            const record = firebaseRecords[currentKey] || { total: 0, user: '未盤' };
-            const hasWeightMode = (drug.weightPer10 && drug.weightPer10 > 0);
-
-            let card = document.createElement('div');
-            card.className = "bg-white rounded-2xl border p-4 shadow-sm";
-            card.innerHTML = `
-                <div class="flex justify-between items-start">
-                    <div>
-                        <h3 class="font-black text-slate-800">${drug.name}</h3>
-                        <p class="text-[11px] text-slate-400">${drug.id} · ${drug.location || '無位號'}</p>
-                    </div>
-                    <div class="text-right">
-                        <span class="text-2xl font-black text-green-500">${record.total || 0}</span>
-                        <div class="text-[9px] text-slate-400">負責: ${record.user}</div>
-                    </div>
-                </div>
-                ${hasWeightMode ? `
-                    <div class="mt-3 grid grid-cols-2 gap-2 text-center bg-slate-50 p-2 rounded-lg">
-                        <div><label class="text-[9px] text-slate-400">輸入重量(g)</label>
-                             <input type="number" step="any" oninput="calculateByWeight('${currentKey}', ${drug.weightPer10}, this.value)" class="w-full text-center border rounded p-1 text-sm"></div>
-                        <div><label class="text-[9px] text-emerald-600">換算顆數</label>
-                             <div id="display-qty-${currentKey}" class="text-emerald-600 font-black">${record.total || 0}</div></div>
-                    </div>` : ''}
-                <div class="mt-3 flex items-center justify-between">
-                    <span class="text-xs font-black text-slate-500">總量(${drug.unitPiece || '支'})</span>
-                    <input type="number" step="any" value="${record.total || 0}" onchange="updateSingleCount('${currentKey}', this.value)" 
-                           class="w-24 text-center font-black border rounded-lg p-2 text-md">
-                </div>`;
-            grid.appendChild(card);
+            list.sort((a, b) => (a.sortOrder || 0) - (b.sortOrder || 0));
+            masterDrugDb = list;
+            
+            generateLocationBadges();
+            renderGrid();
+            calculateProgress();
         });
-    };
 
-    // 輔助與互動函式
-    window.updateSingleCount = (dbKey, val) => {
-        set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), { total: parseFloat(val) || 0, user: loginUser });
-    };
+        onValue(ref(db, `inventoryRecords/${subZone}`), (snapshot) => {
+            firebaseRecords = snapshot.val() || {};
+            renderGrid();
+            calculateProgress();
+        });
 
-    window.calculateByWeight = (dbKey, weightPer10, weightVal) => {
-        const qty = Math.round(parseFloat(weightVal) / (weightPer10 / 10));
-        document.getElementById(`display-qty-${dbKey}`).innerText = qty;
-        updateSingleCount(dbKey, qty);
-    };
+        // 🎯 究極類推核心大腦：支持中文字開頭，且完美相容括號內的英文字母 (A/B/G) 或 數字 (1/2/4)
+        function getShortLocLabel(fullLoc) {
+            if (!fullLoc) return "";
+            const str = String(fullLoc).trim();
+            
+            // 🌟 超強正則：擷取開頭的中文，並強制抓取後方緊接著的「第一個字母或數字」
+            // 範例：針(A1) -> 針A, 針(2-10) -> 針2, 針(B2) -> 針B, 針(G1) -> 針G
+            const match = str.match(/^([^\d\A-Za-z\(\)]+)[\(\s-]*(.)/);
+            if (match) {
+                return match[1] + match[2].toUpperCase(); // 完美輸出 針A、針B、針2
+            }
+            return str; 
+        }
 
-    function getShortLocLabel(fullLoc) { /* ...原有的簡化邏輯... */ return fullLoc; }
-    function generateLocationBadges() { /* ...原有的選單邏輯... */ }
-    function calculateProgress() { /* ...原有的進度邏輯... */ }
-    document.getElementById('inventorySearch').addEventListener('input', renderGrid);
-</script>
+        // 智慧橫列生成器
+        function generateLocationBadges() {
+            const container = document.getElementById('locationBadgeContainer');
+            if (!container) return;
+            container.innerHTML = '';
+
+            let locSet = new Set();
+            masterDrugDb.forEach(drug => {
+                if (drug.location && String(drug.location).trim()) {
+                    locSet.add(getShortLocLabel(drug.location));
+                }
+            });
+
+            // 依拼音/筆畫順序漂亮排序快捷鍵
+            let sortedLocs = Array.from(locSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-TW-u-co-stroke'));
+
+            // 「顯示全部」按鈕
+            let allBtn = document.createElement('button');
+            allBtn.className = `px-3 py-1 rounded-lg text-xs font-bold transition shrink-0 ${!activeLocationFilter ? 'bg-white text-blue-700 shadow-sm font-black' : 'bg-blue-700/50 text-blue-100 hover:bg-blue-700'}`;
+            allBtn.innerText = "顯示全部";
+            allBtn.onclick = () => {
+                activeLocationFilter = "";
+                generateLocationBadges();
+                renderGrid();
+            };
+            container.appendChild(allBtn);
+
+            // 長出過濾後的快捷按鈕
+            sortedLocs.forEach(loc => {
+                let btn = document.createElement('button');
+                const isActive = (activeLocationFilter === loc);
+                btn.className = `px-2.5 py-1 rounded-lg text-xs font-bold transition shrink-0 flex items-center gap-1 ${isActive ? 'bg-yellow-400 text-slate-900 shadow-sm font-black' : 'bg-blue-700/50 text-blue-100 hover:bg-blue-700'}`;
+                btn.innerHTML = `<i class="fa-solid fa-folder-open opacity-70"></i> ${loc}`;
+                btn.onclick = () => {
+                    activeLocationFilter = isActive ? "" : loc;
+                    generateLocationBadges();
+                    renderGrid();
+                };
+                container.appendChild(btn);
+            });
+        }
+
+        function renderGrid() {
+            const grid = document.getElementById('inventoryGrid');
+            if (!grid) return;
+            
+            const searchVal = document.getElementById('inventorySearch').value.toUpperCase();
+            grid.innerHTML = '';
+
+            masterDrugDb.forEach(drug => {
+                try {
+                    // 🎯 完美融合字母與數字的大類篩選判定
+                    if (activeLocationFilter) {
+                        let drugShortLoc = drug.location ? getShortLocLabel(drug.location) : "";
+                        if (drugShortLoc !== activeLocationFilter) return;
+                    }
+
+                    // 關鍵字模糊搜尋
+                    if (searchVal && !drug.name.toUpperCase().includes(searchVal) && !drug.id.toUpperCase().includes(searchVal) && !String(drug.location).toUpperCase().includes(searchVal)) return;
+
+                    const currentKey = drug.dbKey || drug.id;
+                    const record = firebaseRecords[currentKey] || { total: 0, user: '未盤' };
+                    
+                    let card = document.createElement('div');
+                    card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between relative overflow-hidden transition-all";
+                    if (Number(record.total) > 0) card.classList.add('border-green-400', 'bg-green-50/10');
+
+                    const hasArray = !!(drug.specArray && Array.isArray(drug.specArray) && drug.specArray.length > 0);
+                    
+                    let tagHtml = "";
+                    if (hasArray && drug.desc) {
+                        tagHtml = `<span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-calculator mr-1"></i>${drug.desc}</span>`;
+                    } else {
+                        tagHtml = `<span class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-box-open mr-1"></i>純散裝品項</span>`;
+                    }
+
+                    let cardHtml = `
+                        <div id="card-${currentKey}">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h3 class="font-black text-slate-800 text-base leading-tight line-clamp-2">${drug.name}</h3>
+                                    <div class="text-[11px] text-slate-400 font-bold mt-1">${drug.id} · <span class="bg-blue-50 text-blue-600 px-1.5 py-0.5 rounded font-mono">${drug.location ? '位號: '+drug.location : '無位號'}</span></div>
+                                </div>
+                                <div class="text-right shrink-0 ml-2">
+                                    <span class="text-3xl font-black ${Number(record.total) > 0 ? 'text-green-500' : 'text-slate-300'}">${record.total}</span>
+                                    <div class="text-[9px] text-slate-400 font-medium mt-1">負責: ${record.user}</div>
+                                </div>
+                            </div>
+
+                            <div class="mt-3 flex space-x-1">
+                                ${tagHtml}
+                            </div>
+                    `;
+
+                    if (hasArray) {
+                        cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
+                        const safeArray = JSON.parse(JSON.stringify(drug.specArray));
+                        safeArray.forEach((spec, idx) => {
+                            let currentVal = record[`spec_${idx}`];
+                            if (currentVal === undefined) {
+                                if (safeArray.length === 2) {
+                                    currentVal = (idx === 0) ? (record.u1 || 0) : (record.u3 || 0);
+                                } else {
+                                    currentVal = 0;
+                                }
+                            }
+                            cardHtml += `
+                                <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100 text-center flex-1 min-w-0">
+                                    <span class="text-[10px] font-black text-indigo-500 block mb-0.5 tracking-tighter truncate">${spec.label || '規格'}</span>
+                                    <input type="number" value="${currentVal}" min="0" 
+                                           id="input-${currentKey}-${idx}" 
+                                           onchange="updateMultiCount('${currentKey}', ${idx}, this.value)" 
+                                           class="w-full text-center font-black text-slate-700 border rounded-lg p-1 text-xs outline-none focus:border-indigo-500 bg-white shadow-sm">
+                                </div>
+                            `;
+                        });
+                        cardHtml += `</div>`;
+                    } else {
+                        const singleUnit = drug.unitPiece || ((drug.subZone && (drug.subZone.includes('外用') || drug.subZone.includes('少用'))) ? '罐' : '支');
+                        cardHtml += `
+                            <div class="mt-4 bg-slate-50 p-3 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                <span class="text-xs font-black text-slate-500 ml-2">散裝總量 (${singleUnit})</span>
+                                <div class="w-32">
+                                    <input type="number" value="${record.total || 0}" min="0" 
+                                           id="input-single-${currentKey}"
+                                           onchange="updateSingleCount('${currentKey}', this.value)" 
+                                           class="w-full text-center font-black text-slate-800 border rounded-xl p-2 text-md outline-none focus:border-blue-500 bg-white shadow-sm">
+                                </div>
+                            </div>
+                        `;
+                    }
+
+                    cardHtml += `</div>`;
+                    card.innerHTML = cardHtml;
+                    grid.appendChild(card);
+                } catch (cardError) {
+                    // 防護
+                }
+            });
+        }
+
+        // 純散裝儲存
+        window.updateSingleCount = function(dbKey, val) {
+            const intVal = Math.max(0, parseInt(val) || 0);
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
+                total: intVal,
+                user: loginUser
+            });
+        };
+
+        // 智慧型換算大腦
+        window.updateMultiCount = function(dbKey, specIdx, val) {
+            const intVal = Math.max(0, parseInt(val) || 0);
+            const drug = masterDrugDb.find(d => d.dbKey === dbKey || d.id === dbKey);
+            if (!drug || !drug.specArray || !Array.isArray(drug.specArray)) return;
+            
+            let currentRecord = firebaseRecords[dbKey] ? JSON.parse(JSON.stringify(firebaseRecords[dbKey])) : { total: 0 };
+            currentRecord[`spec_${specIdx}`] = intVal;
+
+            let grandTotal = 0;
+            const specs = drug.specArray;
+            const len = specs.length;
+
+            for (let i = 0; i < len; i++) {
+                const inputDom = document.getElementById(`input-${dbKey}-${i}`);
+                const currentBoxCount = inputDom ? (Math.max(0, parseInt(inputDom.value) || 0)) : (Math.max(0, parseInt(currentRecord[`spec_${i}`]) || 0));
+                
+                currentRecord[`spec_${i}`] = currentBoxCount;
+
+                let currentRate = specs[i] ? (parseFloat(specs[i].rate) || 1) : 1;
+                if (i === len - 1) {
+                    currentRate = 1;
+                }
+
+                grandTotal += (Number(currentBoxCount) * Number(currentRate));
+            }
+
+            currentRecord.total = grandTotal;
+            currentRecord.user = loginUser;
+
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), currentRecord);
+        };
+
+        function calculateProgress() {
+            const totalItems = masterDrugDb.length;
+            let completedItems = 0;
+            masterDrugDb.forEach(d => {
+                const k = d.dbKey || d.id;
+                if (firebaseRecords[k] && Number(firebaseRecords[k].total) > 0) completedItems++;
+            });
+            const percent = totalItems > 0 ? Math.round((completedItems / totalItems) * 100) : 0;
+            document.getElementById('progressText').innerText = `${completedItems} / ${totalItems} (${percent}%)`;
+            document.getElementById('progressBar').style.width = percent + '%';
+        }
+
+        document.getElementById('inventorySearch').addEventListener('input', renderGrid);
+    </script>
 
     <style>
         .no-scrollbar::-webkit-scrollbar { display: none; }
