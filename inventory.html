@@ -162,14 +162,11 @@
                 container.appendChild(btn);
             });
         }
-
-function renderGrid() {
+        function renderGrid() {
             const grid = document.getElementById('inventoryGrid');
-            if (!grid) return;
-            
+            if (!grid) return;          
             const searchVal = document.getElementById('inventorySearch').value.toUpperCase();
             grid.innerHTML = '';
-
             masterDrugDb.forEach(drug => {
                 try {
                     // 🎯 完美融合字母與數字的大類篩選判定
