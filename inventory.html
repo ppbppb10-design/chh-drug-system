@@ -323,41 +323,44 @@
         // 即時預覽(不存Firebase)
         // ===============================
         window.updateBottlePreview = function(dbKey){
-            const drug = masterDrugDb.find(
-                d => d.dbKey === dbKey || d.id === dbKey
-            );
-            if(!drug) return;
-            const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
-            const gram = parseFloat(document.getElementById(`gram-${dbKey}`)?.value) || 0;
-            const piece = parseInt(document.getElementById(`piece-${dbKey}`)?.value) || 0;
-            // 重量換算
-            let weightPiece = 0;
-            if(drug.weight10 > 0){
-                weightPiece = Math.round(
-                    gram / (drug.weight10 / 10)
-                );
-            }
-            // 一瓶幾顆
-            let bottleRate = 0;     
-            if(drug.specArray && drug.specArray.length){
-                bottleRate = Number(drug.specArray[0].rate) || 0;
-            }
-            const total =
-                bottle * bottleRate +
-                weightPiece +
-                piece;
-            const display =
-                document.getElementById(`display-total-${dbKey}`);
-            if(display){
-                display.innerText = total;
-            }
-            return {
-                bottle,
-                gram,
-                piece,
-                total
-            };
-        };
+    const drug = masterDrugDb.find(
+        d => d.dbKey === dbKey || d.id === dbKey
+    );
+    if(!drug) return;
+    
+    const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
+    const gram = parseFloat(document.getElementById(`gram-${dbKey}`)?.value) || 0;
+    const piece = parseInt(document.getElementById(`piece-${dbKey}`)?.value) || 0;
+    
+    // 1. 重量換算顆數公式： 重量(g) / (10顆重 / 10)
+    let weightPiece = 0;
+    const weight10 = drug.weight10 || drug.weightPer10 || 0;
+    if(weight10 > 0 && gram > 0){
+        const singleWeight = weight10 / 10; // 單顆重量
+        weightPiece = Math.round(gram / singleWeight); // 四捨五入換算顆數
+    }
+    
+    // 2. 一瓶幾顆 (從 specArray 抓取倍率，預設 1000)
+    let bottleRate = 1000;     
+    if(drug.specArray && drug.specArray.length > 0){
+        bottleRate = Number(drug.specArray[0].rate) || 1000;
+    }
+    
+    // 3. 總量加總
+    const total = (bottle * bottleRate) + weightPiece + piece;
+    
+    const display = document.getElementById(`display-total-${dbKey}`);
+    if(display){
+        display.innerText = total + " 顆";
+    }
+    
+    return {
+        bottle,
+        gram,
+        piece,
+        total
+    };
+};
         // ===============================
         // 離開欄位才存Firebase
         // ===============================
