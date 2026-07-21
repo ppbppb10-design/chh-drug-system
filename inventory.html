@@ -285,20 +285,20 @@
                     cardHtml += `</div>`;
                     card.innerHTML = cardHtml;
                     grid.appendChild(card);
+                     } catch (cardError) {
+                    console.error(cardError);
+                }
+            });
+        }
 
         // 純散裝儲存
                     window.updateSingleCount = function(dbKey,val){
                         const intVal = Math.max(0, parseInt(val)||0);
                         const old = firebaseRecords[dbKey] || {};
-                        set(
-                            ref(db,`inventoryRecords/${subZone}/${dbKey}`),
-                            {
-                                ...old,
-                                total:intVal,
-                                gram:old.gram||0,
-                                user:loginUser
-                            }
-                        );                     
+                       set(
+                           ref(db,`inventoryRecords/${subZone}/${dbKey}`),
+                           firebaseRecords[dbKey]
+                       );                
 };
        window.updateBottleDrug = function(dbKey){
            const drug = masterDrugDb.find(
