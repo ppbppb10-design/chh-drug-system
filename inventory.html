@@ -187,14 +187,15 @@ function renderGrid() {
                     card.className = "bg-white rounded-2xl border border-slate-200 shadow-sm p-4 flex flex-col justify-between relative overflow-hidden transition-all";
                     if (Number(record.total) > 0) card.classList.add('border-green-400', 'bg-green-50/10');
 
-                    const hasArray = !!(drug.specArray && Array.isArray(drug.specArray) && drug.specArray.length > 0);
                     const isWeightZone = subZone.replace(/\s+/g, "").includes("罐裝秤重");
+                    const hasArray = !!(drug.specArray && Array.isArray(drug.specArray) && drug.specArray.length > 0);
                     
                     let tagHtml = "";
-                    if (hasArray && drug.desc) {
-                        tagHtml = `<span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-calculator mr-1"></i>${drug.desc}</span>`;
-                    } else if (isWeightZone) {
+                    // 🌟 修正點：如果是罐裝秤重頁面，優先顯示罐裝秤重標籤
+                    if (isWeightZone) {
                         tagHtml = `<span class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-scale-balanced mr-1"></i>罐裝秤重模式</span>`;
+                    } else if (hasArray && drug.desc) {
+                        tagHtml = `<span class="text-[10px] bg-indigo-100 text-indigo-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-calculator mr-1"></i>${drug.desc}</span>`;
                     } else {
                         tagHtml = `<span class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-box-open mr-1"></i>純散裝品項</span>`;
                     }
@@ -215,24 +216,9 @@ function renderGrid() {
                             <div class="mt-3 flex space-x-1">${tagHtml}</div>
                     `;
 
-                    // 4. 根據分頁型態長出對應的輸入介面
-                    if (hasArray) {
-                        // ① 多規格
-                        cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
-                        drug.specArray.forEach((spec, idx)=>{
-                            const value = record[`spec_${idx}`] ?? (idx===0 ? record.u1 : record.u3) ?? 0;
-                            cardHtml += `
-                            <div class="bg-slate-50 p-2 rounded-xl border flex-1">
-                                <div class="text-xs font-bold text-center text-indigo-600">${spec.label}</div>
-                                <input id="input-${currentKey}-${idx}" type="number" value="${value}" min="0"
-                                onchange="updateMultiCount('${currentKey}',${idx},this.value)"
-                                class="w-full text-center border rounded-lg p-1">
-                            </div>`;
-                        });
-                        cardHtml += `</div>`;
-                        
-                    } else if (isWeightZone) {
-                        // ② 罐裝秤重專用介面 (整瓶 + 重量g + 散裝顆數)
+                    // 4. 根據分頁型態長出對應的輸入介面 (🌟 優先判定 isWeightZone)
+                    if (isWeightZone) {
+                        // ① 罐裝秤重專用介面 (整瓶 + 重量g + 散裝顆數)
                         const w10 = drug.weight10 || drug.weightPer10 || 0;
                         const boxRate = (drug.specArray && drug.specArray[0]) ? drug.specArray[0].rate : 1000;
                         
@@ -270,6 +256,21 @@ function renderGrid() {
                             </div>
                         </div>
                         `;
+                        
+                    } else if (hasArray) {
+                        // ② 多規格
+                        cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
+                        drug.specArray.forEach((spec, idx)=>{
+                            const value = record[`spec_${idx}`] ?? (idx===0 ? record.u1 : record.u3) ?? 0;
+                            cardHtml += `
+                            <div class="bg-slate-50 p-2 rounded-xl border flex-1">
+                                <div class="text-xs font-bold text-center text-indigo-600">${spec.label}</div>
+                                <input id="input-${currentKey}-${idx}" type="number" value="${value}" min="0"
+                                onchange="updateMultiCount('${currentKey}',${idx},this.value)"
+                                class="w-full text-center border rounded-lg p-1">
+                            </div>`;
+                        });
+                        cardHtml += `</div>`;
                         
                     } else {
                         // ③ 一般單一數量
