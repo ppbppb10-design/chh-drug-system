@@ -214,75 +214,77 @@
                                 ${tagHtml}
                             </div>
                     `;
+                    const hasArray = Array.isArray(drug.specArray) && drug.specArray.length > 0;
+                    const isWeightZone = subZone.includes("罐裝秤重");
                     if (hasArray) {
+                        // =====================
+                        // ① 多規格
+                        // =====================
                         cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
-                        const safeArray = JSON.parse(JSON.stringify(drug.specArray));
-                        safeArray.forEach((spec, idx) => {
-                            let currentVal = record[`spec_${idx}`];
-                            if (currentVal === undefined) {
-                                if (safeArray.length === 2) {
-                                    currentVal = (idx === 0)
-                                        ? (record.u1 || 0)
-                                        : (record.u3 || 0);
-                                } else {
-                                    currentVal = 0;
-                                }
-                            }
+                        drug.specArray.forEach((spec, idx)=>{
+                            const value =
+                                record[`spec_${idx}`] ??
+                                (idx===0 ? record.u1 : record.u3) ??
+                                0;
                             cardHtml += `
-                            <div class="bg-slate-50 p-1.5 rounded-xl border border-slate-100 text-center flex-1 min-w-0">
-                            <span class="text-[10px] font-black text-indigo-500 block mb-1">
-                            ${spec.label || "規格"}
-                            </span>
-                            <input type="number" id="input-${currentKey}-${idx}"
-                            value="${currentVal}" min="0"
+                            <div class="bg-slate-50 p-2 rounded-xl border flex-1">
+                            <div class="text-xs font-bold text-center text-indigo-600">
+                            ${spec.label}
+                            </div>
+                            <input id="input-${currentKey}-${idx}" type="number" value="${value}" min="0"
                             onchange="updateMultiCount('${currentKey}',${idx},this.value)"
-                            class="w-full text-center font-black border rounded-lg p-1">
+                            class="w-full text-center border rounded-lg p-1">
                             </div>
                             `;
                         });
                         cardHtml += `</div>`;
-                    }else {
-                        const singleUnit = drug.unitPiece || "顆";
+                    }else if (isWeightZone){
+                        // =====================
+                        // ② 只有罐裝秤重
+                        // =====================
                         cardHtml += `
-                        <div class="mt-4 bg-slate-50 rounded-2xl border border-slate-100 p-3">
+                        <div class="mt-4 bg-slate-50 rounded-2xl border p-3">
                         <div class="grid grid-cols-3 gap-2">
                         <div>
-                        <div class="text-[10px] font-bold text-center text-slate-500"> 整瓶
-                        </div>
-                        <input id="bottle-${currentKey}" type="number" min="0"
-                        value="${record.bottle || 0}"
-                        oninput="updateBottlePreview('${currentKey}')"
-                        onchange="updateBottleDrug('${currentKey}')"
+                        <div class="text-xs text-center">整瓶</div>
+                        <input id="bottle-${currentKey}" type="number" value="${record.bottle||0}"
+                        oninput="updateBottleDrug('${currentKey}')"
                         class="w-full text-center border rounded-xl p-2">
                         </div>
                         <div>
-                        <div class="text-[10px] font-bold text-center text-slate-500"> 重量(g)
-                        </div>
-                        <input id="gram-${currentKey}" type="number" step="0.01"
-                        value="${record.gram || ""}"
-                        oninput="updateBottlePreview('${currentKey}')"
-                        onchange="updateBottleDrug('${currentKey}')"
+                        <div class="text-xs text-center">重量(g)</div>
+                        <input id="gram-${currentKey}" type="number"
+                        step="0.01"
+                        value="${record.gram||''}"
+                        oninput="updateBottleDrug('${currentKey}')"
                         class="w-full text-center border rounded-xl p-2">
                         </div>
                         <div>
-                        <div class="text-[10px] font-bold text-center text-slate-500"> 散裝顆數
-                        </div>
-                        <input id="piece-${currentKey}" type="number" value="${record.piece || 0}"
-                        oninput="updateBottlePreview('${currentKey}')"
-                        onchange="updateBottleDrug('${currentKey}')"
+                        <div class="text-xs text-center">散裝顆數</div>
+                        <input id="piece-${currentKey}" type="number" value="${record.piece||0}"
+                        oninput="updateBottleDrug('${currentKey}')"
                         class="w-full text-center border rounded-xl p-2">
-                        </div>
-                        </div>
-                        <div class="flex justify-between items-center mt-3">
-                        <span class="font-black text-slate-600"> 總量 (${singleUnit})
-                        </span>
-                        <span id="display-total-${currentKey}"
-                        class="text-2xl font-black text-green-600">
-                        ${record.total || 0}
-                        </span>
-                        </div>
-                        </div>
-                        `;
+                        </div>                      
+        </div>
+        <div class="flex justify-between mt-3">
+            <span>總量</span>
+            <span id="display-total-${currentKey}" class="text-2xl font-black text-green-600"> ${record.total||0}
+            </span>
+        </div>
+    </div>
+    `;
+}else{
+    // =====================
+    // ③ 一般單一數量
+    // =====================
+    cardHtml += `
+    <div class="mt-4">
+        <input id="single-${currentKey}" type="number" min="0"
+            value="${record.total||0}"
+            oninput="updateSingleCount('${currentKey}',this.value)"
+            class="w-full text-center border rounded-xl p-2 text-xl">
+    </div>
+    `;
                     }
                     /* 最後才建立卡片 */
                     cardHtml += `</div>`;
