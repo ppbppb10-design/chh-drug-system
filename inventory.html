@@ -279,35 +279,34 @@
         }
 
         // 純散裝儲存
-        window.updateSingleCount=function(dbKey,val){
-            const intVal=Math.max(0,parseInt(val)||0);
-            const old=firebaseRecords[dbKey]||{};
-            set( ref(db,`inventoryRecords/${subZone}/${dbKey}`),
-        {
-            ...old,  
-            total:intVal,
-            gram:old.gram||0,
-            user:loginUser
-        }
-    );
-}
-                  window.calculateWeight = function(dbKey){
-                      const drug = masterDrugDb.find(d => d.dbKey === dbKey || d.id === dbKey );    
-                      if(!drug) return;    
-                      if(!drug.weight10) return;    
-                      const gram = parseFloat( document.getElementById(`gram-${dbKey}`).value ) || 0;
-                      
-                      // 10顆重量 -> 每顆重量
-                      const pieceWeight = drug.weight10 / 10;
-                      
-                      // 換算顆數
-                      const qty = Math.round(gram / pieceWeight);
-                      updateSingleCount(dbKey, qty);
+        window.updateSingleCount = function(dbKey, val) {
+            const intVal = Math.max(0, parseInt(val) || 0);
+            const old = firebaseRecords[dbKey] || {};
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
+                ...old,
+                total: intVal,
+                gram: old.gram || 0,
+                user: loginUser
+    });
+};
+        window.calculateWeight = function(dbKey) {
+            const drug = masterDrugDb.find(d =>
+                d.dbKey === dbKey || d.id === dbKey
+                                          );
+            if (!drug) return;
+            if (!drug.weight10) return;
+            const gram = parseFloat( document.getElementById(`gram-${dbKey}`).value ) || 0;
+            const pieceWeight = drug.weight10 / 10;
+            const qty = Math.round(gram / pieceWeight);
+            const old = firebaseRecords[dbKey] || {};
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
+                ...old,
+                gram: gram,
+                total: qty,
+                user: loginUser
+    });
 
-}
-            });
-        };
-      
+};
 
         // 智慧型換算大腦
         window.updateMultiCount = function(dbKey, specIdx, val) {
