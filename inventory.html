@@ -293,71 +293,77 @@
                 }
             });
         }
-
+        // ===============================
         // 純散裝儲存
-                    window.updateSingleCount = function(dbKey,val){
-                        const intVal = Math.max(0, parseInt(val)||0);
-                        const old = firebaseRecords[dbKey] || {};
-                       set(
-                           ref(db,`inventoryRecords/${subZone}/${dbKey}`),
-                           firebaseRecords[dbKey]
-                       );                
-};
-       window.updateBottleDrug = function(dbKey){
-           const drug = masterDrugDb.find(
-               d => d.dbKey === dbKey || d.id === dbKey
-           );
-    if(!drug) return;
-    // 讀取三個輸入框
-    const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
-    const gram = parseFloat(document.getElementById(`gram-${dbKey}`)?.value) || 0;
-    const piece = parseInt(document.getElementById(`piece-${dbKey}`)?.value) || 0;
-    //-------------------------
-    // 算重量換算成顆數
-    //-------------------------
-    let weightPiece = 0;
-    if(drug.weight10 > 0){
-        const onePieceWeight = drug.weight10 / 10; weightPiece = Math.round( gram / onePieceWeight
-        );
-    }
-    //-------------------------
-    // 算一瓶有幾顆
-    //-------------------------
-    let bottleRate = 0;
-    if(drug.specArray && drug.specArray.length){
-        bottleRate = drug.specArray[0].rate || 0;
-    }
-    //-------------------------
-    // 總量
-    //-------------------------
-    const total =
-        bottle * bottleRate +
-        piece +
-        weightPiece;
-    //-------------------------
-    // 更新畫面
-    //-------------------------
-    const display =
-        document.getElementById(`display-total-${dbKey}`);
-    if(display){
-        display.innerText = total;
-    }
-    //-------------------------
-    // 存Firebase
-    //-------------------------
-    set(
-        ref(db,`inventoryRecords/${subZone}/${dbKey}`),
-        {
-            bottle,
-            gram,
-            piece,
-            total,
-            user:loginUser
-        }
-    );
-
-};           
-
+        // ===============================
+        window.updateSingleCount = function(dbKey, val) {
+            const intVal = Math.max(0, parseInt(val) || 0);
+            const old = firebaseRecords[dbKey] || {};
+            set(
+                ref(db, `inventoryRecords/${subZone}/${dbKey}`),
+                {
+                    ...old,
+                    total: intVal,
+                    user: loginUser
+                }
+            );
+        };
+        // ===============================
+        // 即時預覽(不存Firebase)
+        // ===============================
+        window.updateBottlePreview = function(dbKey){
+            const drug = masterDrugDb.find(
+                d => d.dbKey === dbKey || d.id === dbKey
+            );
+            if(!drug) return;
+            const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
+            const gram = parseFloat(document.getElementById(`gram-${dbKey}`)?.value) || 0;
+            const piece = parseInt(document.getElementById(`piece-${dbKey}`)?.value) || 0;
+            // 重量換算
+            let weightPiece = 0;
+            if(drug.weight10 > 0){
+                weightPiece = Math.round(
+                    gram / (drug.weight10 / 10)
+                );
+            }
+            // 一瓶幾顆
+            let bottleRate = 0;     
+            if(drug.specArray && drug.specArray.length){
+                bottleRate = Number(drug.specArray[0].rate) || 0;
+            }
+            const total =
+                bottle * bottleRate +
+                weightPiece +
+                piece;
+            const display =
+                document.getElementById(`display-total-${dbKey}`);
+            if(display){
+                display.innerText = total;
+            }
+            return {
+                bottle,
+                gram,
+                piece,
+                total
+            };
+        };
+        // ===============================
+        // 離開欄位才存Firebase
+        // ===============================
+        window.updateBottleDrug = function(dbKey){
+            const result = updateBottlePreview(dbKey);
+            if(!result) return;
+            set(
+                ref(db, `inventoryRecords/${subZone}/${dbKey}`),
+                {
+                    bottle: result.bottle,
+                    gram: result.gram,
+                    piece: result.piece,
+                    total: result.total,
+                    user: loginUser
+                }
+            );
+        };
 
         // 智慧型換算大腦
         window.updateMultiCount = function(dbKey, specIdx, val) {
