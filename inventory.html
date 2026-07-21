@@ -232,27 +232,26 @@ function renderGrid() {
                             <div class="grid grid-cols-3 gap-2">
                             <div>
                             <div class="text-[10px] font-bold text-slate-500 text-center mb-1">整瓶</div>
-        <input id="bottle-${currentKey}" type="number" min="0" value="${record.bottle || 0}"
-        oninput="updateBottlePreview('${currentKey}')"
-        onchange="updateBottleDrug('${currentKey}')"
-        class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
-    </div>
-    <div>
-        <div class="text-[10px] font-bold text-slate-500 text-center mb-1">重量(g)</div>
-        <input id="gram-${currentKey}" type="number" step="any" min="0" value="${record.gram !== undefined ? record.gram : ''}"
-        oninput="updateBottlePreview('${currentKey}')"
-        onchange="updateBottleDrug('${currentKey}')"
-        class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm" placeholder="0.0">
-    </div>
-    <div>
-        <div class="text-[10px] font-bold text-slate-500 text-center mb-1">散裝顆數</div>
-        <input id="piece-${currentKey}" type="number" min="0" value="${record.piece || 0}"
-        oninput="updateBottlePreview('${currentKey}')"
-        onchange="updateBottleDrug('${currentKey}')"
-        class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
-    </div>                    
-</div>
-                            
+                            <input id="bottle-${currentKey}" type="number" min="0" value="${record.bottle || 0}"
+                            oninput="updateBottlePreview('${currentKey}')"
+                            onchange="updateBottleDrug('${currentKey}')"
+                            class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
+                            </div>
+                            <div>
+                            <div class="text-[10px] font-bold text-slate-500 text-center mb-1">重量(g)</div>
+                            <input id="gram-${currentKey}" type="number" step="any" min="0" value="${record.gram !== undefined ? record.gram : ''}"
+                            oninput="updateBottlePreview('${currentKey}')"
+                            onchange="updateBottleDrug('${currentKey}')"
+                            class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm" placeholder="0.0">
+                            </div>
+                            <div>
+                            <div class="text-[10px] font-bold text-slate-500 text-center mb-1">散裝顆數</div>
+                            <input id="piece-${currentKey}" type="number" min="0" value="${record.piece || 0}"
+                            oninput="updateBottlePreview('${currentKey}')"
+                            onchange="updateBottleDrug('${currentKey}')"
+                            class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
+                            </div>
+                            </div>                            
                             <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-200">
                                 <span class="text-xs font-bold text-slate-600">總量計算：</span>
                                 <span id="display-total-${currentKey}" class="text-xl font-black text-green-600">${record.total || 0} 顆</span>
