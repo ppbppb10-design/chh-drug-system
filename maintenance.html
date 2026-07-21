@@ -128,6 +128,7 @@
                     const locIdx = headers.findIndex(h => String(h).includes('位號') || String(h).includes('儲位'));
                     const codeIdx = headers.findIndex(h => String(h).includes('藥品碼') || String(h).includes('藥碼'));
                     const nameIdx = headers.findIndex(h => String(h).includes('品名') || String(h).includes('名稱'));
+                    const weight10Idx = headers.findIndex(h => String(h).includes('10顆重量'));                    
 
                     for (let j = headerIndex + 1; j < jsonData.length; j++) {
                         const row = jsonData[j];
@@ -138,6 +139,7 @@
 
                         const drugName = row[nameIdx] ? String(row[nameIdx]).trim() : '無對應藥名';
                         const locationValue = row[locIdx] ? String(row[locIdx]).trim() : '';
+                        const weight10 = (weight10Idx >= 0) ? parseFloat(row[weight10Idx]) || 0 : 0;
                         
                         let isMultiSpec = false;
                         let specArray = [];
@@ -199,6 +201,7 @@
                         newMasterList[uniquePrimaryKey] = {
                             id: drugCode,
                             name: drugName,
+                            weight10: weight10,
                             subZone: sheetName,
                             location: locationValue,
                             unitPiece: defaultUnitPiece,
