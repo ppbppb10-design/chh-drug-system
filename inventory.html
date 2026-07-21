@@ -424,24 +424,16 @@ function renderGrid() {
         document.getElementById('inventorySearch').addEventListener('input', renderGrid);
 
        // ===============================
-        // 改善手機版游標被藍色表頭遮擋問題 (精準位移版)
+        // 手機版鍵盤彈出防護：點擊輸入框時自動置中並預留表頭空間
         // ===============================
         document.addEventListener('focusin', function(e) {
             if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
                 setTimeout(() => {
-                    // 取得目前輸入框在頁面中的位置
-                    const rect = e.target.getBoundingClientRect();
-                    // 頂部藍色表頭大約的高度 (含 padding 與儲位快捷列)
-                    const headerOffset = 180; 
-                    
-                    // 如果輸入框目前的位置太上面（被表頭遮住），就往下滾動
-                    if (rect.top < headerOffset) {
-                        const scrollY = window.pageYOffset || document.documentElement.scrollTop;
-                        window.scrollTo({
-                            top: scrollY + rect.top - headerOffset,
-                            behavior: 'smooth'
-                        });
-                    }
+                    // 使用 scrollIntoView 並指定 block 為 center，強制把整張卡片拉到畫面正中間
+                    e.target.closest('.rounded-2xl')?.scrollIntoView({
+                        behavior: 'smooth',
+                        block: 'center'
+                    });
                 }, 350);
             }
         });
