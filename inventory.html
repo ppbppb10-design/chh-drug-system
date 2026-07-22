@@ -472,6 +472,42 @@ function renderGrid() {
             }
         });
 
+        <!-- 領用登記彈跳視窗 (預設隱藏) -->
+<div id="deductModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center hidden p-4">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
+        <div class="flex justify-between items-center mb-4">
+            <h3 class="font-black text-slate-800 text-lg flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-minus text-amber-500"></i>已盤藥品領用登記
+            </h3>
+            <button onclick="closeDeductModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2">&times;</button>
+        </div>
+        
+        <div class="space-y-4">
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-1">選擇或輸入藥品 (代碼 / 藥名)</label>
+                <select id="deductDrugSelect" class="w-full border rounded-xl p-2.5 text-sm bg-slate-50 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-amber-400">
+                    <option value="">-- 請先選擇要領用的藥品 --</option>
+                    <!-- 自動代入當前分區的藥品清單 -->
+                </select>
+            </div>
+            
+            <div>
+                <label class="text-xs font-bold text-slate-500 block mb-1">要扣除的領用數量</label>
+                <input id="deductQtyInput" type="number" min="0" placeholder="輸入要扣除的數量" class="w-full border rounded-xl p-2.5 text-sm font-black text-slate-800 outline-none focus:ring-2 focus:ring-amber-400">
+            </div>
+
+            <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 text-[11px] text-amber-800 font-medium">
+                💡 <b>說明：</b>送出後系統會自動從該藥品目前的盤點總數中扣除此領用量，並保留歷史紀錄供查核。
+            </div>
+        </div>
+
+        <div class="flex gap-2 mt-6">
+            <button onclick="closeDeductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl transition text-sm">取消</button>
+            <button onclick="submitDeduction()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black py-2.5 rounded-xl transition text-sm shadow-md">確認扣除</button>
+        </div>
+    </div>
+</div>
+
         // ===============================
         // 已盤領用視窗控制與送出邏輯
         // ===============================
