@@ -9,7 +9,7 @@
 </head>
 <body class="bg-slate-100 min-h-screen pb-12 pt-36 md:pt-28">
 
-<!-- 頂部狀態橫幅 -->
+    <!-- 頂部狀態橫幅 -->
     <div class="bg-blue-600 text-white p-4 shadow-md sticky top-0 z-40">
         <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             
@@ -60,6 +60,41 @@
             <div class="col-span-full text-center py-12 text-slate-400 font-bold">⏳ 正在同步彰醫精準盤點界面...</div>
         </div>
     </main>
+
+    <!-- 🌟 領用登記彈跳視窗 (放置在 HTML 正確結構中，預設隱藏) -->
+    <div id="deductModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center hidden p-4">
+        <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="font-black text-slate-800 text-lg flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-minus text-amber-500"></i>已盤藥品領用登記
+                </h3>
+                <button onclick="closeDeductModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2">&times;</button>
+            </div>
+            
+            <div class="space-y-4">
+                <div>
+                    <label class="text-xs font-bold text-slate-500 block mb-1">選擇要領用的藥品 (代碼 / 藥名)</label>
+                    <select id="deductDrugSelect" class="w-full border rounded-xl p-2.5 text-sm bg-slate-50 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-amber-400">
+                        <option value="">-- 請先選擇要領用的藥品 --</option>
+                    </select>
+                </div>
+                
+                <div>
+                    <label class="text-xs font-bold text-slate-500 block mb-1">要扣除的領用數量</label>
+                    <input id="deductQtyInput" type="number" min="0" placeholder="輸入要扣除的數量" class="w-full border rounded-xl p-2.5 text-sm font-black text-slate-800 outline-none focus:ring-2 focus:ring-amber-400">
+                </div>
+
+                <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 text-[11px] text-amber-800 font-medium">
+                    💡 <b>說明：</b>送出後系統會自動從該藥品目前的盤點總數中扣除此領用量，並保留歷史紀錄供查核。
+                </div>
+            </div>
+
+            <div class="flex gap-2 mt-6">
+                <button onclick="closeDeductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl transition text-sm">取消</button>
+                <button onclick="submitDeduction()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black py-2.5 rounded-xl transition text-sm shadow-md">確認扣除</button>
+            </div>
+        </div>
+    </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.17.1/firebase-app.js";
@@ -116,21 +151,16 @@
             calculateProgress();
         });
 
-        // 🎯 究極類推核心大腦：支持中文字開頭，且完美相容括號內的英文字母 (A/B/G) 或 數字 (1/2/4)
         function getShortLocLabel(fullLoc) {
             if (!fullLoc) return "";
             const str = String(fullLoc).trim();
-            
-            // 🌟 超強正則：擷取開頭的中文，並強制抓取後方緊接著的「第一個字母或數字」
-            // 範例：針(A1) -> 針A, 針(2-10) -> 針2, 針(B2) -> 針B, 針(G1) -> 針G
             const match = str.match(/^([^\d\A-Za-z\(\)]+)[\(\s-]*(.)/);
             if (match) {
-                return match[1] + match[2].toUpperCase(); // 完美輸出 針A、針B、針2
+                return match[1] + match[2].toUpperCase();
             }
             return str; 
         }
 
-        // 智慧橫列生成器
         function generateLocationBadges() {
             const container = document.getElementById('locationBadgeContainer');
             if (!container) return;
@@ -143,10 +173,8 @@
                 }
             });
 
-            // 依拼音/筆畫順序漂亮排序快捷鍵
             let sortedLocs = Array.from(locSet).sort((a, b) => a.localeCompare(b, 'zh-Hans-TW-u-co-stroke'));
 
-            // 「顯示全部」按鈕
             let allBtn = document.createElement('button');
             allBtn.className = `px-3 py-1 rounded-lg text-xs font-bold transition shrink-0 ${!activeLocationFilter ? 'bg-white text-blue-700 shadow-sm font-black' : 'bg-blue-700/50 text-blue-100 hover:bg-blue-700'}`;
             allBtn.innerText = "顯示全部";
@@ -157,7 +185,6 @@
             };
             container.appendChild(allBtn);
 
-            // 長出過濾後的快捷按鈕
             sortedLocs.forEach(loc => {
                 let btn = document.createElement('button');
                 const isActive = (activeLocationFilter === loc);
@@ -171,7 +198,8 @@
                 container.appendChild(btn);
             });
         }
-function renderGrid() {
+
+        function renderGrid() {
             const grid = document.getElementById('inventoryGrid');
             if (!grid) return;
             
@@ -180,13 +208,11 @@ function renderGrid() {
 
             masterDrugDb.forEach(drug => {
                 try {
-                    // 1. 大類篩選
                     if (activeLocationFilter) {
                         let drugShortLoc = drug.location ? getShortLocLabel(drug.location) : "";
                         if (drugShortLoc !== activeLocationFilter) return;
                     }
 
-                    // 2. 關鍵字搜尋
                     if (searchVal && !drug.name.toUpperCase().includes(searchVal) && !drug.id.toUpperCase().includes(searchVal) && !String(drug.location).toUpperCase().includes(searchVal)) return;
 
                     const currentKey = drug.dbKey || drug.id;
@@ -200,7 +226,6 @@ function renderGrid() {
                     const hasArray = !!(drug.specArray && Array.isArray(drug.specArray) && drug.specArray.length > 0);
                     
                     let tagHtml = "";
-                    // 🌟 修正點：如果是罐裝秤重頁面，優先顯示罐裝秤重標籤
                     if (isWeightZone) {
                         tagHtml = `<span class="text-[10px] bg-emerald-100 text-emerald-700 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-scale-balanced mr-1"></i>罐裝秤重模式</span>`;
                     } else if (hasArray && drug.desc) {
@@ -209,7 +234,6 @@ function renderGrid() {
                         tagHtml = `<span class="text-[10px] bg-slate-100 text-slate-500 font-bold px-2 py-0.5 rounded-md"><i class="fa-solid fa-box-open mr-1"></i>純散裝品項</span>`;
                     }
 
-                    // 3. 建立卡片骨架
                     let cardHtml = `
                         <div id="card-${currentKey}">
                             <div class="flex justify-between items-start">
@@ -225,9 +249,7 @@ function renderGrid() {
                             <div class="mt-3 flex space-x-1">${tagHtml}</div>
                     `;
 
-                    // 4. 根據分頁型態長出對應的輸入介面 (🌟 優先判定 isWeightZone)
                     if (isWeightZone) {
-                        // ① 罐裝秤重專用介面 (整瓶 + 重量g + 散裝顆數)
                         const w10 = drug.weight10 || drug.weightPer10 || 0;
                         const boxRate = (drug.specArray && drug.specArray[0]) ? drug.specArray[0].rate : 1000;
                         
@@ -237,59 +259,50 @@ function renderGrid() {
                                 <span>💊 1瓶 = ${boxRate}顆</span>
                                 <span>⚖️ 10顆重: ${w10 > 0 ? w10 + 'g' : '未設定'}</span>
                             </div>                         
-                           
                             <div class="grid grid-cols-3 gap-2">
-                            <div>
-                            <div class="text-[10px] font-bold text-slate-500 text-center mb-1">整瓶</div>
-                            <input id="bottle-${currentKey}" type="number" min="0" value="${record.bottle || 0}"
-                            oninput="updateBottlePreview('${currentKey}')"
-                            onchange="updateBottleDrug('${currentKey}')"
-                            class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 text-center mb-1">整瓶</div>
+                                    <input id="bottle-${currentKey}" type="number" min="0" value="${record.bottle || 0}"
+                                    oninput="updateBottlePreview('${currentKey}')"
+                                    onchange="updateBottleDrug('${currentKey}')"
+                                    class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 text-center mb-1">重量(g)</div>
+                                    <input id="gram-${currentKey}" type="number" step="any" min="0" value="${record.gram !== undefined ? record.gram : ''}"
+                                    oninput="updateBottlePreview('${currentKey}')"
+                                    onchange="updateBottleDrug('${currentKey}')"
+                                    class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm" placeholder="0.0">
+                                </div>
+                                <div>
+                                    <div class="text-[10px] font-bold text-slate-500 text-center mb-1">散裝顆數</div>
+                                    <input id="piece-${currentKey}" type="number" min="0" value="${record.piece || 0}"
+                                    oninput="updateBottlePreview('${currentKey}')"
+                                    onchange="updateBottleDrug('${currentKey}')"
+                                    class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
+                                </div>                    
                             </div>
-                            <div>
-                            <div class="text-[10px] font-bold text-slate-500 text-center mb-1">重量(g)</div>
-                            <input id="gram-${currentKey}" type="number" step="any" min="0" value="${record.gram !== undefined ? record.gram : ''}"
-                            oninput="updateBottlePreview('${currentKey}')"
-                            onchange="updateBottleDrug('${currentKey}')"
-                            class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm" placeholder="0.0">
-                            </div>
-                            <div>
-                            <div class="text-[10px] font-bold text-slate-500 text-center mb-1">散裝顆數</div>
-                            <input id="piece-${currentKey}" type="number" min="0" value="${record.piece || 0}"
-                            oninput="updateBottlePreview('${currentKey}')"
-                            onchange="updateBottleDrug('${currentKey}')"
-                            class="w-full text-center font-black border rounded-xl p-1.5 text-sm bg-white shadow-sm">
-                            </div>
-                            </div>                            
                             <div class="flex justify-between items-center mt-3 pt-2 border-t border-slate-200">
                                 <span class="text-xs font-bold text-slate-600">總量計算：</span>
                                 <span id="display-total-${currentKey}" class="text-xl font-black text-green-600">${record.total || 0} 顆</span>
                             </div>
                         </div>
                         `;
-                        
-                    } else 
-                        if (hasArray) {
-                        // ① 多規格 (🌟 依照大到小排序：盒/瓶 -> 束 -> 排 -> 顆)
+                    } else if (hasArray) {
                         cardHtml += `<div class="flex flex-row gap-1.5 mt-4 w-full">`;
-                        
-                        // 建立一份複本並進行排序或反轉，讓「束」或「盒」的大單位排在前面
                         const sortedSpecs = [...drug.specArray].sort((a, b) => {
-                            // 定義單位權重：束 > 排 > 其他
                             const getWeight = (label) => {
                                 if (label.includes('盒') || label.includes('瓶')) return 3;
                                 if (label.includes('束')) return 2;
                                 if (label.includes('排') || label.includes('片')) return 1;
                                 return 0;
                             };
-                            return getWeight(b.label) - getWeight(a.label); // 大單位在前
+                            return getWeight(b.label) - getWeight(a.label);
                         });
 
-                        sortedSpecs.forEach((spec, idx)=>{
-                            // 找出原本在陣列中的真實索引，確保寫入 Firebase 時對應正確的欄位
+                        sortedSpecs.forEach((spec)=>{
                             const realIdx = drug.specArray.findIndex(s => s.label === spec.label);
                             const value = record[`spec_${realIdx}`] ?? 0;
-                            
                             cardHtml += `
                             <div class="bg-slate-50 p-2 rounded-xl border flex-1">
                                 <div class="text-xs font-bold text-center text-indigo-600">${spec.label}</div>
@@ -299,9 +312,7 @@ function renderGrid() {
                             </div>`;
                         });
                         cardHtml += `</div>`;
-                        
                     } else {
-                        // ③ 一般單一數量
                         cardHtml += `
                         <div class="mt-4">
                             <input id="single-${currentKey}" type="number" min="0"
@@ -312,7 +323,6 @@ function renderGrid() {
                         `;
                     }
 
-                    // 5. 封裝並放入頁面
                     cardHtml += `</div>`;
                     card.innerHTML = cardHtml;
                     grid.appendChild(card);
@@ -322,87 +332,61 @@ function renderGrid() {
                 }
             });
         }
-        // ===============================
-        // 純散裝儲存
-        // ===============================
-        window.updateSingleCount = function(dbKey,val){
-            const intVal = Math.max(0,parseInt(val)||0);
+
+        window.updateSingleCount = function(dbKey, val) {
+            const intVal = Math.max(0, parseInt(val) || 0);
             const old = firebaseRecords[dbKey] || {};
-            set(
-                ref(db,`inventoryRecords/${subZone}/${dbKey}`),
-                {
-                    ...old,
-                    total:intVal,
-                    user:loginUser
-                }
-            );
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
+                ...old,
+                total: intVal,
+                user: loginUser
+            });
         };
-        // ===============================
-        // 即時預覽(不存Firebase)
-        // ===============================
-        window.updateBottlePreview = function(dbKey){
-    const drug = masterDrugDb.find(
-        d => d.dbKey === dbKey || d.id === dbKey
-    );
-    if(!drug) return;
-    
-    const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
-    const gram = parseFloat(document.getElementById(`gram-${dbKey}`)?.value) || 0;
-    const piece = parseInt(document.getElementById(`piece-${dbKey}`)?.value) || 0;
-    
-    // 1. 重量換算顆數公式： 重量(g) / (10顆重 / 10)
-    let weightPiece = 0;
-    const weight10 = drug.weight10 || drug.weightPer10 || 0;
-    if(weight10 > 0 && gram > 0){
-        const singleWeight = weight10 / 10; // 單顆重量
-        weightPiece = Math.round(gram / singleWeight); // 四捨五入換算顆數
-    }
-    
-    // 2. 一瓶幾顆 (從 specArray 抓取倍率，預設 1000)
-    let bottleRate = 1000;     
-    if(drug.specArray && drug.specArray.length > 0){
-        bottleRate = Number(drug.specArray[0].rate) || 1000;
-    }
-    
-    // 3. 總量加總
-    const total = (bottle * bottleRate) + weightPiece + piece;
-    
-    const display = document.getElementById(`display-total-${dbKey}`);
-    if(display){
-        display.innerText = total + " 顆";
-    }
-    
-    return {
-        bottle,
-        gram,
-        piece,
-        total
-    };
-};
-        // ===============================
-        // 離開欄位才存Firebase
-        // ===============================
-        window.updateBottleDrug = function(dbKey){
+
+        window.updateBottlePreview = function(dbKey) {
+            const drug = masterDrugDb.find(d => d.dbKey === dbKey || d.id === dbKey);
+            if(!drug) return;
+            
+            const bottle = parseInt(document.getElementById(`bottle-${dbKey}`)?.value) || 0;
+            const gram = parseFloat(document.getElementById(`gram-${dbKey}`)?.value) || 0;
+            const piece = parseInt(document.getElementById(`piece-${dbKey}`)?.value) || 0;
+            
+            let weightPiece = 0;
+            const weight10 = drug.weight10 || drug.weightPer10 || 0;
+            if(weight10 > 0 && gram > 0){
+                const singleWeight = weight10 / 10;
+                weightPiece = Math.round(gram / singleWeight);
+            }
+            
+            let bottleRate = 1000;     
+            if(drug.specArray && drug.specArray.length > 0){
+                bottleRate = Number(drug.specArray[0].rate) || 1000;
+            }
+            
+            const total = (bottle * bottleRate) + weightPiece + piece;
+            const display = document.getElementById(`display-total-${dbKey}`);
+            if(display){
+                display.innerText = total + " 顆";
+            }
+            
+            return { bottle, gram, piece, total };
+        };
+
+        window.updateBottleDrug = function(dbKey) {
             if(!subZone.includes("罐裝秤重")) return;
-            const drug=masterDrugDb.find(
-                d=>d.dbKey===dbKey||d.id===dbKey
-            );
+            const drug = masterDrugDb.find(d => d.dbKey === dbKey || d.id === dbKey);
             if(!drug) return;
             const result = updateBottlePreview(dbKey);
             if(!result) return;
-            set(
-                ref(db, `inventoryRecords/${subZone}/${dbKey}`),
-                {
-                    bottle: result.bottle,
-                    gram: result.gram,
-                    piece: result.piece,
-                    total: result.total,
-                    user: loginUser
-                }
-            );
+            set(ref(db, `inventoryRecords/${subZone}/${dbKey}`), {
+                bottle: result.bottle,
+                gram: result.gram,
+                piece: result.piece,
+                total: result.total,
+                user: loginUser
+            });
         };
 
-        // 智慧型換算大腦
         window.updateMultiCount = function(dbKey, specIdx, val) {
             const intVal = Math.max(0, parseInt(val) || 0);
             const drug = masterDrugDb.find(d => d.dbKey === dbKey || d.id === dbKey);
@@ -418,14 +402,12 @@ function renderGrid() {
             for (let i = 0; i < len; i++) {
                 const inputDom = document.getElementById(`input-${dbKey}-${i}`);
                 const currentBoxCount = inputDom ? (Math.max(0, parseInt(inputDom.value) || 0)) : (Math.max(0, parseInt(currentRecord[`spec_${i}`]) || 0));
-                
                 currentRecord[`spec_${i}`] = currentBoxCount;
 
                 let currentRate = specs[i] ? (parseFloat(specs[i].rate) || 1) : 1;
                 if (i === len - 1) {
                     currentRate = 1;
                 }
-
                 grandTotal += (Number(currentBoxCount) * Number(currentRate));
             }
 
@@ -449,22 +431,14 @@ function renderGrid() {
 
         document.getElementById('inventorySearch').addEventListener('input', renderGrid);
 
-       // ===============================
-        // 確保點擊輸入框時，完美停在藍色表頭下方而不被遮擋
-        // ===============================
+        // 手機版輸入框聚焦自動置中防護
         document.addEventListener('focusin', function(e) {
             if (e.target.tagName === 'INPUT' && e.target.type === 'number') {
                 setTimeout(() => {
-                    // 取得目前頂部藍色表頭的實際高度（會隨手機畫面自動計算）
                     const stickyHeader = document.querySelector('.sticky');
                     const headerHeight = stickyHeader ? stickyHeader.offsetHeight : 140;
-
-                    // 取得輸入框目前相對於視窗的位置
                     const rect = e.target.getBoundingClientRect();
-
-                    // 如果輸入框的頂端小於表頭高度（代表被表頭蓋住或太靠近頂部）
                     if (rect.top < headerHeight + 20) {
-                        // 計算需要往下捲動的精準距離
                         const scrollY = window.pageYOffset || document.documentElement.scrollTop;
                         window.scrollTo({
                             top: scrollY + rect.top - headerHeight - 20,
@@ -475,50 +449,11 @@ function renderGrid() {
             }
         });
 
-        <!-- 領用登記彈跳視窗 (預設隱藏) -->
-<div id="deductModal" class="fixed inset-0 bg-slate-900/60 z-50 flex items-center justify-center hidden p-4">
-    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 animate-in fade-in zoom-in duration-200">
-        <div class="flex justify-between items-center mb-4">
-            <h3 class="font-black text-slate-800 text-lg flex items-center gap-2">
-                <i class="fa-solid fa-clipboard-minus text-amber-500"></i>已盤藥品領用登記
-            </h3>
-            <button onclick="closeDeductModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2">&times;</button>
-        </div>
-        
-        <div class="space-y-4">
-            <div>
-                <label class="text-xs font-bold text-slate-500 block mb-1">選擇或輸入藥品 (代碼 / 藥名)</label>
-                <select id="deductDrugSelect" class="w-full border rounded-xl p-2.5 text-sm bg-slate-50 font-bold text-slate-700 outline-none focus:ring-2 focus:ring-amber-400">
-                    <option value="">-- 請先選擇要領用的藥品 --</option>
-                    <!-- 自動代入當前分區的藥品清單 -->
-                </select>
-            </div>
-            
-            <div>
-                <label class="text-xs font-bold text-slate-500 block mb-1">要扣除的領用數量</label>
-                <input id="deductQtyInput" type="number" min="0" placeholder="輸入要扣除的數量" class="w-full border rounded-xl p-2.5 text-sm font-black text-slate-800 outline-none focus:ring-2 focus:ring-amber-400">
-            </div>
-
-            <div class="bg-amber-50 p-3 rounded-xl border border-amber-100 text-[11px] text-amber-800 font-medium">
-                💡 <b>說明：</b>送出後系統會自動從該藥品目前的盤點總數中扣除此領用量，並保留歷史紀錄供查核。
-            </div>
-        </div>
-
-        <div class="flex gap-2 mt-6">
-            <button onclick="closeDeductModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold py-2.5 rounded-xl transition text-sm">取消</button>
-            <button onclick="submitDeduction()" class="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-black py-2.5 rounded-xl transition text-sm shadow-md">確認扣除</button>
-        </div>
-    </div>
-</div>
-
-        // ===============================
-        // 已盤領用視窗控制與送出邏輯
-        // ===============================
+        // 領用登記視窗控制與扣除邏輯
         window.openDeductModal = function() {
             const selectDom = document.getElementById('deductDrugSelect');
             selectDom.innerHTML = '<option value="">-- 請選擇藥品 --</option>';
             
-            // 自動把當前分區的藥品全部載入下拉選單中
             masterDrugDb.forEach(drug => {
                 const k = drug.dbKey || drug.id;
                 const opt = document.createElement('option');
@@ -548,19 +483,17 @@ function renderGrid() {
                 return;
             }
 
-            // 呼叫剛剛建立的扣除核心函數
             deductInventoryForUsed(dbKey, qty, subZone);
             closeDeductModal();
         };
 
-        // 核心扣除函數
         window.deductInventoryForUsed = function(dbKey, usedQty, subZoneName) {
             const qtyToDeduct = parseFloat(usedQty) || 0;
             if (qtyToDeduct <= 0) return;
 
             const currentRecordRef = ref(db, `inventoryRecords/${subZoneName}/${dbKey}`);
             
-            get(ref(db, `inventoryRecords/${subZoneName}/${dbKey}`)).then((snapshot) => {
+            get(currentRecordRef).then((snapshot) => {
                 const record = snapshot.val() || { total: 0 };
                 let currentTotal = Number(record.total) || 0;
                 let newTotal = Math.max(0, currentTotal - qtyToDeduct);
@@ -576,39 +509,6 @@ function renderGrid() {
                 });
             });
         };
-
-        // ===============================
-        // 已盤藥品領用登記與扣除邏輯
-        // ===============================
-        window.deductInventoryForUsed = function(dbKey, usedQty, subZoneName) {
-            const qtyToDeduct = parseFloat(usedQty) || 0;
-            if (qtyToDeduct <= 0) return;
-            
-            // 1. 取得該分區原本的盤點紀錄
-            const currentRecordRef = ref(db, `inventoryRecords/${subZoneName}/${dbKey}`); 
-            // 我們可以利用 transaction 或先讀取再寫入的方式來安全扣除
-            get(currentRecordRef).then((snapshot) => {
-                const record = snapshot.val() || { total: 0 }; 
-                
-                // 確保原本有盤點資料
-                let currentTotal = Number(record.total) || 0;
-                
-                // 計算扣除後的全新總量 (最低為 0，避免負數)
-                let newTotal = Math.max(0, currentTotal - qtyToDeduct);
-                
-                // 2. 更新盤點總數，並記錄這次被領用了多少
-                set(currentRecordRef, {
-                    ...record,
-                    total: newTotal,                      // 扣除領用量後的最終盤點數
-                    deductedTotal: (record.deductedTotal || 0) + qtyToDeduct, // 累積被扣除量（方便查帳）
-                    lastDeductUser: loginUser,            // 最後操作人
-                    lastDeductTime: new Date().toLocaleString()
-                }).then(() => {
-                    alert(`已成功扣除領用量 ${qtyToDeduct} 顆/支！目前結餘盤點數：${newTotal}`);
-                });
-            });
-        };
-        
     </script>
 
     <style>
