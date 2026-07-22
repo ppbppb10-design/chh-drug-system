@@ -152,16 +152,15 @@ window.downloadExcel = function() {
                 const todayString = new Date().toLocaleString('zh-TW');
                 
                 // ==========================================
-                // 📊 頁籤一：建構【盤點多儲位明細】原始資料 (新增「已領用扣除量」欄位)
+                // 📊 頁籤一：建構【盤點多儲位明細】原始資料 (包含各規格與秤重細節)
                 // ==========================================
                 const sheet1Rows = [
                     ["彰化醫院藥劑科 - 智慧盤點多儲位原始明細報表"],
                     ["匯出時間：" + todayString],
                     [],
-                    ["儲位分類(分頁)", "實體位號", "藥品代碼", "藥品名稱", "包裝換算規則", "盤點淨總量", "已領用扣除量", "負責藥師", "最後領用人/時間"]
+                    ["儲位分類(分頁)", "實體位號", "藥品代碼", "藥品名稱", "包裝換算規則", "整瓶/大盒數", "重量(g)", "各規格細節(束/排等)", "散裝顆數", "盤點淨總量", "已領用扣除量", "負責藥師", "最後領用記錄"]
                 ];
 
-                // 用來收集所有有被領用過的紀錄，準備給「已盤領用記錄」頁籤使用
                 let deductLogRows = [
                     ["彰化醫院藥劑科 - 已盤藥品領用異動查核清單"],
                     ["匯出時間：" + todayString],
@@ -175,20 +174,43 @@ window.downloadExcel = function() {
 
                     const netTotal = Number(rec.total) || 0;
                     const deducted = Number(rec.deductedTotal) || 0;
+                    const bottleVal = rec.bottle !== undefined ? rec.bottle : '-';
+                    const gramVal = rec.gram !== undefined && rec.gram !== '' ? rec.gram : '-';
+                    const pieceVal = rec.piece !== undefined ? rec.piece : '-';
+
+                    // 組合多規格的各項細節字串 (例如: 束:2, 排:5)
+                    let specDetailsStr = '-';
+                    if (drug.specArray && Array.isArray(drug.specArray) && drug.specArray.length > 0) {
+                        let detailsArr = [];
+                        drug.specArray.forEach((spec, idx) => {
+                            const val = rec[`spec_${idx}`] !== undefined ? rec[`spec_${idx}`] : 0;
+                            if (val > 0) {
+                                detailsArr.push(`${spec.label}:${val}`);
+                            }
+                        });
+                        if (detailsArr.length > 0) {
+                            specDetailsStr = detailsArr.join(', ');
+                        } else {
+                            specDetailsStr = '皆為0';
+                        }
+                    }
 
                     sheet1Rows.push([
                         drug.subZone || '未分類',
                         drug.location || '',
                         drug.id,
                         drug.name,
-                        drug.desc || '1盒=10支',
+                        drug.desc || '標準包裝',
+                        bottleVal,
+                        gramVal,
+                        specDetailsStr,
+                        pieceVal,
                         netTotal,
-                        deducted > 0 ? deducted : 0, // 顯示被領用扣除的數量
+                        deducted > 0 ? deducted : 0,
                         rec.user || '未盤',
                         rec.lastDeductTime ? `${rec.lastDeductUser} (${rec.lastDeductTime})` : '無異動'
                     ]);
 
-                    // 如果該品項有被領用扣除過，同步收錄到領用記錄清單中
                     if (deducted > 0) {
                         deductLogRows.push([
                             drug.subZone || '未分類',
@@ -200,8 +222,9 @@ window.downloadExcel = function() {
                         ]);
                     }
                 });
+
                 const worksheet1 = XLSX.utils.aoa_to_sheet(sheet1Rows);
-                const worksheet5 = XLSX.utils.aoa_to_sheet(deductLogRows); // 頁籤五：領用記錄
+                const worksheet5 = XLSX.utils.aoa_to_sheet(deductLogRows);
 
                 // ==========================================
                 // 🎯 核心計算大腦：全院不重複加總與劑型分類邏輯
@@ -225,7 +248,6 @@ window.downloadExcel = function() {
                     summaryMap[drug.id].totalDeducted += (Number(rec.deductedTotal) || 0);
                 });
 
-                // 建立基礎欄位格式 (包含領用統計)
                 const headers = ["藥品代碼", "藥品名稱", "全院盤點淨總量", "累計領用扣除量", "狀態提示"];
                 
                 const allSummaryRows = [["彰化醫院藥劑科 - 全院藥品代碼總量匯總報表"], ["匯出時間：" + todayString], [], headers];
@@ -237,7 +259,7 @@ window.downloadExcel = function() {
                         item.id,
                         item.name,
                         item.grandTotal,
-                        item.totalDeducted, // 顯示全院累計被領用量
+                        item.totalDeducted,
                         item.grandTotal > 0 || item.totalDeducted > 0 ? "已盤點/有異動" : "未盤點"
                     ];
                     
@@ -263,9 +285,9 @@ window.downloadExcel = function() {
                 XLSX.utils.book_append_sheet(finalWorkbook, worksheet2, "全院藥碼總匯總");
                 XLSX.utils.book_append_sheet(finalWorkbook, worksheet3, "針劑類加總彙整");
                 XLSX.utils.book_append_sheet(finalWorkbook, worksheet4, "外用藥加總彙整");
-                XLSX.utils.book_append_sheet(finalWorkbook, worksheet5, "已盤領用記錄"); // 🌟 新增的獨立領用查核分頁
+                XLSX.utils.book_append_sheet(finalWorkbook, worksheet5, "已盤領用記錄");
                 
-                XLSX.writeFile(finalWorkbook, `彰醫藥局盤點報表_含領用紀錄_${timeString}.xlsx`);
+                XLSX.writeFile(finalWorkbook, `彰醫藥局盤點報表_詳細包裝與重量_${timeString}.xlsx`);
             } catch (clickErr) {
                 alert("產生 Excel 報表失敗，請刷新重試。");
                 console.error(clickErr);
