@@ -11,6 +11,8 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- 引入國際標準 QR Code 引擎 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <!-- 引入 html2canvas 讓 Excel 匯出能把圖表轉成圖片封裝進去 -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         input::-webkit-outer-spin-button,
         input::-webkit-inner-spin-button {
@@ -41,120 +43,69 @@
     <main class="max-w-[1600px] mx-auto px-3 mt-4 space-y-4">
         
         <!-- 控制面板列 -->
-        <!-- ================= 控制面板 ================= -->
-<div class="bg-white rounded-2xl shadow-lg p-4 space-y-4">
+        <div class="bg-white rounded-2xl shadow-lg p-4 space-y-4">
 
-    <!-- 第一列 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <!-- 第一列 -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
 
-        <!-- 日期 -->
-        <div class="border rounded-xl p-3 bg-slate-50">
+                <!-- 日期 -->
+                <div class="border rounded-xl p-3 bg-slate-50">
+                    <label class="text-xs font-bold text-slate-500">📅 核帳日期</label>
+                    <input type="date" id="targetDate" class="mt-2 w-full border rounded-lg p-2 font-black">
+                </div>
 
-            <label class="text-xs font-bold text-slate-500">
-                📅 核帳日期
-            </label>
+                <!-- 盤點藥師 -->
+                <div class="border rounded-xl p-3 bg-amber-50 border-amber-300">
+                    <label class="text-xs font-bold text-red-600">✍️ 盤點藥師</label>
+                    <select id="pharmacistName" class="mt-2 w-full border-2 border-amber-400 rounded-lg p-2 font-black">
+                        <option value="" disabled selected>⚠️ 請選擇盤點藥師名字...</option>
+                        <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
+                        <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
+                        <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
+                        <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
+                        <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
+                        <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
+                        <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
+                        <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
+                        <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
+                        <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
+                    </select>
+                </div>
 
-            <input
-                type="date"
-                id="targetDate"
-                class="mt-2 w-full border rounded-lg p-2 font-black">
+                <!-- 覆核 -->
+                <div class="border rounded-xl p-3 bg-emerald-50 border-emerald-300">
+                    <label class="text-xs font-bold text-emerald-700">🕵️ 當日覆核藥師(A2)</label>
+                    <select id="approverName" class="mt-2 w-full border-2 border-emerald-400 rounded-lg p-2 font-black">
+                        <option value="" disabled selected>⚠️ 請選擇覆核藥師名字...</option>
+                        <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
+                        <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
+                        <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
+                        <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
+                        <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
+                        <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
+                        <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
+                        <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
+                        <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
+                        <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
+                    </select>
+                    <button id="btnLockDay" class="mt-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-3 font-black"> 🔒 簽章並結束盤點</button>
+                </div>
+            </div>
 
+            <!-- 電腦版功能列 (手機隱藏) -->
+            <div class="hidden md:grid md:grid-cols-3 gap-3 mt-3">
+                <div>
+                    <input type="file" id="computerExcel" accept=".xlsx,.xls" class="hidden">
+                    <button onclick="document.getElementById('computerExcel').click()" class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-4 font-black shadow">📥 匯入電腦帳</button>
+                </div>
+                <button id="btnReportCenter" class="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl py-4 font-black shadow">📊 智慧報表中心</button>
+                <button id="btnHoliday" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-4 font-black shadow">📋 假日異動</button>
+            </div>
+
+            <div id="lockMessage" class="hidden mt-3 p-4 rounded-xl bg-green-600 text-white text-center font-black">
+                🔒 今日已由 <span id="lockedBy"></span> 完成覆核，本日盤點已鎖定。
+            </div>
         </div>
-
-        <!-- 盤點藥師 -->
-        <div class="border rounded-xl p-3 bg-amber-50 border-amber-300">
-
-            <label class="text-xs font-bold text-red-600">
-                ✍️ 盤點藥師
-            </label>
-
-            <select
-                id="pharmacistName"
-                class="mt-2 w-full border-2 border-amber-400 rounded-lg p-2 font-black">
-
-                <option value="" disabled selected>⚠️ 請選擇盤點藥師名字...</option>
-                    <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
-                    <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
-                    <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
-                    <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
-                    <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
-                    <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
-                    <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
-                    <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
-                    <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
-                    <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
-            </select>
-        </div>
-
-        <!-- 覆核 -->
-        <div class="border rounded-xl p-3 bg-emerald-50 border-emerald-300">
-
-            <label class="text-xs font-bold text-emerald-700">
-                🕵️ 當日覆核藥師(A2)
-            </label>
-
-            <select
-                id="approverName"
-                class="mt-2 w-full border-2 border-emerald-400 rounded-lg p-2 font-black">
-
-                <option value="" disabled selected>⚠️ 請選擇覆核藥師名字...</option>
-                <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
-                    <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
-                    <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
-                    <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
-                    <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
-                    <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
-                    <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
-                    <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
-                    <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
-                    <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
-
-            </select>
-            <button
-                id="btnLockDay"
-                class="mt-3 w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg py-3 font-black"> 🔒 簽章並結束盤點
-            </button>
-        </div>
-    </div>
-<!-- 電腦版功能列 (手機隱藏) -->
-<div class="hidden md:grid md:grid-cols-3 gap-3 mt-3">
-
-    <!-- 匯入電腦帳 -->
-    <div>
-        <input
-            type="file"
-            id="computerExcel"
-            accept=".xlsx,.xls"
-            class="hidden">
-
-        <button
-            onclick="document.getElementById('computerExcel').click()"
-            class="w-full bg-rose-600 hover:bg-rose-700 text-white rounded-xl py-4 font-black shadow">
-            📥 匯入電腦帳
-        </button>
-    </div>
-
-    <!-- 智慧報表 -->
-    <button
-        id="btnReportCenter"
-        class="w-full bg-slate-800 hover:bg-slate-900 text-white rounded-xl py-4 font-black shadow">
-        📊 智慧報表中心
-    </button>
-
-    <!-- 假日異動 -->
-    <button
-        id="btnHoliday"
-        class="w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-4 font-black shadow">
-        📋 假日異動
-    </button>
-
-</div>
-        <div id="lockMessage" class="hidden mt-3 p-4 rounded-xl bg-green-600 text-white text-center font-black">
-🔒 今日已由
-<span id="lockedBy"></span>
-完成覆核，本日盤點已鎖定。
-
-</div>
 
         <!-- 警報與即時誤差分析狀態列 -->
         <div id="matchStatusBox" class="p-3 rounded-xl font-black text-xs shadow-sm bg-slate-50 border">
@@ -184,12 +135,6 @@
                     <tbody id="summaryTableBody" class="divide-y divide-slate-100 font-bold text-slate-700 text-center"></tbody>
                 </table>
             </div>
-        </div>
-
-        <!-- 🔧 精準調試分析面板 -->
-        <div id="debugBox" class="hidden bg-amber-50 border border-amber-300 rounded-xl p-3 text-xs text-amber-900 font-mono">
-            <p class="font-bold mb-1">📢 系統匯入即時診斷分析：</p>
-            <div id="debugContent" class="bg-white/80 p-2 rounded border overflow-x-auto max-h-32 whitespace-pre-wrap"></div>
         </div>
 
         <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
@@ -306,7 +251,7 @@
                 </div>
             </div>
 
-            <div class="bg-white p-4 rounded-2xl border shadow-inner">
+            <div id="chartContainerCard" class="bg-white p-4 rounded-2xl border shadow-inner">
                 <div class="relative h-72">
                     <canvas id="trendChart"></canvas>
                 </div>
@@ -1006,6 +951,7 @@
             });
         }
 
+        // 🎯 核心升級：過濾未匯入電腦帳的日子（自動略過），只顯示有實際盤點/匯入電腦帳的日子
         function renderTrendChart() {
             const selectDrugId = document.getElementById("trendDrug").value || allDrugs[0].id;
             const ctx = document.getElementById("trendChart");
@@ -1015,22 +961,28 @@
             const labels = [];
             const dataPoints = [];
 
-            for (let k = 13; k >= 0; k--) {
+            // 往回掃描過去 30 天，但只抓取有正式匯入電腦帳的日子
+            for (let k = 29; k >= 0; k--) {
                 const tempD = new Date(baseDate);
                 tempD.setDate(baseDate.getDate() - k);
-                const isoStr = tempD.toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric'}).replace(/\//g, '/');
-                labels.push(isoStr);
-
                 const fullIsoStr = tempD.toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', year: 'numeric', month: '2-digit', day: '2-digit'}).replace(/\//g, '-');
+                
                 const dayRecords = rawAllDatesFirebaseBackup[fullIsoStr];
                 
-                if (dayRecords && dayRecords[selectDrugId]) {
+                // 檢查該日是否有匯入電腦帳
+                if (isImportedDay(dayRecords)) {
+                    const monthDayStr = tempD.toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric'}).replace(/\//g, '/');
+                    labels.push(monthDayStr);
+
                     const info = getDrugSumAndComputer(selectDrugId, dayRecords);
                     const diff = info.sum - info.computerStock;
                     dataPoints.push(diff);
-                } else {
-                    dataPoints.push(0);
                 }
+            }
+
+            if(dataPoints.length === 0) {
+                labels.push("無有效數據");
+                dataPoints.push(0);
             }
 
             if(trendChartInstance) {
@@ -1072,17 +1024,18 @@
             });
         }
 
-        // 匯出 Excel
+        // 匯出 Excel (包含將折線圖轉為圖片插入 Excel 中)
         const btnExportExcel = document.getElementById("btnExportExcel");
         if(btnExportExcel) {
             btnExportExcel.addEventListener("click", exportExcelReport);
         }
 
-        function exportExcelReport(){
+        async function exportExcelReport(){
             const dateStr = dateInput.value;
             const doDaily = document.getElementById("chkReportDaily")?.checked ?? true;
             const doTrend = document.getElementById("chkReportTrend")?.checked ?? true;
             const doSign = document.getElementById("chkReportSign")?.checked ?? true;
+            const doExcel = document.getElementById("chkReportExcel")?.checked ?? true;
 
             const wb = XLSX.utils.book_new();
 
@@ -1114,7 +1067,7 @@
 
             if(doTrend) {
                 const sheet2Rows = [
-                    ["彰化醫院藥劑科四級管制藥 - 過去30日滾動庫差趨勢追蹤總表"],
+                    ["彰化醫院藥劑科四級管制藥 - 過去30日滾動庫差趨勢追蹤總表 (已自動過濾未匯入日)"],
                     ["核帳日期", "藥品代碼", "藥品名稱", "電腦帳結存", "全院實盤總量", "當日盤點庫差", "7日滾動絕對誤差均線"]
                 ];
 
@@ -1129,16 +1082,8 @@
 
                 dateTimelineArray.forEach(histDateStr => {
                     const dayRecords = rawAllDatesFirebaseBackup[histDateStr];
-                    if (!dayRecords) return;
-
-                    let hasValidStock = false;
-                    for (let prop in dayRecords) {
-                        if (dayRecords[prop]?.computerStock !== undefined && Number(dayRecords[prop].computerStock) > 0) {
-                            hasValidStock = true;
-                            break;
-                        }
-                    }
-                    if (!hasValidStock) return;
+                    // 🎯 自動略過未匯入電腦帳的日子
+                    if (!isImportedDay(dayRecords)) return;
 
                     allDrugs.forEach(drug => {
                         const info = getDrugSumAndComputer(drug.id, dayRecords);
@@ -1151,7 +1096,7 @@
                     });
                 });
                 const ws2 = XLSX.utils.aoa_to_sheet(sheet2Rows);
-                XLSX.utils.book_append_sheet(wb, ws2, "過去30日庫差變化總表");
+                XLSX.utils.book_append_sheet(wb, ws2, "30日盤差趨勢總表");
             }
 
             if(doSign) {
@@ -1168,6 +1113,28 @@
                 ]);
                 const ws3 = XLSX.utils.aoa_to_sheet(sheet3Rows);
                 XLSX.utils.book_append_sheet(wb, ws3, "A2覆核紀錄");
+            }
+
+            // 🎯 若勾選匯出 Excel 且畫面上有圖表，利用 html2canvas 把趨勢圖轉成圖片附在 Excel 頂端工作表
+            if(doExcel) {
+                const chartCard = document.getElementById("chartContainerCard");
+                if(chartCard) {
+                    try {
+                        const canvasImg = await html2canvas(chartCard, { scale: 1 });
+                        const imgDataUrl = canvasImg.toDataURL("image/png");
+                        
+                        const sheetImgRows = [
+                            ["📊 彰醫管制藥品盤差趨勢圖快照報表"],
+                            ["(下方為所選藥品之30日盤差折線圖分析快照)"],
+                            [],
+                            [imgDataUrl] // 註記圖片資料
+                        ];
+                        const wsImg = XLSX.utils.aoa_to_sheet(sheetImgRows);
+                        XLSX.utils.book_append_sheet(wb, wsImg, "盤差趨勢圖快照");
+                    } catch(err) {
+                        console.error("圖表轉檔失敗:", err);
+                    }
+                }
             }
 
             XLSX.writeFile(wb, `彰醫管制藥智慧多維對帳表_${dateStr}.xlsx`);
