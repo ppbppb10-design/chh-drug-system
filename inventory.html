@@ -467,6 +467,72 @@ function renderGrid() {
         });
 
         // ===============================
+        // 已盤領用視窗控制與送出邏輯
+        // ===============================
+        window.openDeductModal = function() {
+            const selectDom = document.getElementById('deductDrugSelect');
+            selectDom.innerHTML = '<option value="">-- 請選擇藥品 --</option>';
+            
+            // 自動把當前分區的藥品全部載入下拉選單中
+            masterDrugDb.forEach(drug => {
+                const k = drug.dbKey || drug.id;
+                const opt = document.createElement('option');
+                opt.value = k;
+                opt.text = `${drug.name} (${drug.id}) - 儲位: ${drug.location || '無'}`;
+                selectDom.appendChild(opt);
+            });
+
+            document.getElementById('deductQtyInput').value = '';
+            document.getElementById('deductModal').classList.remove('hidden');
+        };
+
+        window.closeDeductModal = function() {
+            document.getElementById('deductModal').classList.add('hidden');
+        };
+
+        window.submitDeduction = function() {
+            const dbKey = document.getElementById('deductDrugSelect').value;
+            const qty = document.getElementById('deductQtyInput').value;
+
+            if (!dbKey) {
+                alert('請先選擇要領用的藥品！');
+                return;
+            }
+            if (!qty || Number(qty) <= 0) {
+                alert('請輸入有效的領用數量！');
+                return;
+            }
+
+            // 呼叫剛剛建立的扣除核心函數
+            deductInventoryForUsed(dbKey, qty, subZone);
+            closeDeductModal();
+        };
+
+        // 核心扣除函數
+        window.deductInventoryForUsed = function(dbKey, usedQty, subZoneName) {
+            const qtyToDeduct = parseFloat(usedQty) || 0;
+            if (qtyToDeduct <= 0) return;
+
+            const currentRecordRef = ref(db, `inventoryRecords/${subZoneName}/${dbKey}`);
+            
+            get(ref(db, `inventoryRecords/${subZoneName}/${dbKey}`)).then((snapshot) => {
+                const record = snapshot.val() || { total: 0 };
+                let currentTotal = Number(record.total) || 0;
+                let newTotal = Math.max(0, currentTotal - qtyToDeduct);
+
+                set(currentRecordRef, {
+                    ...record,
+                    total: newTotal,
+                    deductedTotal: (record.deductedTotal || 0) + qtyToDeduct,
+                    lastDeductUser: loginUser,
+                    lastDeductTime: new Date().toLocaleString()
+                }).then(() => {
+                    alert(`✅ 扣除成功！已領用 ${qtyToDeduct}，該藥品目前剩餘盤點總數：${newTotal}`);
+                });
+            });
+        };
+
+        // ===============================
         // 已盤藥品領用登記與扣除邏輯
         // ===============================
         window.deductInventoryForUsed = function(dbKey, usedQty, subZoneName) {
