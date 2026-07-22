@@ -19,6 +19,12 @@
                 <span class="bg-emerald-500 text-white text-xs font-bold px-2.5 py-1 rounded-full"><i class="fa-solid fa-link mr-1"></i>已連線</span>
                 <a href="inventory_login.html" class="bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition"><i class="fa-solid fa-house mr-1"></i>離開</a>
             </div>
+            
+            <!-- 在頂部狀態橫幅的按鈕區塊加入這行 -->
+            <a href="javascript:void(0);" onclick="openDeductModal()" class="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold px-3 py-1.5 rounded-xl transition shadow-sm">
+                <i class="fa-solid fa-file-invoice-dollar mr-1"></i>已盤領用登記
+            </a>
+            
             <div class="flex-1 w-full max-w-xl mx-4">
                 <div class="flex justify-between text-xs font-bold mb-1">
                     <span>當前櫃位盤點進度 (<span id="currentZoneLabel">-</span>)</span>
