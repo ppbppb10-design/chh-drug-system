@@ -465,6 +465,38 @@ function renderGrid() {
                 }, 350);
             }
         });
+
+        // ===============================
+        // 已盤藥品領用登記與扣除邏輯
+        // ===============================
+        window.deductInventoryForUsed = function(dbKey, usedQty, subZoneName) {
+            const qtyToDeduct = parseFloat(usedQty) || 0;
+            if (qtyToDeduct <= 0) return;
+            
+            // 1. 取得該分區原本的盤點紀錄
+            const currentRecordRef = ref(db, `inventoryRecords/${subZoneName}/${dbKey}`); 
+            // 我們可以利用 transaction 或先讀取再寫入的方式來安全扣除
+            get(currentRecordRef).then((snapshot) => {
+                const record = snapshot.val() || { total: 0 }; 
+                
+                // 確保原本有盤點資料
+                let currentTotal = Number(record.total) || 0;
+                
+                // 計算扣除後的全新總量 (最低為 0，避免負數)
+                let newTotal = Math.max(0, currentTotal - qtyToDeduct);
+                
+                // 2. 更新盤點總數，並記錄這次被領用了多少
+                set(currentRecordRef, {
+                    ...record,
+                    total: newTotal,                      // 扣除領用量後的最終盤點數
+                    deductedTotal: (record.deductedTotal || 0) + qtyToDeduct, // 累積被扣除量（方便查帳）
+                    lastDeductUser: loginUser,            // 最後操作人
+                    lastDeductTime: new Date().toLocaleString()
+                }).then(() => {
+                    alert(`已成功扣除領用量 ${qtyToDeduct} 顆/支！目前結餘盤點數：${newTotal}`);
+                });
+            });
+        };
         
     </script>
 
