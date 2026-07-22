@@ -11,7 +11,7 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <!-- 引入國際標準 QR Code 引擎 -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-    <!-- 引入 html2canvas 讓 Excel 匯出能把圖表轉成圖片封裝進去 -->
+    <!-- 引入 html2canvas -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
     <style>
         input::-webkit-outer-spin-button,
@@ -44,10 +44,7 @@
         
         <!-- 控制面板列 -->
         <div class="bg-white rounded-2xl shadow-lg p-4 space-y-4">
-
-            <!-- 第一列 -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-
                 <!-- 日期 -->
                 <div class="border rounded-xl p-3 bg-slate-50">
                     <label class="text-xs font-bold text-slate-500">📅 核帳日期</label>
@@ -92,7 +89,7 @@
                 </div>
             </div>
 
-            <!-- 電腦版功能列 (手機隱藏) -->
+            <!-- 電腦版功能列 -->
             <div class="hidden md:grid md:grid-cols-3 gap-3 mt-3">
                 <div>
                     <input type="file" id="computerExcel" accept=".xlsx,.xls" class="hidden">
@@ -113,7 +110,7 @@
             <div id="errorDetailsLabel" class="mt-1.5 text-[11px] font-medium flex flex-wrap gap-1.5"></div>
         </div>
 
-        <!-- 📊 全院管制藥品【即時總量匯總中心】總表看板 -->
+        <!-- 全院總量總表看板 -->
         <div class="bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-3 bg-gradient-to-r from-slate-700 to-slate-800 text-white flex justify-between items-center">
                 <h3 class="font-black text-xs md:text-sm flex items-center">
@@ -137,7 +134,7 @@
             </div>
         </div>
 
-        <!-- 📱 手機專用：依【儲位分類】切換盤點模式 -->
+        <!-- 手機專用儲位切換 -->
         <div class="block lg:hidden space-y-3">
             <div class="bg-slate-200/80 p-2.5 rounded-xl">
                 <span class="text-xs font-black text-slate-700 block mb-2"><i class="fa-solid fa-map-location-dot text-red-600"></i> 請選擇目前所在的盤點儲位：</span>
@@ -154,10 +151,10 @@
             <div id="mobileZoneCardsContainer" class="space-y-3"></div>
         </div>
 
-        <!-- 💻 電腦專用：完整二維核帳大矩陣 -->
+        <!-- 電腦版二維矩陣總覽 -->
         <div class="hidden lg:block bg-white rounded-2xl shadow-sm border overflow-hidden">
             <div class="p-4 bg-slate-50 border-b">
-                <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽 (小字內含個別儲位負責藥師)</h3>
+                <h3 class="font-black text-slate-800 text-sm">💻 桌上型電腦完整二維核帳矩陣總覽</h3>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -187,28 +184,21 @@
         </div>
     </main>
 
-    <!-- QR Code 快顯視窗 -->
+    <!-- QR Code 視窗 -->
     <div id="qrModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 hidden flex justify-center items-center p-4">
         <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-2xl border border-slate-100 flex flex-col items-center relative">
             <button id="closeQrBtn" class="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition text-lg"><i class="fa-solid fa-xmark"></i></button>
             <h4 id="qrModalTitle" class="font-black text-2xl text-slate-800 text-center"></h4>
             <p id="qrModalSub" class="text-[13px] text-slate-400 font-bold mb-3 text-center"></p>
-
             <div class="w-full bg-red-50 border border-red-200 rounded-2xl p-4 mb-4 text-center">
                 <div class="text-sm text-slate-500 font-bold">今日總盤點量</div>
                 <div id="qrTotalQty" class="text-4xl font-black text-red-600 mt-1">0</div>
             </div>
-
             <div id="qrcodeContainer" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 shadow-inner flex justify-center items-center w-52 h-52"></div>
-
-            <p class="mt-5 text-xs text-slate-500 font-bold bg-slate-100 px-4 py-2 rounded-full">
-                <i class="fa-solid fa-mobile-screen-button text-red-600 mr-1"></i>
-                現場藥師掃描即可開始盤點
-            </p>
         </div>
     </div>
 
-    <!-- ================= 智慧報表中心 Modal ================= -->
+    <!-- 智慧報表中心 Modal -->
     <div id="reportModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-3xl shadow-2xl w-[95%] max-w-5xl p-6 max-h-[90vh] overflow-y-auto">
             <div class="flex justify-between items-center mb-5 border-b pb-3">
@@ -259,7 +249,7 @@
         </div>
     </div>
 
-    <!-- ================= 假日異動中心 ================= -->
+    <!-- 假日異動中心 -->
     <div id="holidayModal" class="hidden fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
         <div class="bg-white rounded-2xl shadow-xl w-[95%] max-w-4xl p-6">
             <div class="flex justify-between items-center mb-4 border-b pb-3">
@@ -270,19 +260,15 @@
                 <div>
                     <label class="font-bold text-xs text-slate-600">藥品</label>
                     <select id="holidayDrug" class="w-full border rounded-lg p-2 mt-1 text-xs font-bold"></select>
-
                     <label class="font-bold text-xs text-slate-600 mt-3 block">異動種類</label>
                     <select id="holidayType" class="w-full border rounded-lg p-2 mt-1 text-xs font-bold">
                         <option value="issue">調劑</option>
                         <option value="return">退藥</option>
                     </select>
-
                     <label class="font-bold text-xs text-slate-600 mt-3 block">數量</label>
                     <input type="number" id="holidayQty" class="w-full border rounded-lg p-2 mt-1 text-xs font-bold">
-
                     <label class="font-bold text-xs text-slate-600 mt-3 block">備註</label>
                     <textarea id="holidayRemark" rows="2" class="w-full border rounded-lg p-2 mt-1 text-xs"></textarea>
-
                     <button id="btnHolidaySave" class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-2.5 font-black text-xs">➕ 新增異動</button>
                 </div>
                 <div>
@@ -381,31 +367,23 @@
             return true;
         }
 
-        // 鎖定機制
         document.getElementById('btnLockDay').addEventListener('click', () => {
             const approver = document.getElementById('approverName').value;
             if (!approver) return alert("⚠️ 請先選取覆核藥師！");
-            if (!confirm(`確定由【${approver}】覆核並永久鎖定今日盤點資料嗎？\n鎖定後將無法再修改任何數據。`)) return;
+            if (!confirm(`確定由【${approver}】覆核並永久鎖定今日盤點資料嗎？`)) return;
 
             const dateStr = dateInput.value;
             const lockRef = ref(db, `controlledMatrixRecords/${dateStr}/_meta_lock`);
-            
-            set(lockRef, {
-                isLocked: true,
-                approver: approver,
-                lockedAt: new Date().toLocaleString()
-            }).then(() => {
+            set(lockRef, { isLocked: true, approver: approver, lockedAt: new Date().toLocaleString() }).then(() => {
                 alert("🎉 資料已成功簽章鎖定！");
-            }).catch(e => alert("鎖定失敗: " + e.message));
+            });
         });
 
         onValue(ref(db, `controlledMatrixRecords/${dateInput.value}/_meta_lock`), (snapshot) => {
             const lockData = snapshot.val();
             const isLocked = lockData?.isLocked;
-            
             const lockMessage = document.getElementById('lockMessage');
             const btnLockDay = document.getElementById('btnLockDay');
-            
             const matrixInputs = document.querySelectorAll('.matrix-input');
             const mobileInputs = document.querySelectorAll('.mobile-input');
             const pharmacistSelect = document.getElementById('pharmacistName');
@@ -462,10 +440,6 @@
 
                 currentDayRecords = allDatesData[dateStr] || {};
                 refreshUI();
-            }, (error) => {
-                console.error("Firebase 連線失敗:", error);
-                currentDayRecords = {};
-                refreshUI(); 
             });
         }
 
@@ -554,12 +528,7 @@
             container.innerHTML = "";
 
             qrGeneratorInstance = new QRCode(container, {
-                text: drugId,
-                width: 180,
-                height: 180,
-                colorDark : "#1e293b",
-                colorLight : "#f8fafc",
-                correctLevel : QRCode.CorrectLevel.H
+                text: drugId, width: 180, height: 180, colorDark : "#1e293b", colorLight : "#f8fafc", correctLevel : QRCode.CorrectLevel.H
             });
             modal.classList.remove('hidden');
         }
@@ -733,7 +702,7 @@
 
             update(ref(db), updateMap).then(() => {
                 recalculateWholePage();
-            }).catch(e => console.error("儲存失敗:", e));
+            });
         }
 
         function recalculateWholePage() {
@@ -765,7 +734,7 @@
                 errorDetailsLabel.innerHTML = `<span class="text-green-600 font-medium text-[11px]">✨ 全品項盤點完畢，全院帳物平衡。</span>`;
             } else {
                 box.className = "p-3 rounded-xl font-black text-xs shadow-sm bg-red-50 text-red-700 border border-red-200";
-                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> 警告！今日全院累計絕對誤差 ${totalErrors} 粒/支。以下為今日誤差品項與滾動 7 日平均比對：`;
+                label.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-base mr-1"></i> 警告！今日全院累計絕對誤差 ${totalErrors} 粒/支。`;
                 errorDetailsLabel.innerHTML = errorItemsHtml;
             }
         }
@@ -796,9 +765,7 @@
         document.body.addEventListener('click', (e) => {
             const qrTrigger = e.target.closest('[data-trigger-qr]');
             if(qrTrigger) {
-                const drugId = qrTrigger.getAttribute('data-trigger-qr');
-                const drugName = qrTrigger.getAttribute('data-trigger-name');
-                openQrModal(drugId, drugName);
+                openQrModal(qrTrigger.getAttribute('data-trigger-qr'), qrTrigger.getAttribute('data-trigger-name'));
             }
         });
 
@@ -817,14 +784,12 @@
 
         document.body.addEventListener('input', (e) => {
             if (e.target.classList.contains('matrix-input')) {
-                const drugId = e.target.getAttribute('data-comp-drug');
-                liveCalculateMatrixRow(drugId);
+                liveCalculateMatrixRow(e.target.getAttribute('data-comp-drug'));
             }
             if (e.target.classList.contains('mobile-input')) {
                 const drugId = e.target.getAttribute('data-mobile-drug');
                 const subIdx = e.target.getAttribute('data-mobile-sub');
                 const val = parseInt(e.target.value) || 0;
-                
                 const compInput = document.querySelector(`input[data-comp-drug="${drugId}"][data-comp-sub="${subIdx}"]`);
                 if(compInput) compInput.value = val;
                 liveCalculateMatrixRow(drugId);
@@ -833,14 +798,10 @@
 
         document.body.addEventListener('change', (e) => {
             if (e.target.classList.contains('matrix-input')) {
-                const drugId = e.target.getAttribute('data-comp-drug');
-                const subIdx = parseInt(e.target.getAttribute('data-comp-sub'));
-                executeSaveCell(drugId, subIdx, e.target.value);
+                executeSaveCell(e.target.getAttribute('data-comp-drug'), parseInt(e.target.getAttribute('data-comp-sub')), e.target.value);
             }
             if (e.target.classList.contains('mobile-input')) {
-                const drugId = e.target.getAttribute('data-mobile-drug');
-                const subIdx = parseInt(e.target.getAttribute('data-mobile-sub'));
-                executeSaveCell(drugId, subIdx, e.target.value);
+                executeSaveCell(e.target.getAttribute('data-mobile-drug'), parseInt(e.target.getAttribute('data-mobile-sub')), e.target.value);
             }
         });
 
@@ -912,10 +873,7 @@
                         } catch (rowErr) {}
                     });
 
-                    upload封包["_meta"] = {
-                        imported: true,
-                        importedAt: new Date().toISOString()
-                    };
+                    upload封包["_meta"] = { imported: true, importedAt: new Date().toISOString() };
 
                     set(ref(db, `controlledMatrixRecords/${dateStr}`), upload封包).then(() => {
                         alert(`🎉 電腦總量勾稽完全成功！`);
@@ -951,7 +909,7 @@
             });
         }
 
-        // 🎯 核心升級：過濾未匯入電腦帳的日子（自動略過），只顯示有實際盤點/匯入電腦帳的日子
+        // 🎯 核心升級：自動略過未匯入電腦帳的日子，只把有匯入/盤點的日子繪製在圖表上
         function renderTrendChart() {
             const selectDrugId = document.getElementById("trendDrug").value || allDrugs[0].id;
             const ctx = document.getElementById("trendChart");
@@ -961,7 +919,6 @@
             const labels = [];
             const dataPoints = [];
 
-            // 往回掃描過去 30 天，但只抓取有正式匯入電腦帳的日子
             for (let k = 29; k >= 0; k--) {
                 const tempD = new Date(baseDate);
                 tempD.setDate(baseDate.getDate() - k);
@@ -969,7 +926,7 @@
                 
                 const dayRecords = rawAllDatesFirebaseBackup[fullIsoStr];
                 
-                // 檢查該日是否有匯入電腦帳
+                // 嚴格過濾：必須是有匯入電腦帳的有效日期才納入趨勢圖
                 if (isImportedDay(dayRecords)) {
                     const monthDayStr = tempD.toLocaleDateString('zh-TW', {timeZone: 'Asia/Taipei', month: 'numeric', day: 'numeric'}).replace(/\//g, '/');
                     labels.push(monthDayStr);
@@ -1024,18 +981,17 @@
             });
         }
 
-        // 匯出 Excel (包含將折線圖轉為圖片插入 Excel 中)
+        // 🎯 修正 Excel 匯出：移除超長 DataURL 避免 xlsx.full.min.js 字串長度限制報錯，改以純資料表格匯出
         const btnExportExcel = document.getElementById("btnExportExcel");
         if(btnExportExcel) {
             btnExportExcel.addEventListener("click", exportExcelReport);
         }
 
-        async function exportExcelReport(){
+        function exportExcelReport(){
             const dateStr = dateInput.value;
             const doDaily = document.getElementById("chkReportDaily")?.checked ?? true;
             const doTrend = document.getElementById("chkReportTrend")?.checked ?? true;
             const doSign = document.getElementById("chkReportSign")?.checked ?? true;
-            const doExcel = document.getElementById("chkReportExcel")?.checked ?? true;
 
             const wb = XLSX.utils.book_new();
 
@@ -1115,29 +1071,8 @@
                 XLSX.utils.book_append_sheet(wb, ws3, "A2覆核紀錄");
             }
 
-            // 🎯 若勾選匯出 Excel 且畫面上有圖表，利用 html2canvas 把趨勢圖轉成圖片附在 Excel 頂端工作表
-            if(doExcel) {
-                const chartCard = document.getElementById("chartContainerCard");
-                if(chartCard) {
-                    try {
-                        const canvasImg = await html2canvas(chartCard, { scale: 1 });
-                        const imgDataUrl = canvasImg.toDataURL("image/png");
-                        
-                        const sheetImgRows = [
-                            ["📊 彰醫管制藥品盤差趨勢圖快照報表"],
-                            ["(下方為所選藥品之30日盤差折線圖分析快照)"],
-                            [],
-                            [imgDataUrl] // 註記圖片資料
-                        ];
-                        const wsImg = XLSX.utils.aoa_to_sheet(sheetImgRows);
-                        XLSX.utils.book_append_sheet(wb, wsImg, "盤差趨勢圖快照");
-                    } catch(err) {
-                        console.error("圖表轉檔失敗:", err);
-                    }
-                }
-            }
-
             XLSX.writeFile(wb, `彰醫管制藥智慧多維對帳表_${dateStr}.xlsx`);
+            alert("🎉 Excel 報表匯出成功！");
         }
 
         loadDailyData();
