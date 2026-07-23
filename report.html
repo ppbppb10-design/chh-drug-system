@@ -35,7 +35,7 @@
             </button>
         </div>
 
-        <!-- 🌟 全藥局總量與 3 台藥包機智慧覆盤勾稽面板 -->
+        <!-- 全藥局總量與 3 台藥包機智慧覆盤勾稽面板 -->
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-6">
             <div>
                 <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
@@ -82,7 +82,7 @@
             </div>
         </div>
 
-        <!-- 🌟 勾稽結果呈現表格 -->
+        <!-- 勾稽結果呈現表格 (包含差異金額欄位) -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="p-6 border-b border-slate-100 flex justify-between items-center">
                 <h3 class="font-black text-slate-800 text-base">📋 需覆盤藥品異常清單 (<span id="auditCount">0</span> 項)</h3>
@@ -155,7 +155,7 @@
         let masterInjectList = {};
         let allCombinedDrugs = []; 
         let firebaseRecords = {};  
-        let bookStockMap = {};     // 儲存電腦帳面庫存
+        let bookStockMap = {};     // 儲存電腦帳面庫存與單價
         let currentAuditResults = []; // 儲存覆盤勾稽結果
 
         onValue(ref(db, 'inventoryRecords'), (snapshot) => {
@@ -226,7 +226,7 @@
             });
         }
 
-        // 🌟 智慧讀取【電腦帳面現庫量】Excel 檔 (自動略過抬頭，對應代碼與「總量」欄位)
+        // 🌟 智慧讀取【電腦帳面現庫量】Excel 檔 (自動略過抬頭，對應代碼、總量、單價欄位)
         document.getElementById('bookStockFile').addEventListener('change', function(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -239,7 +239,7 @@
                     const rawRows = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
                     
                     let headerIndex = -1;
-                    let colMap = { id: -1, stock: -1 };
+                    let colMap = { id: -1, stock: -1, price: -1 };
 
                     for (let i = 0; i < rawRows.length; i++) {
                         const row = rawRows[i];
@@ -251,6 +251,9 @@
                             }
                             if (val === '總量' || val === '總' || val === '帳面庫存量' || val === '庫存量' || val === '數量') {
                                 colMap.stock = j;
+                            }
+                            if (val === '單價' || val === '成本' || val === '售價' || val === '單位成本') {
+                                colMap.price = j;
                             }
                         }
                         if (headerIndex !== -1 && colMap.id !== -1) break;
@@ -272,16 +275,18 @@
                         if (!id) continue;
 
                         let rawStock = (colMap.stock !== -1) ? row[colMap.stock] : 0;
-                        if (typeof rawStock === 'string') {
-                            rawStock = rawStock.replace(/,/g, '');
-                        }
+                        if (typeof rawStock === 'string') rawStock = rawStock.replace(/,/g, '');
                         const stock = Number(rawStock) || 0;
 
-                        bookStockMap[id] = { stock: stock, price: 0 };
+                        let rawPrice = (colMap.price !== -1) ? row[colMap.price] : 0;
+                        if (typeof rawPrice === 'string') rawPrice = rawPrice.replace(/,/g, '');
+                        const price = Number(rawPrice) || 0;
+
+                        bookStockMap[id] = { stock: stock, price: price };
                         loadedCount++;
                     }
 
-                    alert(`✅ 成功載入 ${loadedCount} 筆系統帳面現庫量資料！`);
+                    alert(`✅ 成功載入 ${loadedCount} 筆系統帳面現庫量與單價資料！`);
                 } catch (err) {
                     console.error(err);
                     alert('❌ 解析帳面庫存檔案發生錯誤。');
@@ -290,7 +295,7 @@
             reader.readAsArrayBuffer(file);
         });
 
-        // 🌟 通用 Excel 讀取解析函數 (支援 3 台 TOSHO 檔案，精準對應盤點代碼與盤點數量)
+        // 🌟 通用 Excel 讀取解析函數 (支援 3 台 TOSHO 檔案)
         function parseExcelFile(fileInputId, machineName) {
             return new Promise((resolve) => {
                 const fileInput = document.getElementById(fileInputId);
@@ -313,9 +318,7 @@
                             const drugName = r['藥品名稱'] || '';
                             
                             let rawQty = r['盤點數量'] || r['數量'] || r['總量'] || 0;
-                            if (typeof rawQty === 'string') {
-                                rawQty = rawQty.replace(/,/g, '');
-                            }
+                            if (typeof rawQty === 'string') rawQty = rawQty.replace(/,/g, '');
                             const qty = Number(rawQty) || 0;
                             
                             if (drugId) {
@@ -337,7 +340,7 @@
             });
         }
 
-        // 🌟 核心勾稽大腦：全區域人工盤點量 + 3台藥包機量 = 全藥局總量，再與電腦帳面比對
+        // 🌟 核心勾稽大腦：全區域人工盤點量 + 3台藥包機量 = 全藥局總量，再與電腦帳面比對金額
         window.processToshoAudits = async function() {
             const outpatientData = await parseExcelFile('toshoOutpatient', '門診TOSHO');
             const ltcData = await parseExcelFile('toshoLtc', '長照TOSHO');
@@ -345,7 +348,6 @@
 
             const allToshoItems = [...outpatientData, ...ltcData, ...udData];
             
-            // 建立 3 台藥包機彙整對照表
             let toshoQtyMap = {};
             allToshoItems.forEach(item => {
                 if (!toshoQtyMap[item.drugId]) {
@@ -364,7 +366,6 @@
             
             currentAuditResults = [];
 
-            // 收集所有出現過的藥品代碼
             let allDrugIds = new Set();
             allCombinedDrugs.forEach(d => { if (d.id) allDrugIds.add(d.id); });
             Object.keys(toshoQtyMap).forEach(id => allDrugIds.add(id));
@@ -378,7 +379,6 @@
             }
 
             allDrugIds.forEach(drugId => {
-                // A. 計算所有區域人工盤點量總和
                 let manualAllZonesTotal = 0;
                 let sampleDrugName = '';
                 
@@ -391,26 +391,21 @@
                     }
                 });
 
-                // B. 取得 3 台藥包機總量與機台來源
                 const toshoInfo = toshoQtyMap[drugId] || { totalQty: 0, sources: new Set(), drugName: '' };
                 const toshoTotal = toshoInfo.totalQty;
                 const sourcesStr = toshoInfo.sources.size > 0 ? Array.from(toshoInfo.sources).join(', ') : '無';
 
-                // 🌟 C. 獲得全藥局總量 = 所有區域人工盤點量 + 3台藥包機量
                 const grandTotal = manualAllZonesTotal + toshoTotal;
 
-                // D. 取得電腦帳面現庫量與單價
                 const bookInfo = (typeof bookStockMap !== 'undefined' && bookStockMap[drugId]) ? bookStockMap[drugId] : { stock: 0, price: 0 };
                 const bookTotal = bookInfo.stock;
                 const unitPrice = bookInfo.price;
 
-                // E. 計算差異量與差異金額
-                const diff = grandTotal - bookTotal; // 全藥局總量 - 電腦帳面量
+                const diff = grandTotal - bookTotal; 
                 const absDiff = Math.abs(diff);
                 const diffAmount = absDiff * unitPrice;
                 const percent = bookTotal > 0 ? (absDiff / bookTotal) * 100 : (grandTotal > 0 ? 100 : 0);
 
-                // F. 判斷是否超過門檻
                 if (percent >= thresholdPct || diffAmount >= amountThreshold) {
                     currentAuditResults.push({
                         drugId: drugId,
@@ -430,7 +425,7 @@
             renderAuditTable();
             alert(`🔍 全藥局總量勾稽完成！共檢出 ${currentAuditResults.length} 項藥品超出差異門檻需進行覆盤。`);
         };
-        
+
         function renderAuditTable() {
             const tbody = document.getElementById('auditTableBody');
             document.getElementById('auditCount').innerText = currentAuditResults.length;
@@ -459,7 +454,7 @@
             });
         }
 
-        // 匯出覆盤清單 Excel (包含差異金額欄位)
+        // 匯出覆盤清單 Excel (包含差異金額)
         window.exportAuditExcel = function() {
             if (currentAuditResults.length === 0) {
                 alert('目前無覆盤異常資料可供匯出！');
