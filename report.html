@@ -101,11 +101,12 @@
                             <th class="py-3 px-4 text-center">全藥局總量</th>
                             <th class="py-3 px-4 text-center">電腦帳面現庫量</th>
                             <th class="py-3 px-4 text-center">差異量</th>
+                            <th class="py-3 px-4 text-center">差異金額</th>
                             <th class="py-3 px-4 text-center">差異百分比</th>
                         </tr>
                     </thead>
                     <tbody id="auditTableBody" class="text-slate-600 text-sm">
-                        <tr><td colspan="8" class="text-center py-6 text-slate-400 font-medium">尚未上傳檔案或執行勾稽...</td></tr>
+                        <tr><td colspan="9" class="text-center py-6 text-slate-400 font-medium">尚未上傳檔案或執行勾稽...</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -429,13 +430,13 @@
             renderAuditTable();
             alert(`🔍 全藥局總量勾稽完成！共檢出 ${currentAuditResults.length} 項藥品超出差異門檻需進行覆盤。`);
         };
-
+        
         function renderAuditTable() {
             const tbody = document.getElementById('auditTableBody');
             document.getElementById('auditCount').innerText = currentAuditResults.length;
 
             if (currentAuditResults.length === 0) {
-                tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-emerald-600 font-bold">🎉 太棒了！全藥局總量與電腦帳面現庫量比對皆在誤差範圍內，無須覆盤。</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-emerald-600 font-bold">🎉 太棒了！全藥局總量與電腦帳面現庫量比對皆在誤差範圍內，無須覆盤。</td></tr>`;
                 return;
             }
 
@@ -451,13 +452,14 @@
                     <td class="py-3 px-4 text-center font-black text-indigo-700 bg-indigo-50/50">${res.grandTotal}</td>
                     <td class="py-3 px-4 text-center font-bold text-slate-500">${res.bookQty}</td>
                     <td class="py-3 px-4 text-center font-black ${res.diff >= 0 ? 'text-blue-600' : 'text-red-600'}">${res.diff > 0 ? '+' + res.diff : res.diff}</td>
+                    <td class="py-3 px-4 text-center font-bold text-orange-600">$${res.amount.toLocaleString()}</td>
                     <td class="py-3 px-4 text-center font-bold text-amber-600">${res.percent}</td>
                 `;
                 tbody.appendChild(tr);
             });
         }
 
-        // 匯出覆盤清單 Excel
+        // 匯出覆盤清單 Excel (包含差異金額欄位)
         window.exportAuditExcel = function() {
             if (currentAuditResults.length === 0) {
                 alert('目前無覆盤異常資料可供匯出！');
@@ -467,10 +469,10 @@
                 ["彰化醫院藥劑科 - 全藥局總量智慧覆盤異常清單"],
                 ["匯出時間：" + new Date().toLocaleString('zh-TW')],
                 [],
-                ["藥品代碼", "藥品名稱", "所有區域人工盤點量", "3機總量來源", "全藥局總量", "電腦帳面現庫量", "差異數量", "差異百分比"]
+                ["藥品代碼", "藥品名稱", "所有區域人工盤點量", "3機總量來源", "全藥局總量", "電腦帳面現庫量", "差異數量", "差異金額(元)", "差異百分比"]
             ];
             currentAuditResults.forEach(r => {
-                wsData.push([r.drugId, r.drugName, r.manualQty, r.sources, r.grandTotal, r.bookQty, r.diff, r.percent]);
+                wsData.push([r.drugId, r.drugName, r.manualQty, r.sources, r.grandTotal, r.bookQty, r.diff, r.amount, r.percent]);
             });
 
             const wb = XLSX.utils.book_new();
