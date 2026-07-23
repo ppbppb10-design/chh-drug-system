@@ -23,7 +23,7 @@
         </div>
     </nav>
 
-    <main class="max-w-7xl mx-auto px-4 mt-8 space-y-6">
+<main class="max-w-7xl mx-auto px-4 mt-8 space-y-6">
         <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h2 class="text-xl font-black text-slate-800">📊 雲端盤點數據明細總覽 (<span id="totalItemsCount">0</span> 行明細)</h2>
@@ -35,6 +35,83 @@
             </button>
         </div>
 
+        <!-- 🌟 新增：3台藥包機 (TOSHO) 數據匯入與智慧覆盤專區 -->
+        <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 space-y-6">
+            <div>
+                <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
+                    <i class="fa-solid fa-robot text-blue-600"></i>3台藥包機 (TOSHO) 數據匯入與全藥局覆盤勾稽
+                </h2>
+                <p class="text-xs text-slate-400 font-medium mt-1">請分別上傳【門診、長照、UD】藥包機檔案，系統將自動加總「人工盤點量 + 三機總量」並與全院帳面庫存比對差異！</p>
+            </div>
+
+            <!-- 3個檔案上傳欄位與帳面現庫量檔案 -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="text-xs font-bold text-slate-700 block mb-2"><i class="fa-solid fa-book mr-1 text-slate-500"></i>0. 系統帳面現庫量 (Excel)</label>
+                    <input type="file" id="bookStockFile" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-slate-700 file:text-white hover:file:bg-slate-800">
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="text-xs font-bold text-blue-700 block mb-2"><i class="fa-solid fa-file-excel mr-1"></i>1. 門診 TOSHO 檔案</label>
+                    <input type="file" id="toshoOutpatient" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700">
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="text-xs font-bold text-emerald-700 block mb-2"><i class="fa-solid fa-file-excel mr-1"></i>2. 長照 TOSHO 檔案</label>
+                    <input type="file" id="toshoLtc" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-emerald-600 file:text-white hover:file:bg-emerald-700">
+                </div>
+                <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                    <label class="text-xs font-bold text-indigo-700 block mb-2"><i class="fa-solid fa-file-excel mr-1"></i>3. UD TOSHO 檔案</label>
+                    <input type="file" id="toshoUd" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
+                </div>
+            </div>
+
+            <!-- 覆盤門檻設定與執行按鈕 -->
+            <div class="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-slate-100">
+                <div class="w-full sm:w-auto flex-1">
+                    <label class="text-xs font-bold text-slate-500 block mb-1">覆盤誤差百分比門檻 (%)</label>
+                    <input type="number" id="auditThreshold" value="5" class="w-full border rounded-xl p-2.5 text-sm font-bold">
+                </div>
+                <div class="w-full sm:w-auto flex-1">
+                    <label class="text-xs font-bold text-slate-500 block mb-1">差異金額門檻 (元)</label>
+                    <input type="number" id="amountThreshold" value="3000" class="w-full border rounded-xl p-2.5 text-sm font-bold">
+                </div>
+                <div class="w-full sm:w-auto pt-5">
+                    <button onclick="processToshoAudits()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black px-6 py-2.5 rounded-xl text-sm shadow-md transition w-full">
+                        <i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i>開始全藥局總量與帳面勾稽
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 🌟 新增：勾稽結果呈現表格 -->
+        <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-slate-100 flex justify-between items-center">
+                <h3 class="font-black text-slate-800 text-base">📋 需覆盤藥品異常清單 (<span id="auditCount">0</span> 項)</h3>
+                <button onclick="exportAuditExcel()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
+                    <i class="fa-solid fa-download mr-1"></i>匯出覆盤清單 Excel
+                </button>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-xs uppercase tracking-wider">
+                            <th class="py-3 px-4">藥品代碼</th>
+                            <th class="py-3 px-4">藥品名稱</th>
+                            <th class="py-3 px-4 text-center">人工盤點量</th>
+                            <th class="py-3 px-4 text-center">3機總量(來源)</th>
+                            <th class="py-3 px-4 text-center">全藥局總量</th>
+                            <th class="py-3 px-4 text-center">帳面現庫量</th>
+                            <th class="py-3 px-4 text-center">差異量</th>
+                            <th class="py-3 px-4 text-center">差異百分比</th>
+                        </tr>
+                    </thead>
+                    <tbody id="auditTableBody" class="text-slate-600 text-sm">
+                        <tr><td colspan="8" class="text-center py-6 text-slate-400 font-medium">尚未上傳檔案或執行勾稽...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- 原有的雲端盤點明細總覽表格 -->
         <div class="bg-white rounded-3xl shadow-sm border border-slate-100 overflow-hidden">
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
@@ -519,6 +596,35 @@ function renderAuditTable() {
         tbody.appendChild(tr);
     });
 }
+        let bookStockMap = {}; // 儲存帳面庫存
+
+document.getElementById('bookStockFile').addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        try {
+            const data = new Uint8Array(e.target.result);
+            const workbook = XLSX.read(data, { type: 'array' });
+            const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+            const rows = XLSX.utils.sheet_to_json(firstSheet);
+            
+            bookStockMap = {};
+            rows.forEach(r => {
+                const id = String(r['藥品代碼'] || r['代碼'] || '').trim();
+                const stock = Number(r['帳面庫存量'] || r['庫存量'] || r['數量'] || 0);
+                const price = Number(r['單價'] || 0);
+                if (id) {
+                    bookStockMap[id] = { stock, price };
+                }
+            });
+            alert(`✅ 成功載入 ${Object.keys(bookStockMap).length} 筆系統帳面現庫量資料！`);
+        } catch (err) {
+            alert('解析帳面庫存檔案失敗！');
+        }
+    };
+    reader.readAsArrayBuffer(file);
+});
         
     </script>
 </body>
