@@ -293,77 +293,94 @@ window.downloadExcel = function() {
                 console.error(clickErr);
             }
         };
-        <!-- 藥包機數據匯入與覆盤檢核專區 -->
-<div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mt-6 space-y-6">
-    <div>
-        <h2 class="text-xl font-black text-slate-800 flex items-center gap-2">
-            <i class="fa-solid fa-robot text-blue-600"></i>3台藥包機 (TOSHO) 數據匯入與智慧覆盤
-        </h2>
-        <p class="text-xs text-slate-400 font-medium mt-1">請分別上傳【門診、長照、UD】藥包機產出的盤點檔，系統將自動解析數量、更新基本重量，並勾稽差異！</p>
-    </div>
+       // 執行全藥局總量整合與覆盤勾稽
+window.processToshoAudits = async function() {
+    // 1. 讀取並解析 3 台藥包機檔案
+    const outpatientData = await parseExcelFile('toshoOutpatient', '門診TOSHO');
+    const ltcData = await parseExcelFile('toshoLtc', '長照TOSHO');
+    const udData = await parseExcelFile('toshoUd', 'UD TOSHO');
 
-    <!-- 3個檔案上傳欄位 -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <label class="text-xs font-bold text-blue-700 block mb-2"><i class="fa-solid fa-file-excel mr-1"></i>1. 門診 TOSHO 檔案</label>
-            <input type="file" id="toshoOutpatient" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-blue-600 file:text-white hover:file:bg-blue-700">
-        </div>
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <label class="text-xs font-bold text-emerald-700 block mb-2"><i class="fa-solid fa-file-excel mr-1"></i>2. 長照 TOSHO 檔案</label>
-            <input type="file" id="toshoLtc" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-emerald-600 file:text-white hover:file:bg-emerald-700">
-        </div>
-        <div class="bg-slate-50 p-4 rounded-2xl border border-slate-200">
-            <label class="text-xs font-bold text-indigo-700 block mb-2"><i class="fa-solid fa-file-excel mr-1"></i>3. UD TOSHO 檔案</label>
-            <input type="file" id="toshoUd" accept=".xlsx, .xls, .csv" class="w-full text-xs text-slate-500 file:mr-2 file:py-1.5 file:px-3 file:rounded-xl file:border-0 file:text-xs file:font-black file:bg-indigo-600 file:text-white hover:file:bg-indigo-700">
-        </div>
-    </div>
+    const allToshoItems = [...outpatientData, ...ltcData, ...udData];
+    
+    // 建立一個對照表，用來快速查詢各藥品代碼在 3 台藥包機中的總數量與機台來源
+    let toshoQtyMap = {};
+    allToshoItems.forEach(item => {
+        if (!toshoQtyMap[item.drugId]) {
+            toshoQtyMap[item.drugId] = {
+                totalQty: 0,
+                sources: new Set(),
+                boxNo: item.boxNo,
+                drugName: item.drugName
+            };
+        }
+        toshoQtyMap[item.drugId].totalQty += item.qty;
+        toshoQtyMap[item.drugId].sources.add(item.machine);
+    });
 
-    <!-- 覆盤門檻設定與執行按鈕 -->
-    <div class="flex flex-col sm:flex-row items-center gap-4 pt-4 border-t border-slate-100">
-        <div class="w-full sm:w-auto flex-1">
-            <label class="text-xs font-bold text-slate-500 block mb-1">覆盤誤差百分比門檻 (%)</label>
-            <input type="number" id="auditThreshold" value="5" class="w-full border rounded-xl p-2.5 text-sm font-bold">
-        </div>
-        <div class="w-full sm:w-auto flex-1">
-            <label class="text-xs font-bold text-slate-500 block mb-1">金額差異門檻 (元)</label>
-            <input type="number" id="amountThreshold" value="3000" class="w-full border rounded-xl p-2.5 text-sm font-bold">
-        </div>
-        <div class="w-full sm:w-auto pt-5">
-            <button onclick="processToshoAudits()" class="bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-black px-6 py-2.5 rounded-xl text-sm shadow-md transition w-full">
-                <i class="fa-solid fa-magnifying-glass-chart mr-1.5"></i>開始三機數據整合與覆盤勾稽
-            </button>
-        </div>
-    </div>
-</div>
+    const thresholdPct = parseFloat(document.getElementById('auditThreshold').value) || 5;
+    const amountThreshold = parseFloat(document.getElementById('amountThreshold').value) || 3000;
+    
+    currentAuditResults = [];
 
-<!-- 勾稽結果呈現表格 -->
-<div class="bg-white rounded-3xl shadow-sm border border-slate-100 mt-6 overflow-hidden">
-    <div class="p-6 border-b border-slate-100 flex justify-between items-center">
-        <h3 class="font-black text-slate-800 text-base">📋 需覆盤藥品異常清單 (<span id="auditCount">0</span> 項)</h3>
-        <button onclick="exportAuditExcel()" class="bg-slate-800 hover:bg-slate-900 text-white font-bold px-4 py-2 rounded-xl text-xs transition">
-            <i class="fa-solid fa-download mr-1"></i>匯出覆盤清單 Excel
-        </button>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-slate-50 border-b border-slate-100 text-slate-500 font-bold text-xs">
-                    <th class="py-3 px-4">來源機台</th>
-                    <th class="py-3 px-4">盒號</th>
-                    <th class="py-3 px-4">藥品代碼</th>
-                    <th class="py-3 px-4">藥品名稱</th>
-                    <th class="py-3 px-4 text-center">藥包機盤點數</th>
-                    <th class="py-3 px-4 text-center">雲端系統現庫量</th>
-                    <th class="py-3 px-4 text-center">差異量</th>
-                    <th class="py-3 px-4 text-center">差異百分比</th>
-                </tr>
-            </thead>
-            <tbody id="auditTableBody" class="text-slate-600 text-sm">
-                <tr><td colspan="8" class="text-center py-6 text-slate-400 font-medium">尚未匯入或執行勾稽...</td></tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+    // 2. 收集所有涉及比對的藥品代碼（涵蓋雲端人工盤點品項 + 藥包機品項）
+    let allDrugIds = new Set();
+    allCombinedDrugs.forEach(d => allDrugIds.add(d.id));
+    Object.keys(toshoQtyMap).forEach(id => allDrugIds.add(id));
+
+    // 3. 逐一計算【全藥局總量 = 人工盤點量 + 三機總量】並與帳面現庫量比對
+    allDrugIds.forEach(drugId => {
+        // A. 計算雲端人工盤點總量 (跨所有儲位/分區加總)
+        let manualCloudTotal = 0;
+        let sampleDrugInfo = null;
+        
+        allCombinedDrugs.forEach(drug => {
+            if (drug.id === drugId) {
+                sampleDrugInfo = drug;
+                const zoneRecord = getFirebaseZoneData(drug.subZone);
+                let rec = zoneRecord[drug.dbKey] || zoneRecord[drug.id] || { total: 0 };
+                manualCloudTotal += (Number(rec.total) || 0);
+            }
+        });
+
+        // B. 取得藥包機總量
+        const toshoInfo = toshoQtyMap[drugId] || { totalQty: 0, sources: new Set(), boxNo: '-', drugName: sampleDrugInfo?.name || '未知藥品' };
+        const toshoTotal = toshoInfo.totalQty;
+
+        // 🌟 C. 計算全藥局真實總量 (人工盤點 + 3台TOSHO)
+        const grandTotal = manualCloudTotal + toshoTotal;
+
+        // D. 取得系統帳面現庫量 (假設您前面有上傳 bookStockMap 帳面庫存檔案)
+        const bookInfo = (typeof bookStockMap !== 'undefined' && bookStockMap[drugId]) ? bookStockMap[drugId] : { stock: 0, price: 0 };
+        const bookTotal = bookInfo.stock;
+        const unitPrice = bookInfo.price;
+
+        // E. 計算差異量與差異金額
+        const diff = grandTotal - bookTotal; // 全藥局總量 - 帳面現庫量
+        const absDiff = Math.abs(diff);
+        const diffAmount = absDiff * unitPrice;
+        const percent = bookTotal > 0 ? (absDiff / bookTotal) * 100 : (grandTotal > 0 ? 100 : 0);
+
+        // F. 判斷是否超過覆盤門檻 (百分比 >= 設定值 OR 差異金額 >= 設定金額)
+        if (percent >= thresholdPct || diffAmount >= amountThreshold) {
+            currentAuditResults.push({
+                drugId: drugId,
+                drugName: sampleDrugInfo?.name || toshoInfo.drugName,
+                manualQty: manualCloudTotal,
+                toshoQty: toshoTotal,
+                sources: Array.from(toshoInfo.sources).join(', ') || '僅人工盤點',
+                grandTotal: grandTotal,
+                bookQty: bookTotal,
+                diff: diff,
+                percent: percent.toFixed(1) + '%',
+                amount: diffAmount
+            });
+        }
+    });
+
+    // 4. 渲染至畫面上
+    renderAuditTable();
+    alert(`🔍 全藥局總量勾稽完成！共檢出 ${currentAuditResults.length} 項藥品超出差異門檻需進行覆盤。`);
+};
         let toshoConsolidatedData = {}; // 彙整 3 台機台的資料
 let currentAuditResults = [];
 
