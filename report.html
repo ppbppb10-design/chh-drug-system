@@ -498,7 +498,7 @@ function renderAuditTable() {
     document.getElementById('auditCount').innerText = currentAuditResults.length;
 
     if (currentAuditResults.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-emerald-600 font-bold">🎉 太棒了！所有藥品數量皆在誤差範圍內，無須覆盤。</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="text-center py-6 text-emerald-600 font-bold">🎉 太棒了！全藥局總量與帳面現庫量比對皆在誤差範圍內，無須覆盤。</td></tr>`;
         return;
     }
 
@@ -507,40 +507,18 @@ function renderAuditTable() {
         let tr = document.createElement('tr');
         tr.className = "hover:bg-slate-50 transition border-b border-slate-50";
         tr.innerHTML = `
-            <td class="py-3 px-4"><span class="bg-blue-50 text-blue-700 px-2 py-0.5 rounded font-bold text-xs">${res.machine}</span></td>
-            <td class="py-3 px-4 font-mono font-bold">${res.boxNo || '-'}</td>
             <td class="py-3 px-4 font-black text-slate-800">${res.drugId}</td>
             <td class="py-3 px-4 font-medium text-slate-700">${res.drugName}</td>
-            <td class="py-3 px-4 text-center font-bold text-slate-800">${res.toshoQty}</td>
-            <td class="py-3 px-4 text-center font-bold text-slate-500">${res.cloudQty}</td>
-            <td class="py-3 px-4 text-center font-black ${res.diff > 0 ? 'text-blue-600' : 'text-red-600'}">${res.diff > 0 ? '+' + res.diff : res.diff}</td>
+            <td class="py-3 px-4 text-center font-bold text-slate-600">${res.manualQuery || res.manualQty}</td>
+            <td class="py-3 px-4 text-center font-bold text-blue-600">${res.toshoQty} <span class="text-[10px] text-slate-400">(${res.sources})</span></td>
+            <td class="py-3 px-4 text-center font-black text-indigo-700 bg-indigo-50/50">${res.grandTotal}</td>
+            <td class="py-3 px-4 text-center font-bold text-slate-500">${res.bookQty}</td>
+            <td class="py-3 px-4 text-center font-black ${res.diff >= 0 ? 'text-blue-600' : 'text-red-600'}">${res.diff > 0 ? '+' + res.diff : res.diff}</td>
             <td class="py-3 px-4 text-center font-bold text-amber-600">${res.percent}</td>
         `;
         tbody.appendChild(tr);
     });
 }
-
-// 匯出覆盤清單 Excel
-window.exportAuditExcel = function() {
-    if (currentAuditResults.length === 0) {
-        alert('目前無覆盤異常資料可供匯出！');
-        return;
-    }
-    const wsData = [
-        ["彰化醫院藥劑科 - 藥包機智慧覆盤異常清單"],
-        ["匯出時間：" + new Date().toLocaleString('zh-TW')],
-        [],
-        ["機台來源", "盒號", "藥品代碼", "藥品名稱", "藥包機盤點數", "雲端系統現庫量", "差異數量", "差異百分比"]
-    ];
-    currentAuditResults.forEach(r => {
-        wsData.push([r.machine, r.boxNo, r.drugId, r.drugName, r.toshoQty, r.cloudQty, r.diff, r.percent]);
-    });
-
-    const wb = XLSX.utils.book_new();
-    const ws = XLSX.utils.aoa_to_sheet(wsData);
-    XLSX.utils.book_append_sheet(wb, ws, "需覆盤藥品清單");
-    XLSX.writeFile(wb, `彰醫藥局_藥包機覆盤清單_${new Date().toISOString().slice(0,10)}.xlsx`);
-};
         
     </script>
 </body>
