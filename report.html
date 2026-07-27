@@ -361,8 +361,8 @@
                 toshoQtyMap[item.drugId].sources.add(item.machine);
             });
 
-            const thresholdPct = parseFloat(document.getElementById('auditThreshold').value) || 5;
-            const amountThreshold = parseFloat(document.getElementById('amountThreshold').value) || 3000;
+            const thresholdPct = parseFloat(document.getElementById('auditThreshold').value) || 0;
+            const amountThreshold = parseFloat(document.getElementById('amountThreshold').value) || 0;
             
             currentAuditResults = [];
 
