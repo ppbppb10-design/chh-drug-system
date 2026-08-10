@@ -520,7 +520,8 @@ import {
     getDatabase,
     ref,
     set,
-    get
+    get,
+    onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
  
 const firebaseConfig = {
@@ -556,6 +557,12 @@ let ivDrugList = [];
 
 let currentData = {};
 
+// ☁️ 目前同步中的日期
+let syncedDraftDate = "";
+
+// 避免 Firebase 同步時重複觸發畫面更新
+let isRemoteSyncing = false;
+
 
 
 /* ======================================================
@@ -566,6 +573,137 @@ const dateInput =
     document.getElementById(
         "replenishDate"
     );
+
+    /* ======================================================
+   ☁️ 點滴現有量即時同步 Firebase
+====================================================== */
+
+function startIVRealtimeSync() {
+
+    const draftRef = ref(
+        db,
+        "ivReplenishmentDraft"
+    );
+
+    onValue(
+        draftRef,
+        snapshot => {
+
+            const allDrafts =
+                snapshot.val() || {};
+
+            const date =
+                dateInput.value;
+
+            if (!date) return;
+
+            const remoteData =
+                allDrafts[date] || {};
+
+            /*
+             * 如果目前日期沒有任何資料
+             * 就不要把使用者已經輸入的資料清掉
+             */
+            if (
+                Object.keys(remoteData).length === 0 &&
+                Object.keys(currentData).length > 0 &&
+                syncedDraftDate === date
+            ) {
+                return;
+            }
+
+            const newData = {};
+
+            Object.keys(remoteData).forEach(
+                drugId => {
+
+                    const item =
+                        remoteData[drugId] || {};
+
+                    newData[drugId] = {
+
+                        currentQty:
+                            Number(
+                                item.currentQty || 0
+                            ),
+
+                        safetyStock:
+                            Number(
+                                item.safetyStock || 0
+                            ),
+
+                        replenishQty:
+                            Number(
+                                item.replenishQty || 0
+                            ),
+
+                        updatedAt:
+                            item.updatedAt || "",
+
+                        updatedBy:
+                            item.updatedBy || ""
+                    };
+
+                }
+            );
+
+            /*
+             * 避免自己輸入後 Firebase 回傳
+             * 又造成無限重繪
+             */
+            let changed = false;
+
+            const oldKeys =
+                Object.keys(currentData);
+
+            const newKeys =
+                Object.keys(newData);
+
+            if (
+                oldKeys.length !==
+                newKeys.length
+            ) {
+                changed = true;
+            }
+
+            newKeys.forEach(id => {
+
+                const oldItem =
+                    currentData[id] || {};
+
+                const newItem =
+                    newData[id] || {};
+
+                if (
+                    Number(oldItem.currentQty || 0) !==
+                    Number(newItem.currentQty || 0)
+                ) {
+                    changed = true;
+                }
+
+            });
+
+            if (!changed) {
+                syncedDraftDate = date;
+                return;
+            }
+
+            isRemoteSyncing = true;
+
+            currentData =
+                newData;
+
+            syncedDraftDate =
+                date;
+
+            renderIVList();
+
+            isRemoteSyncing = false;
+
+        }
+    );
+
+}
 
 
 const ivList =
@@ -1592,22 +1730,74 @@ function renderIVList() {
                         qty + need;
 
 
-                    /* 更新資料 */
+                   /* 更新資料 */
 
-                    currentData[
-                        drug.id
-                    ] = {
+currentData[
+    drug.id
+] = {
 
-                        currentQty:
-                            qty,
+    currentQty:
+        qty,
 
-                        safetyStock:
-                            safetyStock,
+    safetyStock:
+        safetyStock,
 
-                        replenishQty:
-                            need
+    replenishQty:
+        need
 
-                    };
+};
+
+
+/* ==================================================
+   ☁️ 即時同步 Firebase
+================================================== */
+
+const date =
+    dateInput.value;
+
+if (
+    date &&
+    !isRemoteSyncing
+) {
+
+    const draftRef =
+        ref(
+            db,
+            `ivReplenishmentDraft/${date}/${drug.id}`
+        );
+
+    set(
+        draftRef,
+        {
+
+            currentQty:
+                qty,
+
+            safetyStock:
+                safetyStock,
+
+            replenishQty:
+                need,
+
+            updatedAt:
+                new Date().toISOString(),
+
+            updatedBy:
+                document.getElementById(
+                    "pharmacistName"
+                )?.value || ""
+
+        }
+    ).catch(error => {
+
+        console.error(
+            "❌ 點滴即時同步失敗：",
+            error
+        );
+
+    });
+
+}
 
 
                     /* 更新應補 */
@@ -2037,7 +2227,9 @@ function escapeHtml(value) {
 
 loadIVMaster();
 
-
+/* ☁️ 啟動點滴即時同步 */
+startIVRealtimeSync();
+    
 </script>
 
 
