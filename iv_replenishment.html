@@ -140,10 +140,6 @@
 
     <!-- ==================================================
          電腦管理區
-
-         hidden md:block
-         = 手機隱藏
-         = 電腦顯示
     ================================================== -->
 
     <section
@@ -163,9 +159,6 @@
                 <div class="text-sm text-slate-500 mt-1">
 
                     匯入點滴品項、安全庫存量、啟用狀態及排列順序
-                    <span class="block text-xs text-slate-400 mt-1">
-                        Excel 可加「排序」欄；未填時依 Excel 原始順序
-                    </span>
 
                 </div>
 
@@ -174,16 +167,11 @@
 
             <div class="flex gap-2">
 
-                <!-- Excel 檔案 -->
-
                 <input
                     type="file"
                     id="ivMasterExcel"
                     accept=".xlsx,.xls"
                     class="hidden">
-
-
-                <!-- 匯入按鈕 -->
 
                 <button
                     id="btnImportIVMaster"
@@ -215,9 +203,6 @@
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
 
-
-            <!-- 日期 -->
-
             <div>
 
                 <label
@@ -243,9 +228,6 @@
 
             </div>
 
-
-            <!-- 藥師 -->
-
             <div>
 
                 <label
@@ -270,15 +252,15 @@
                     
                     <option value="" disabled selected>⚠️ 請選擇盤點藥師名字...</option>
                     <option value="陳東錦">陳東錦</option><option value="賴錦益">賴錦益</option><option value="邱富強">邱富強</option>
-                        <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
-                        <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
-                        <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
-                        <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
-                        <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
-                        <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
-                        <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
-                        <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
-                        <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
+                    <option value="劉孟育">劉孟育</option><option value="蘇惠敏">蘇惠敏</option><option value="林雅萍">林雅萍</option>
+                    <option value="張幸逢">張幸逢</option><option value="洪紹寧">洪紹寧</option><option value="黃聖剛">黃聖剛</option>
+                    <option value="陳麗君">陳麗君</option><option value="楊德宏">楊德宏</option><option value="陳玫君">陳玫君</option>
+                    <option value="馬惠玲">馬惠玲</option><option value="吳婉瑄">吳婉瑄</option><option value="嚴宗賓">嚴宗賓</option>
+                    <option value="張雨淳">張雨淳</option><option value="劉育伶">劉育伶</option><option value="邱瑞航">邱瑞航</option>
+                    <option value="吳致寛">吳致寛</option><option value="葉儒樺">葉儒樺</option><option value="劉子嫣">劉子嫣</option>
+                    <option value="許佳燕">許佳燕</option><option value="許藝齡">許藝齡</option><option value="劉佳昕">劉佳昕</option>
+                    <option value="黃竹珈">黃竹珈</option><option value="胡明哲">胡明哲</option><option value="李婉華">李婉華</option>
+                    <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
 
                 </select>
 
@@ -296,9 +278,6 @@
 
     <section
         class="grid grid-cols-3 gap-3">
-
-
-        <!-- 總品項 -->
 
         <div
             class="bg-white rounded-2xl
@@ -326,9 +305,6 @@
 
         </div>
 
-
-        <!-- 需要補 -->
-
         <div
             class="bg-white rounded-2xl
                    shadow-sm p-4">
@@ -354,9 +330,6 @@
             </div>
 
         </div>
-
-
-        <!-- 已足夠 -->
 
         <div
             class="bg-white rounded-2xl
@@ -396,9 +369,6 @@
         class="bg-white rounded-2xl
                shadow-sm overflow-hidden">
 
-
-        <!-- 標題 -->
-
         <div
             class="bg-slate-800
                    text-white
@@ -421,9 +391,6 @@
             </div>
 
         </div>
-
-
-        <!-- 清單 -->
 
         <div
             id="ivList"
@@ -511,15 +478,9 @@
 
 <script type="module">
 
-
-/* ======================================================
-   Firebase
-====================================================== */
-
 import {
     initializeApp
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-
 
 import {
     getDatabase,
@@ -537,55 +498,22 @@ const firebaseConfig = {
             storageBucket: "drug--arrive.appspot.com",
             messagingSenderId: "215426668369",
             appId: "1:215426668369:web:eaa94e83974fcec391a570"
-
 };
 
-
-
-/* ======================================================
-   Firebase 初始化
-====================================================== */
-
-const app =
-    initializeApp(firebaseConfig);
-
-const db =
-    getDatabase(app);
-
-
-
-/* ======================================================
-   全域變數
-====================================================== */
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
 
 let ivDrugList = [];
-
 let currentData = {};
-
-// ☁️ 即時同步控制
 let stopDraftSync = null;
 let isRemoteSyncing = false;
-let isInitialLoading = false; // 避免初始載入時重複寫入資料庫
+let isInitialLoading = false;
+let isCompletedToday = false;
 
-
-
-/* ======================================================
-   DOM
-====================================================== */
-
-const dateInput =
-    document.getElementById(
-        "replenishDate"
-    );
-
-
-const ivList =
-    document.getElementById(
-        "ivList"
-    );
-
-const syncStatus =
-    document.getElementById("syncStatus");
+const dateInput = document.getElementById("replenishDate");
+const ivList = document.getElementById("ivList");
+const syncStatus = document.getElementById("syncStatus");
+const btnComplete = document.getElementById("btnComplete");
 
 function setSyncStatus(text, type = "normal") {
     if (!syncStatus) return;
@@ -600,10 +528,19 @@ function setSyncStatus(text, type = "normal") {
     }
 }
 
-
+function updateCompleteButtonState(completed) {
+    isCompletedToday = completed;
+    if (completed) {
+        btnComplete.className = "w-full bg-slate-500 text-white rounded-2xl py-5 font-black text-lg shadow-lg cursor-not-allowed";
+        btnComplete.innerHTML = "✅ 已完成今日點滴撥補";
+    } else {
+        btnComplete.className = "w-full bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl py-5 font-black text-lg shadow-lg";
+        btnComplete.innerHTML = "✅ 完成今日點滴撥補";
+    }
+}
 
 /* ======================================================
-   ☁️ Firebase 連線狀態 + 點滴草稿即時同步
+   ☁️ 即時同步
 ====================================================== */
 
 onValue(
@@ -618,7 +555,6 @@ onValue(
 );
 
 function startIVRealtimeSync() {
-
     if (stopDraftSync) {
         stopDraftSync();
         stopDraftSync = null;
@@ -627,14 +563,21 @@ function startIVRealtimeSync() {
     const date = dateInput.value;
     if (!date) return;
 
-    const draftRef = ref(db, `ivReplenishmentDraft/${date}`);
+    // 檢查正式完成狀態
+    get(ref(db, `ivReplenishment/${date}`)).then(snapshot => {
+        if (snapshot.exists() && snapshot.val().completed) {
+            updateCompleteButtonState(true);
+        } else {
+            updateCompleteButtonState(false);
+        }
+    });
 
+    const draftRef = ref(db, `ivReplenishmentDraft/${date}`);
     isInitialLoading = true;
 
     stopDraftSync = onValue(
         draftRef,
         snapshot => {
-
             const remoteData = snapshot.val() || {};
 
             if (!snapshot.exists()) {
@@ -646,17 +589,18 @@ function startIVRealtimeSync() {
             isRemoteSyncing = true;
             currentData = remoteData;
 
-            // 局部更新畫面數值，而不是整個重新 render，解決游標跳掉與卡頓問題
             ivDrugList.forEach(drug => {
                 const itemData = currentData[drug.id] || {};
-                const qty = Number(itemData.currentQty || 0);
+                // 允許數值為 0
+                const qty = itemData.currentQty !== undefined ? Number(itemData.currentQty) : "";
                 const safetyStock = Number(drug.safetyStock || 0);
-                const need = Math.max(safetyStock - qty, 0);
-                const afterQty = qty + need;
+                const numericQty = qty !== "" ? qty : 0;
+                const need = Math.max(safetyStock - numericQty, 0);
+                const afterQty = numericQty + need;
 
                 const inputEl = document.querySelector(`.current-qty[data-id="${drug.id}"]`);
                 if (inputEl && document.activeElement !== inputEl) {
-                    inputEl.value = qty > 0 ? qty : "";
+                    inputEl.value = qty !== "" ? qty : "";
                 }
 
                 const card = document.querySelector(`.iv-card[data-id="${drug.id}"]`);
@@ -680,7 +624,6 @@ function startIVRealtimeSync() {
             });
 
             updateSummary();
-
             isRemoteSyncing = false;
             isInitialLoading = false;
 
@@ -689,1262 +632,261 @@ function startIVRealtimeSync() {
     );
 }
 
-/* ======================================================
-   今天日期
-====================================================== */
-
 function getTodayString() {
-
     const now = new Date();
-
-    const year =
-        now.getFullYear();
-
-    const month =
-        String(
-            now.getMonth() + 1
-        ).padStart(2, "0");
-
-    const day =
-        String(
-            now.getDate()
-        ).padStart(2, "0");
-
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, "0");
+    const day = String(now.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
-
 }
 
-
-dateInput.value =
-    getTodayString();
-
-
-
-/* ======================================================
-   時鐘
-====================================================== */
+dateInput.value = getTodayString();
 
 function updateClock() {
-
-    const now =
-        new Date();
-
-    document.getElementById(
-        "clock"
-    ).textContent =
-        now.toLocaleTimeString(
-            "zh-TW",
-            {
-                hour: "2-digit",
-                minute: "2-digit",
-                second: "2-digit"
-            }
-        );
-
+    const now = new Date();
+    document.getElementById("clock").textContent =
+        now.toLocaleTimeString("zh-TW", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
 }
 
-
 updateClock();
+setInterval(updateClock, 1000);
 
-setInterval(
-    updateClock,
-    1000
-);
+document.getElementById("btnHome").addEventListener("click", () => {
+    location.href = "index.html";
+});
 
-
-
-/* ======================================================
-   回首頁
-====================================================== */
-
-document
-.getElementById("btnHome")
-.addEventListener(
-    "click",
-    () => {
-
-        location.href =
-            "index.html";
-
-    }
-);
-
-
-
-/* ======================================================
-   📥 匯入點滴主檔按鈕
-====================================================== */
-
-document
-.getElementById("btnImportIVMaster")
-.addEventListener(
-    "click",
-    () => {
-
-        document
-        .getElementById(
-            "ivMasterExcel"
-        )
-        .click();
-
-    }
-);
-
-
+document.getElementById("btnImportIVMaster").addEventListener("click", () => {
+    document.getElementById("ivMasterExcel").click();
+});
 
 /* ======================================================
    📥 Excel 匯入
 ====================================================== */
 
-document
-.getElementById("ivMasterExcel")
-.addEventListener(
-    "change",
-    async (event) => {
-
-        const file =
-            event.target.files[0];
-
-        if (!file) return;
-
-
-        try {
-
-            /* ------------------------------------------
-               讀取 Excel
-            ------------------------------------------ */
-
-            const data =
-                await file.arrayBuffer();
-
-
-            const workbook =
-                XLSX.read(
-                    data,
-                    {
-                        type: "array"
-                    }
-                );
-
-
-            const sheetName =
-                workbook.SheetNames[0];
-
-
-            const worksheet =
-                workbook.Sheets[
-                    sheetName
-                ];
-
-
-            const rows =
-                XLSX.utils.sheet_to_json(
-                    worksheet,
-                    {
-                        defval: ""
-                    }
-                );
-
-
-            if (!rows.length) {
-
-                alert(
-                    "❌ Excel 沒有資料"
-                );
-
-                return;
-
-            }
-
-
-            /* ------------------------------------------
-               檢查欄位
-            ------------------------------------------ */
-
-            const requiredColumns = [
-
-                "藥品碼",
-                "藥品名稱",
-                "規格",
-                "安全庫存量",
-                "啟用"
-
-            ];
-
-
-            const firstRow =
-                rows[0];
-
-
-            const missingColumns =
-                requiredColumns.filter(
-                    column =>
-                        !(column in firstRow)
-                );
-
-
-            if (
-                missingColumns.length
-            ) {
-
-                alert(
-                    "❌ Excel 欄位不正確\n\n" +
-                    "缺少：\n" +
-                    missingColumns.join("\n")
-                );
-
-                return;
-
-            }
-
-
-            /* ------------------------------------------
-               轉換資料
-            ------------------------------------------ */
-
-            const newDrugList = [];
-
-
-            rows.forEach(
-                (row, index) => {
-
-                    const id =
-                        String(
-                            row["藥品碼"]
-                        ).trim();
-
-
-                    const name =
-                        String(
-                            row["藥品名稱"]
-                        ).trim();
-
-
-                    const spec =
-                        String(
-                            row["規格"]
-                        ).trim();
-
-
-                    const safetyStock =
-                        Number(
-                            row["安全庫存量"]
-                        );
-
-
-                    const enabledText =
-                        String(
-                            row["啟用"]
-                        )
-                        .trim()
-                        .toUpperCase();
-
-                    const sortOrder = index;
-
-
-                    /* 空白列 */
-
-                    if (
-                        !id &&
-                        !name
-                    ) {
-
-                        return;
-
-                    }
-
-
-                    /* 藥品碼 */
-
-                    if (!id) {
-
-                        throw new Error(
-                            `第 ${
-                                index + 2
-                            } 列沒有藥品碼`
-                        );
-
-                    }
-
-
-                    /* 安全庫存 */
-
-                    if (
-                        Number.isNaN(
-                            safetyStock
-                        ) ||
-                        safetyStock < 0
-                    ) {
-
-                        throw new Error(
-                            `第 ${
-                                index + 2
-                            } 列安全庫存量不正確`
-                        );
-
-                    }
-
-
-                    /* 啟用 */
-
-                    const enabled =
-                        ![
-                            "N",
-                            "NO",
-                            "0",
-                            "FALSE",
-                            "停用"
-                        ].includes(
-                            enabledText
-                        );
-
-
-                    newDrugList.push({
-
-                        id,
-
-                        name,
-
-                        spec,
-
-                        safetyStock,
-
-                        enabled,
-
-                        sortOrder
-
-                    });
-
-                }
-            );
-
-
-            /* ------------------------------------------
-               沒有資料
-            ------------------------------------------ */
-
-            if (
-                !newDrugList.length
-            ) {
-
-                alert(
-                    "❌ 沒有有效的點滴資料"
-                );
-
-                return;
-
-            }
-
-
-            /* ------------------------------------------
-               重複藥品碼檢查
-            ------------------------------------------ */
-
-            const ids =
-                newDrugList.map(
-                    drug => drug.id
-                );
-
-
-            const duplicateIds =
-                ids.filter(
-                    (id, index) =>
-                        ids.indexOf(id)
-                        !== index
-                );
-
-
-            if (
-                duplicateIds.length
-            ) {
-
-                alert(
-                    "❌ Excel 有重複藥品碼：\n\n" +
-                    [
-                        ...new Set(
-                            duplicateIds
-                        )
-                    ].join("\n")
-                );
-
-                return;
-
-            }
-
-
-            /* ------------------------------------------
-               啟用數量
-            ------------------------------------------ */
-
-            const enabledList =
-                newDrugList.filter(
-                    drug =>
-                        drug.enabled
-                );
-
-
-            const disabledList =
-                newDrugList.filter(
-                    drug =>
-                        !drug.enabled
-                );
-
-
-            /* ------------------------------------------
-               確認
-            ------------------------------------------ */
-
-            const confirmMessage =
-
-                "準備匯入點滴主檔\n\n" +
-
-                `全部：${newDrugList.length} 項\n` +
-
-                `啟用：${enabledList.length} 項\n` +
-
-                `停用：${disabledList.length} 項\n\n` +
-
-                "匯入後會更新 Firebase 點滴主檔。\n\n" +
-
-                "確定要繼續嗎？";
-
-
-            if (
-                !confirm(
-                    confirmMessage
-                )
-            ) {
-
-                return;
-
-            }
-
-
-            /* ------------------------------------------
-               寫入 Firebase
-            ------------------------------------------ */
-
-            const masterData = {};
-
-
-            newDrugList.forEach(
-                drug => {
-
-                    masterData[
-                        drug.id
-                    ] = {
-
-                        id:
-                            drug.id,
-
-                        name:
-                            drug.name,
-
-                        spec:
-                            drug.spec,
-
-                        safetyStock:
-                            drug.safetyStock,
-
-                        enabled:
-                            drug.enabled,
-
-                        sortOrder:
-                            drug.sortOrder,
-
-                        updatedAt:
-                            new Date()
-                            .toISOString()
-
-                    };
-
-                }
-            );
-
-
-            await set(
-                ref(
-                    db,
-                    "ivDrugMaster"
-                ),
-                masterData
-            );
-
-
-            /* ------------------------------------------
-               更新畫面
-            ------------------------------------------ */
-
-            ivDrugList = enabledList;
-            currentData = {};
-            renderIVList();
-
-            alert(
-                "🎉 點滴主檔匯入成功！\n\n" +
-                `啟用中的點滴：${enabledList.length} 項`
-            );
-
-        } catch (error) {
-
-            console.error(
-                "點滴主檔匯入錯誤：",
-                error
-            );
-
-            alert(
-                "❌ 匯入失敗\n\n" +
-                error.message
-            );
-
-        }
-
-
-        /* 清空 input */
-        event.target.value = "";
-    }
-);
-
-
-/* ======================================================
-   📦 從 Firebase 載入點滴主檔
-====================================================== */
-
-async function loadIVMaster() {
+document.getElementById("ivMasterExcel").addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    if (!file) return;
 
     try {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, { type: "array" });
+        const sheetName = workbook.SheetNames[0];
+        const worksheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-        const snapshot =
-            await get(
-                ref(
-                    db,
-                    "ivDrugMaster"
-                )
-            );
-
-
-        if (
-            !snapshot.exists()
-        ) {
-
-            ivDrugList = [];
-            renderIVList();
-            ivList.innerHTML = `
-                <div class=" text-center py-12 text-slate-400 ">
-                    <div class=" text-5xl mb-4 "> 💧
-                    </div>
-                    <div
-                        class="
-                            font-black
-                            text-lg
-                        ">
-
-                        尚未建立點滴主檔
-
-                    </div>
-
-                    <div
-                        class="
-                            text-sm
-                            mt-2
-                        ">
-
-                        請使用電腦匯入
-                        「點滴主檔.xlsx」
-
-                    </div>
-
-                </div>
-            `;
-
+        if (!rows.length) {
+            alert("❌ Excel 沒有資料");
             return;
-
         }
 
+        const requiredColumns = ["藥品碼", "藥品名稱", "規格", "安全庫存量", "啟用"];
+        const firstRow = rows[0];
+        const missingColumns = requiredColumns.filter(column => !(column in firstRow));
 
-        const data =
-            snapshot.val();
+        if (missingColumns.length) {
+            alert("❌ Excel 欄位不正確\n\n缺少：\n" + missingColumns.join("\n"));
+            return;
+        }
 
+        const newDrugList = [];
+        rows.forEach((row, index) => {
+            const id = String(row["藥品碼"]).trim();
+            const name = String(row["藥品名稱"]).trim();
+            const spec = String(row["規格"]).trim();
+            const safetyStock = Number(row["安全庫存量"]);
+            const enabledText = String(row["啟用"]).trim().toUpperCase();
+            const sortOrder = index;
 
-        ivDrugList =
-            Object.values(data)
-            .filter(
-                drug =>
-                    drug.enabled !== false
-            )
-            .sort((a, b) => {
-                return Number(a.sortOrder ?? 999999) -
-                       Number(b.sortOrder ?? 999999);
-            });
+            if (!id && !name) return;
+            if (!id) throw new Error(`第 ${index + 2} 列沒有藥品碼`);
+            if (Number.isNaN(safetyStock) || safetyStock < 0) throw new Error(`第 ${index + 2} 列安全庫存量不正確`);
 
+            const enabled = !["N", "NO", "0", "FALSE", "停用"].includes(enabledText);
+            newDrugList.push({ id, name, spec, safetyStock, enabled, sortOrder });
+        });
 
+        if (!newDrugList.length) {
+            alert("❌ 沒有有效的點滴資料");
+            return;
+        }
+
+        const masterData = {};
+        newDrugList.forEach(drug => {
+            masterData[drug.id] = {
+                id: drug.id,
+                name: drug.name,
+                spec: drug.spec,
+                safetyStock: drug.safetyStock,
+                enabled: drug.enabled,
+                sortOrder: drug.sortOrder,
+                updatedAt: new Date().toISOString()
+            };
+        });
+
+        await set(ref(db, "ivDrugMaster"), masterData);
+        ivDrugList = newDrugList.filter(d => d.enabled !== false);
+        currentData = {};
         renderIVList();
-
-
+        alert("🎉 點滴主檔匯入成功！");
     } catch (error) {
-
-        console.error(
-            "載入點滴主檔失敗：",
-            error
-        );
-
-
-        ivList.innerHTML = `
-
-            <div
-                class="
-                    text-center
-                    py-10
-                    text-red-500
-                ">
-
-                ❌ 點滴主檔載入失敗
-
-                <div
-                    class="
-                        text-xs
-                        mt-2
-                    ">
-
-                    ${error.message}
-
-                </div>
-
-            </div>
-
-        `;
-
+        alert("❌ 匯入失敗\n\n" + error.message);
     }
+    event.target.value = "";
+});
 
+async function loadIVMaster() {
+    try {
+        const snapshot = await get(ref(db, "ivDrugMaster"));
+        if (!snapshot.exists()) {
+            ivDrugList = [];
+            renderIVList();
+            return;
+        }
+        const data = snapshot.val();
+        ivDrugList = Object.values(data)
+            .filter(drug => drug.enabled !== false)
+            .sort((a, b) => Number(a.sortOrder ?? 999999) - Number(b.sortOrder ?? 999999));
+        renderIVList();
+    } catch (error) {
+        console.error("載入點滴主檔失敗：", error);
+    }
 }
 
-
-
 /* ======================================================
-   💧 顯示點滴清單 (只在初始化或匯入時執行一次)
+   💧 渲染清單
 ====================================================== */
 
 function renderIVList() {
-
     if (!ivList) return;
-
-
     ivList.innerHTML = "";
 
+    if (!ivDrugList.length) {
+        ivList.innerHTML = `<div class="text-center py-12 text-slate-400"><div class="text-5xl mb-4">💧</div><div class="font-black">尚未有啟用中的點滴</div></div>`;
+        updateSummary();
+        return;
+    }
 
-    if (
-        !ivDrugList.length
-    ) {
+    ivDrugList.forEach(drug => {
+        const data = currentData[drug.id] || {};
+        const currentQty = data.currentQty !== undefined ? data.currentQty : "";
+        const numericQty = currentQty !== "" ? Number(currentQty) : 0;
+        const safetyStock = Number(drug.safetyStock || 0);
+        const replenishQty = Math.max(safetyStock - numericQty, 0);
 
-        ivList.innerHTML = `
+        const card = document.createElement("div");
+        card.className = `iv-card ${replenishQty > 0 ? "need" : "ok"} bg-white border border-slate-200 rounded-2xl p-4 shadow-sm`;
+        card.setAttribute("data-id", drug.id);
 
-            <div
-                class="
-                    text-center
-                    py-12
-                    text-slate-400
-                ">
-
-                <div class="text-5xl mb-4">
-                    💧
+        card.innerHTML = `
+            <div class="flex justify-between items-start gap-3">
+                <div class="flex-1 min-w-0">
+                    <div class="font-black text-slate-800 text-base">${escapeHtml(drug.name)}</div>
+                    <div class="text-xs text-slate-400 font-mono mt-1">${escapeHtml(drug.id)} · ${escapeHtml(drug.spec || "")}</div>
                 </div>
-
-                <div class="font-black">
-                    尚未有啟用中的點滴
+                <div class="text-right shrink-0">
+                    <div class="text-xs text-slate-400">安全庫存</div>
+                    <div class="text-xl font-black text-blue-600">${safetyStock}</div>
                 </div>
-
             </div>
-
+            <div class="grid grid-cols-3 gap-2 mt-4">
+                <div>
+                    <div class="text-xs text-slate-400 text-center font-bold">樓上現有量</div>
+                    <input type="number" min="0" step="1" inputmode="numeric"
+                        value="${currentQty !== "" ? currentQty : ""}"
+                        data-id="${escapeHtml(drug.id)}"
+                        class="qty-input current-qty w-full border-2 border-slate-200 rounded-xl py-2 mt-1 bg-white">
+                </div>
+                <div>
+                    <div class="text-xs text-slate-400 text-center font-bold">應撥補</div>
+                    <div class="replenish-display rounded-xl py-3 mt-1 text-center font-black ${replenishQty > 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}">
+                        ${replenishQty}
+                    </div>
+                </div>
+                <div>
+                    <div class="text-xs text-slate-400 text-center font-bold">補後庫存</div>
+                    <div class="after-display bg-emerald-50 text-emerald-600 rounded-xl py-3 mt-1 text-center font-black">
+                        ${numericQty + replenishQty}
+                    </div>
+                </div>
+            </div>
         `;
 
-        updateSummary();
-
-        return;
-
-    }
-
-
-    ivDrugList.forEach(
-        drug => {
-
-            const data =
-                currentData[
-                    drug.id
-                ] || {};
-
-
-            const currentQty =
-                Number(
-                    data.currentQty || 0
-                );
-
-
-            const safetyStock =
-                Number(
-                    drug.safetyStock || 0
-                );
-
-
-            const replenishQty =
-                Math.max(
-                    safetyStock -
-                    currentQty,
-                    0
-                );
-
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-
-            card.className =
-                `iv-card ${
-                    replenishQty > 0
-                    ? "need"
-                    : "ok"
-                }
-                bg-white
-                border
-                border-slate-200
-                rounded-2xl
-                p-4
-                shadow-sm`;
-
-            card.setAttribute("data-id", drug.id);
-
-
-            card.innerHTML = `
-
-                <!-- 藥品名稱 -->
-
-                <div
-                    class="
-                        flex
-                        justify-between
-                        items-start
-                        gap-3
-                    ">
-
-                    <div
-                        class="
-                            flex-1
-                            min-w-0
-                        ">
-
-                        <div
-                            class="
-                                font-black
-                                text-slate-800
-                                text-base
-                            ">
-
-                            ${escapeHtml(
-                                drug.name
-                            )}
-
-                        </div>
-
-                        <div
-                            class="
-                                text-xs
-                                text-slate-400
-                                font-mono
-                                mt-1
-                            ">
-
-                            ${escapeHtml(
-                                drug.id
-                            )}
-
-                            ·
-
-                            ${escapeHtml(
-                                drug.spec || ""
-                            )}
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- 安全庫存 -->
-
-                    <div
-                        class="
-                            text-right
-                            shrink-0
-                        ">
-
-                        <div
-                            class="
-                                text-xs
-                                text-slate-400
-                            ">
-
-                            安全庫存
-
-                        </div>
-
-                        <div
-                            class="
-                                text-xl
-                                font-black
-                                text-blue-600
-                            ">
-
-                            ${safetyStock}
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-
-                <!-- 數量 -->
-
-                <div
-                    class="
-                        grid
-                        grid-cols-3
-                        gap-2
-                        mt-4
-                    ">
-
-
-                    <!-- 現有 -->
-
-                    <div>
-
-                        <div
-                            class="
-                                text-xs
-                                text-slate-400
-                                text-center
-                                font-bold
-                            ">
-
-                            樓上現有量
-
-                        </div>
-
-                        <input
-                            type="number"
-                            min="0"
-                            step="1"
-                            inputmode="numeric"
-                            value="${currentQty > 0 ? currentQty : ""}"
-                            data-id="${escapeHtml(
-                                drug.id
-                            )}"
-                            class="
-                                qty-input
-                                current-qty
-                                w-full
-                                border-2
-                                border-slate-200
-                                rounded-xl
-                                py-2
-                                mt-1
-                                bg-white
-                            ">
-
-                    </div>
-
-
-                    <!-- 應補 -->
-
-                    <div>
-
-                        <div
-                            class="
-                                text-xs
-                                text-slate-400
-                                text-center
-                                font-bold
-                            ">
-
-                            應撥補
-
-                        </div>
-
-                        <div
-                            class="
-                                replenish-display
-                                rounded-xl
-                                py-3
-                                mt-1
-                                text-center
-                                font-black
-                                ${
-                                    replenishQty > 0
-                                    ? "bg-red-50 text-red-600"
-                                    : "bg-emerald-50 text-emerald-600"
-                                }
-                            ">
-
-                            ${replenishQty}
-
-                        </div>
-
-                    </div>
-
-
-                    <!-- 補後 -->
-
-                    <div>
-
-                        <div
-                            class="
-                                text-xs
-                                text-slate-400
-                                text-center
-                                font-bold
-                            ">
-
-                            補後庫存
-
-                        </div>
-
-                        <div
-                            class="
-                                after-display
-                                bg-emerald-50
-                                text-emerald-600
-                                rounded-xl
-                                py-3
-                                mt-1
-                                text-center
-                                font-black
-                            ">
-
-                            ${
-                                currentQty +
-                                replenishQty
-                            }
-
-                        </div>
-
-                    </div>
-
-                </div>
-
-            `;
-
-
-/* ------------------------------------------
-   現有量輸入 (綁定事件)
------------------------------------------- */
-
-const input = card.querySelector(".current-qty");
-
-input.addEventListener(
-    "input",
-    () => {
-
-        let rawValue = input.value;
-        rawValue = rawValue.replace(/[^0-9]/g, "");
-
-        if (rawValue === "") {
+        const input = card.querySelector(".current-qty");
+        input.addEventListener("input", () => {
+            let rawValue = input.value;
+            rawValue = rawValue.replace(/[^0-9]/g, "");
+
+            // 修正：允許輸入「0」而不被當作空白略過
+            if (rawValue === "") {
+                currentData[drug.id] = {
+                    currentQty: "",
+                    safetyStock: safetyStock,
+                    replenishQty: safetyStock
+                };
+                card.querySelector(".replenish-display").textContent = safetyStock;
+                card.querySelector(".after-display").textContent = safetyStock;
+                updateSummary();
+                return;
+            }
+
+            const qty = Math.floor(Number(rawValue));
+            const need = Math.max(safetyStock - qty, 0);
+            const afterQty = qty + need;
 
             currentData[drug.id] = {
-                currentQty: 0,
+                currentQty: qty,
                 safetyStock: safetyStock,
-                replenishQty: safetyStock
+                replenishQty: need
             };
 
-            const replenishDisplay =
-                card.querySelector(".replenish-display");
-
-            replenishDisplay.textContent =
-                safetyStock;
-
-            card.querySelector(
-                ".after-display"
-            ).textContent = safetyStock;
-
-            updateSummary();
-
             if (!isRemoteSyncing && !isInitialLoading && dateInput.value) {
-                set(
-                    ref(
-                        db,
-                        `ivReplenishmentDraft/${dateInput.value}/${drug.id}`
-                    ),
-                    {
-                        currentQty: 0,
-                        safetyStock: safetyStock,
-                        replenishQty: safetyStock,
-                        updatedAt: new Date().toISOString(),
-                        updatedBy: document.getElementById("pharmacistName")?.value || ""
-                    }
-                ).catch(err => console.error(err));
+                set(ref(db, `ivReplenishmentDraft/${dateInput.value}/${drug.id}`), {
+                    currentQty: qty,
+                    safetyStock: safetyStock,
+                    replenishQty: need,
+                    updatedAt: new Date().toISOString(),
+                    updatedBy: document.getElementById("pharmacistName")?.value || ""
+                }).catch(err => console.error(err));
             }
 
-            return;
-        }
+            const replenishDisplay = card.querySelector(".replenish-display");
+            replenishDisplay.textContent = need;
+            replenishDisplay.className = `replenish-display rounded-xl py-3 mt-1 text-center font-black ${need > 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"}`;
 
+            card.querySelector(".after-display").textContent = afterQty;
+            card.classList.remove("need", "ok");
+            card.classList.add(need > 0 ? "need" : "ok");
+            updateSummary();
+        });
 
-        const qty =
-            Math.floor(
-                Number(rawValue)
-            );
-
-
-        const need =
-            Math.max(
-                safetyStock - qty,
-                0
-            );
-
-
-        const afterQty =
-            qty + need;
-
-
-        /* ------------------------------------------
-           更新本機資料
-        ------------------------------------------ */
-
-        currentData[drug.id] = {
-
-            currentQty:
-                qty,
-
-            safetyStock:
-                safetyStock,
-
-            replenishQty:
-                need
-
-        };
-
-
-        /* ------------------------------------------
-           ☁️ Firebase 即時同步
-        ------------------------------------------ */
-
-        if (
-            !isRemoteSyncing &&
-            !isInitialLoading &&
-            dateInput.value
-        ) {
-
-            setSyncStatus(
-                "🟡 儲存中...",
-                "normal"
-            );
-
-
-            set(
-                ref(
-                    db,
-                    `ivReplenishmentDraft/${dateInput.value}/${drug.id}`
-                ),
-                {
-
-                    currentQty:
-                        qty,
-
-                    safetyStock:
-                        safetyStock,
-
-                    replenishQty:
-                        need,
-
-                    updatedAt:
-                        new Date().toISOString(),
-
-                    updatedBy:
-                        document.getElementById(
-                            "pharmacistName"
-                        )?.value || ""
-
-                }
-            )
-            .then(() => {
-
-                setSyncStatus(
-                    "🟢 已同步",
-                    "ok"
-                );
-
-            })
-            .catch(error => {
-
-                console.error(
-                    "點滴即時同步失敗：",
-                    error
-                );
-
-                setSyncStatus(
-                    "🔴 同步失敗",
-                    "error"
-                );
-
-            });
-
-        }
-
-
-        /* ------------------------------------------
-           更新畫面局部數值 (不重新渲染 DOM)
-        ------------------------------------------ */
-
-        const replenishDisplay =
-            card.querySelector(
-                ".replenish-display"
-            );
-
-
-        replenishDisplay.textContent =
-            need;
-
-
-        replenishDisplay.className =
-            `replenish-display
-             rounded-xl
-             py-3
-             mt-1
-             text-center
-             font-black
-             ${
-                need > 0
-                ? "bg-red-50 text-red-600"
-                : "bg-emerald-50 text-emerald-600"
-             }`;
-
-
-        const afterDisplay =
-            card.querySelector(
-                ".after-display"
-            );
-
-
-        if (afterDisplay) {
-
-            afterDisplay.textContent =
-                afterQty;
-
-        }
-
-
-        card.classList.remove(
-            "need",
-            "ok"
-        );
-
-
-        card.classList.add(
-            need > 0
-            ? "need"
-            : "ok"
-        );
-
-
-        updateSummary();
-
-    }
-);
-            
-            ivList.appendChild(
-                card
-            );
-
-        }
-    );
-
+        ivList.appendChild(card);
+    });
 
     updateSummary();
-
 }
-
-
-
-/* ======================================================
-   📊 統計
-====================================================== */
 
 function updateSummary() {
-
-    const total =
-        ivDrugList.length;
-
-
+    const total = ivDrugList.length;
     let need = 0;
-
     let ok = 0;
 
+    ivDrugList.forEach(drug => {
+        const data = currentData[drug.id] || {};
+        const qty = data.currentQty !== "" && data.currentQty !== undefined ? Number(data.currentQty) : 0;
+        const safety = Number(drug.safetyStock || 0);
+        const replenish = Math.max(safety - qty, 0);
 
-    ivDrugList.forEach(
-        drug => {
-
-            const data =
-                currentData[
-                    drug.id
-                ] || {};
-
-
-            const qty =
-                Number(
-                    data.currentQty || 0
-                );
-
-
-            const safety =
-                Number(
-                    drug.safetyStock || 0
-                );
-
-
-            const replenish =
-                Math.max(
-                    safety - qty,
-                    0
-                );
-
-
-            if (
-                replenish > 0
-            ) {
-
-                need++;
-
-            } else {
-
-                ok++;
-
-            }
-
+        if (replenish > 0) {
+            need++;
+        } else {
+            ok++;
         }
-    );
+    });
 
-
-    document.getElementById(
-        "totalItems"
-    ).textContent =
-        total;
-
-
-    document.getElementById(
-        "needItems"
-    ).textContent =
-        need;
-
-
-    document.getElementById(
-        "okItems"
-    ).textContent =
-        ok;
-
+    document.getElementById("totalItems").textContent = total;
+    document.getElementById("needItems").textContent = need;
+    document.getElementById("okItems").textContent = ok;
 }
-
-
-
-/* ======================================================
-   📅 切換日期時切換 Firebase 即時資料
-====================================================== */
 
 dateInput.addEventListener("change", () => {
     currentData = {};
@@ -1952,290 +894,78 @@ dateInput.addEventListener("change", () => {
     startIVRealtimeSync();
 });
 
-
 /* ======================================================
-   💾 完成今日撥補
+   💾 完成撥補
 ====================================================== */
 
-document
-.getElementById("btnComplete")
-.addEventListener(
-    "click",
-    async () => {
-
-
-        const date =
-            dateInput.value;
-
-
-        const pharmacist =
-            document.getElementById(
-                "pharmacistName"
-            ).value;
-
-
-        /* ------------------------------------------
-           檢查日期
-        ------------------------------------------ */
-
-        if (!date) {
-
-            alert(
-                "⚠️ 請先選擇撥補日期"
-            );
-
-            return;
-
-        }
-
-
-        /* ------------------------------------------
-           檢查藥師
-        ------------------------------------------ */
-
-        if (!pharmacist) {
-
-            alert(
-                "⚠️ 請先選擇撥補藥師"
-            );
-
-            return;
-
-        }
-
-
-        /* ------------------------------------------
-           檢查主檔
-        ------------------------------------------ */
-
-        if (
-            !ivDrugList.length
-        ) {
-
-            alert(
-                "⚠️ 目前沒有點滴主檔"
-            );
-
-            return;
-
-        }
-
-
-        /* ------------------------------------------
-           檢查是否全部都有輸入
-        ------------------------------------------ */
-
-        const missingInput =
-            ivDrugList.filter(
-                drug =>
-                    currentData[
-                        drug.id
-                    ] === undefined
-            );
-
-
-        if (
-            missingInput.length
-        ) {
-
-            const names =
-                missingInput
-                .slice(0, 5)
-                .map(
-                    drug =>
-                        drug.name
-                )
-                .join("\n");
-
-
-            const more =
-                missingInput.length > 5
-                ? `\n...另外還有 ${
-                    missingInput.length - 5
-                  } 項`
-                : "";
-
-
-            alert(
-                "⚠️ 尚有點滴沒有輸入現有量：\n\n" +
-                names +
-                more
-            );
-
-
-            return;
-
-        }
-
-
-        /* ------------------------------------------
-           計算總撥補量
-        ------------------------------------------ */
-
-        let totalReplenish =
-            0;
-
-
-        ivDrugList.forEach(
-            drug => {
-
-                totalReplenish +=
-                    Number(
-                        currentData[
-                            drug.id
-                        ].replenishQty || 0
-                    );
-
-            }
-        );
-
-
-        /* ------------------------------------------
-           確認
-        ------------------------------------------ */
-
-        const confirmMessage =
-
-            `確認完成 ${date} 點滴撥補？\n\n` +
-
-            `品項：${ivDrugList.length} 項\n` +
-
-            `總撥補量：${totalReplenish}\n\n` +
-
-            `撥補藥師：${pharmacist}`;
-
-
-        if (
-            !confirm(
-                confirmMessage
-            )
-        ) {
-
-            return;
-
-        }
-
-
-        /* ------------------------------------------
-           建立每日紀錄
-        ------------------------------------------ */
-
-        const dailyRecord = {
-
-            date:
-
-                date,
-
-            pharmacist:
-
-                pharmacist,
-
-            completed:
-
-                true,
-
-            completedAt:
-
-                new Date()
-                .toISOString(),
-
-            totalItems:
-
-                ivDrugList.length,
-
-            totalReplenish:
-
-                totalReplenish,
-
-            items:
-
-                currentData
-
-        };
-
-
-        try {
-
-            await set(
-
-                ref(
-                    db,
-                    `ivReplenishment/${date}`
-                ),
-
-                dailyRecord
-
-            );
-
-
-            alert(
-                "🎉 今日點滴撥補已完成！"
-            );
-
-
-        } catch (error) {
-
-            console.error(
-                "儲存失敗：",
-                error
-            );
-
-
-            alert(
-                "❌ 儲存失敗\n\n" +
-                error.message
-            );
-
-        }
-
+btnComplete.addEventListener("click", async () => {
+    const date = dateInput.value;
+    const pharmacist = document.getElementById("pharmacistName").value;
+
+    if (!date) {
+        alert("⚠️ 請先選擇撥補日期");
+        return;
     }
-);
+    if (!pharmacist) {
+        alert("⚠️ 請先選擇撥補藥師");
+        return;
+    }
+    if (!ivDrugList.length) {
+        alert("⚠️ 目前沒有點滴主檔");
+        return;
+    }
 
+    const missingInput = ivDrugList.filter(drug => {
+        const d = currentData[drug.id];
+        return !d || d.currentQty === "" || d.currentQty === undefined;
+    });
 
+    if (missingInput.length) {
+        alert("⚠️ 尚有點滴沒有輸入現有量（包含 0 請確實填寫）");
+        return;
+    }
 
-/* ======================================================
-   🔐 HTML 安全處理
-====================================================== */
+    let totalReplenish = 0;
+    ivDrugList.forEach(drug => {
+        totalReplenish += Number(currentData[drug.id].replenishQty || 0);
+    });
+
+    const confirmMessage = `確認完成 ${date} 點滴撥補？\n\n品項：${ivDrugList.length} 項\n總撥補量：${totalReplenish}\n撥補藥師：${pharmacist}`;
+    if (!confirm(confirmMessage)) return;
+
+    const dailyRecord = {
+        date,
+        pharmacist,
+        completed: true,
+        completedAt: new Date().toISOString(),
+        totalItems: ivDrugList.length,
+        totalReplenish,
+        items: currentData
+    };
+
+    try {
+        await set(ref(db, `ivReplenishment/${date}`), dailyRecord);
+        updateCompleteButtonState(true);
+        alert("🎉 今日點滴撥補已完成！");
+    } catch (error) {
+        alert("❌ 儲存失敗\n\n" + error.message);
+    }
+});
 
 function escapeHtml(value) {
-
     return String(value ?? "")
-        .replace(
-            /&/g,
-            "&amp;"
-        )
-        .replace(
-            /</g,
-            "&lt;"
-        )
-        .replace(
-            />/g,
-            "&gt;"
-        )
-        .replace(
-            /"/g,
-            "&quot;"
-        )
-        .replace(
-            /'/g,
-            "&#039;"
-        );
-
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#039;");
 }
-
-
-
-/* ======================================================
-   🚀 啟動
-====================================================== */
 
 loadIVMaster().then(() => {
     startIVRealtimeSync();
 });
 
-
 </script>
-
 
 </body>
 
