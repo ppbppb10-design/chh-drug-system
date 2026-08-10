@@ -565,6 +565,7 @@ let currentData = {};
 // ☁️ 即時同步控制
 let stopDraftSync = null;
 let isRemoteSyncing = false;
+let isInitialLoading = false; // 避免初始載入時重複寫入資料庫
 
 
 
@@ -628,38 +629,60 @@ function startIVRealtimeSync() {
 
     const draftRef = ref(db, `ivReplenishmentDraft/${date}`);
 
+    isInitialLoading = true;
+
     stopDraftSync = onValue(
         draftRef,
         snapshot => {
 
             const remoteData = snapshot.val() || {};
 
-            // 沒有雲端資料時，不覆蓋目前畫面
             if (!snapshot.exists()) {
                 setSyncStatus("🟢 雲端已連線・尚無今日資料", "ok");
+                isInitialLoading = false;
                 return;
             }
-
-            // 如果使用者目前正在輸入，絕對不要重建整個清單。
-            // 否則 Firebase 每次回寫都會把 input 移除再建立，造成
-            // 游標跳掉、數字只能輸入一碼、甚至畫面看起來卡住。
-            const activeElement = document.activeElement;
-            const isTyping =
-                activeElement &&
-                activeElement.classList &&
-                activeElement.classList.contains("current-qty");
 
             isRemoteSyncing = true;
             currentData = remoteData;
 
-            if (!isTyping) {
-                renderIVList();
-            } else {
-                // 正在輸入時只同步其他資料，不重建目前畫面。
-                updateSummary();
-            }
+            // 局部更新畫面數值，而不是整個重新 render，解決游標跳掉與卡頓問題
+            ivDrugList.forEach(drug => {
+                const itemData = currentData[drug.id] || {};
+                const qty = Number(itemData.currentQty || 0);
+                const safetyStock = Number(drug.safetyStock || 0);
+                const need = Math.max(safetyStock - qty, 0);
+                const afterQty = qty + need;
+
+                const inputEl = document.querySelector(`.current-qty[data-id="${drug.id}"]`);
+                if (inputEl && document.activeElement !== inputEl) {
+                    inputEl.value = qty > 0 ? qty : "";
+                }
+
+                const card = document.querySelector(`.iv-card[data-id="${drug.id}"]`);
+                if (card) {
+                    const replenishDisplay = card.querySelector(".replenish-display");
+                    if (replenishDisplay) {
+                        replenishDisplay.textContent = need;
+                        replenishDisplay.className = `replenish-display rounded-xl py-3 mt-1 text-center font-black ${
+                            need > 0 ? "bg-red-50 text-red-600" : "bg-emerald-50 text-emerald-600"
+                        }`;
+                    }
+
+                    const afterDisplay = card.querySelector(".after-display");
+                    if (afterDisplay) {
+                        afterDisplay.textContent = afterQty;
+                    }
+
+                    card.classList.remove("need", "ok");
+                    card.classList.add(need > 0 ? "need" : "ok");
+                }
+            });
+
+            updateSummary();
 
             isRemoteSyncing = false;
+            isInitialLoading = false;
 
             setSyncStatus("🟢 已同步最新資料", "ok");
         }
@@ -848,8 +871,6 @@ document
 
             ];
 
-            /* 「排序」為選填欄位：有填依數字小到大；沒填依 Excel 原始列順序 */
-
 
             const firstRow =
                 rows[0];
@@ -918,7 +939,6 @@ document
                         .trim()
                         .toUpperCase();
 
-                    /* ⭐ 唯一排序規則：依 Excel 原始列順序 */
                     const sortOrder = index;
 
 
@@ -1129,7 +1149,6 @@ document
                         enabled:
                             drug.enabled,
 
-                        // ⭐ 保存 Excel 匯入時的原始順序
                         sortOrder:
                             drug.sortOrder,
 
@@ -1235,7 +1254,6 @@ async function loadIVMaster() {
                     </div>
 
                 </div>
-
             `;
 
             return;
@@ -1254,7 +1272,6 @@ async function loadIVMaster() {
                     drug.enabled !== false
             )
             .sort((a, b) => {
-                // ⭐ 只使用 Excel 匯入時保存的 sortOrder
                 return Number(a.sortOrder ?? 999999) -
                        Number(b.sortOrder ?? 999999);
             });
@@ -1303,7 +1320,7 @@ async function loadIVMaster() {
 
 
 /* ======================================================
-   💧 顯示點滴清單
+   💧 顯示點滴清單 (只在初始化或匯入時執行一次)
 ====================================================== */
 
 function renderIVList() {
@@ -1393,6 +1410,8 @@ function renderIVList() {
                 rounded-2xl
                 p-4
                 shadow-sm`;
+
+            card.setAttribute("data-id", drug.id);
 
 
             card.innerHTML = `
@@ -1515,7 +1534,7 @@ function renderIVList() {
                             min="0"
                             step="1"
                             inputmode="numeric"
-                            value="${currentQty}"
+                            value="${currentQty > 0 ? currentQty : ""}"
                             data-id="${escapeHtml(
                                 drug.id
                             )}"
@@ -1615,7 +1634,7 @@ function renderIVList() {
 
 
 /* ------------------------------------------
-   現有量輸入
+   現有量輸入 (綁定事件)
 ------------------------------------------ */
 
 const input = card.querySelector(".current-qty");
@@ -1624,19 +1643,9 @@ input.addEventListener(
     "input",
     () => {
 
-        /*
-         * ⚠️ 重要：
-         * 輸入中的文字不要立刻重新指定 input.value
-         * 否則會造成游標跳動、輸入中斷。
-         */
-
         let rawValue = input.value;
-
-        // 只允許數字
         rawValue = rawValue.replace(/[^0-9]/g, "");
 
-        // 不要在空白時強制變成 0
-        // 讓使用者可以正常輸入
         if (rawValue === "") {
 
             currentData[drug.id] = {
@@ -1656,6 +1665,22 @@ input.addEventListener(
             ).textContent = safetyStock;
 
             updateSummary();
+
+            if (!isRemoteSyncing && !isInitialLoading && dateInput.value) {
+                set(
+                    ref(
+                        db,
+                        `ivReplenishmentDraft/${dateInput.value}/${drug.id}`
+                    ),
+                    {
+                        currentQty: 0,
+                        safetyStock: safetyStock,
+                        replenishQty: safetyStock,
+                        updatedAt: new Date().toISOString(),
+                        updatedBy: document.getElementById("pharmacistName")?.value || ""
+                    }
+                ).catch(err => console.error(err));
+            }
 
             return;
         }
@@ -1702,6 +1727,7 @@ input.addEventListener(
 
         if (
             !isRemoteSyncing &&
+            !isInitialLoading &&
             dateInput.value
         ) {
 
@@ -1763,7 +1789,7 @@ input.addEventListener(
 
 
         /* ------------------------------------------
-           更新應補
+           更新畫面局部數值 (不重新渲染 DOM)
         ------------------------------------------ */
 
         const replenishDisplay =
@@ -1790,10 +1816,6 @@ input.addEventListener(
              }`;
 
 
-        /* ------------------------------------------
-           更新補後庫存
-        ------------------------------------------ */
-
         const afterDisplay =
             card.querySelector(
                 ".after-display"
@@ -1808,10 +1830,6 @@ input.addEventListener(
         }
 
 
-        /* ------------------------------------------
-           更新卡片顏色
-        ------------------------------------------ */
-
         card.classList.remove(
             "need",
             "ok"
@@ -1825,15 +1843,25 @@ input.addEventListener(
         );
 
 
-        /* ------------------------------------------
-           更新總結
-        ------------------------------------------ */
-
         updateSummary();
 
     }
 );
             
+            ivList.appendChild(
+                card
+            );
+
+        }
+    );
+
+
+    updateSummary();
+
+}
+
+
+
 /* ======================================================
    📊 統計
 ====================================================== */
