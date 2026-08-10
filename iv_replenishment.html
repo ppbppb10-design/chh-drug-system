@@ -640,9 +640,25 @@ function startIVRealtimeSync() {
                 return;
             }
 
+            // 如果使用者目前正在輸入，絕對不要重建整個清單。
+            // 否則 Firebase 每次回寫都會把 input 移除再建立，造成
+            // 游標跳掉、數字只能輸入一碼、甚至畫面看起來卡住。
+            const activeElement = document.activeElement;
+            const isTyping =
+                activeElement &&
+                activeElement.classList &&
+                activeElement.classList.contains("current-qty");
+
             isRemoteSyncing = true;
             currentData = remoteData;
-            renderIVList();
+
+            if (!isTyping) {
+                renderIVList();
+            } else {
+                // 正在輸入時只同步其他資料，不重建目前畫面。
+                updateSummary();
+            }
+
             isRemoteSyncing = false;
 
             setSyncStatus("🟢 已同步最新資料", "ok");
