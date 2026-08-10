@@ -4,16 +4,25 @@
 <head>
 
     <meta charset="UTF-8">
-    <meta name="viewport"content="width=device-width, initial-scale=1.0">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
     <title>每日點滴撥補</title>
+
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com"></script>
+
     <!-- Font Awesome -->
     <link rel="stylesheet"
           href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
     <!-- XLSX -->
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+
+
     <style>
+
         body {
             background: #f1f5f9;
             font-family:
@@ -49,16 +58,25 @@
         }
 
     </style>
+
 </head>
+
+
 <body>
+
+
 <!-- ======================================================
      Header
 ====================================================== -->
 
 <header class="bg-red-700 text-white shadow-lg">
+
     <div class="max-w-5xl mx-auto px-4 py-4">
+
         <div class="flex items-center justify-between gap-3">
+
             <div class="flex items-center gap-3">
+
                 <button
                     id="btnHome"
                     class="bg-white/20 hover:bg-white/30
@@ -66,28 +84,60 @@
                            font-bold">
 
                     <i class="fa-solid fa-house"></i>
-                    <span class="hidden sm:inline">回首頁
+
+                    <span class="hidden sm:inline">
+                        回首頁
                     </span>
+
                 </button>
+
+
                 <div>
-                    <div class="text-xl md:text-2xl font-black">💧 每日點滴撥補
+
+                    <div class="text-xl md:text-2xl font-black">
+
+                        💧 每日點滴撥補
+
                     </div>
-                    <div class="text-xs opacity-80">彰化醫院藥劑科
+
+                    <div class="text-xs opacity-80">
+
+                        彰化醫院藥劑科
+
                     </div>
+
                 </div>
+
             </div>
+
+
             <div class="text-right text-xs">
+
                 <div id="clock"></div>
-                <div class="opacity-70">Version 1.0
+
+                <div id="syncStatus" class="text-xs font-bold mt-1">🟡 雲端同步確認中...</div>
+
+                <div class="opacity-70">
+                    Version 1.0
                 </div>
+
             </div>
+
         </div>
+
     </div>
+
 </header>
+
+
+
 <!-- ======================================================
      Main
 ====================================================== -->
+
 <main class="max-w-5xl mx-auto p-4 space-y-4">
+
+
     <!-- ==================================================
          電腦管理區
 
@@ -95,38 +145,91 @@
          = 手機隱藏
          = 電腦顯示
     ================================================== -->
-    <section class="hidden md:block bg-white rounded-2xl shadow-sm p-5">
+
+    <section
+        class="hidden md:block bg-white rounded-2xl
+               shadow-sm p-5">
+
         <div class="flex items-center justify-between gap-4">
+
             <div>
-                <div class="text-xl font-black text-slate-800">⚙️ 點滴主檔管理
+
+                <div class="text-xl font-black text-slate-800">
+
+                    ⚙️ 點滴主檔管理
+
                 </div>
+
                 <div class="text-sm text-slate-500 mt-1">
+
                     匯入點滴品項、安全庫存量、啟用狀態及排列順序
                     <span class="block text-xs text-slate-400 mt-1">
                         Excel 可加「排序」欄；未填時依 Excel 原始順序
                     </span>
+
                 </div>
+
             </div>
+
+
             <div class="flex gap-2">
+
                 <!-- Excel 檔案 -->
-                <input type="file" id="ivMasterExcel" accept=".xlsx,.xls" class="hidden">
+
+                <input
+                    type="file"
+                    id="ivMasterExcel"
+                    accept=".xlsx,.xls"
+                    class="hidden">
+
+
                 <!-- 匯入按鈕 -->
-                <button id="btnImportIVMaster" class="bg-rose-600 hover:bg-rose-700 text-white rounded-xl px-6 py-3 font-black"> 📥 匯入點滴主檔
+
+                <button
+                    id="btnImportIVMaster"
+                    class="bg-rose-600
+                           hover:bg-rose-700
+                           text-white
+                           rounded-xl
+                           px-6 py-3
+                           font-black">
+
+                    📥 匯入點滴主檔
+
                 </button>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ==================================================
          日期 / 藥師
     ================================================== -->
 
-    <section class="bg-white rounded-2xl shadow-sm p-5">
+    <section
+        class="bg-white rounded-2xl shadow-sm p-5">
+
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+
             <!-- 日期 -->
+
             <div>
-                <label class="block text-sm font-black text-slate-600 mb-2"> 📅 撥補日期
+
+                <label
+                    class="block text-sm
+                           font-black
+                           text-slate-600
+                           mb-2">
+
+                    📅 撥補日期
+
                 </label>
+
                 <input
                     type="date"
                     id="replenishDate"
@@ -139,10 +242,22 @@
                            bg-white">
 
             </div>
+
+
             <!-- 藥師 -->
+
             <div>
-                <label class="block text-sm font-black text-slate-600 mb-2"> 👤 撥補藥師
+
+                <label
+                    class="block text-sm
+                           font-black
+                           text-slate-600
+                           mb-2">
+
+                    👤 撥補藥師
+
                 </label>
+
                 <select
                     id="pharmacistName"
                     class="w-full
@@ -166,23 +281,54 @@
                         <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option>
 
                 </select>
+
             </div>
+
         </div>
+
     </section>
+
+
 
     <!-- ==================================================
          Dashboard
     ================================================== -->
 
-    <section class="grid grid-cols-3 gap-3">
+    <section
+        class="grid grid-cols-3 gap-3">
+
+
         <!-- 總品項 -->
-        <div class="bg-white rounded-2xl shadow-sm p-4">
-            <div class="text-xs text-slate-500 font-bold"> 💧 點滴品項
+
+        <div
+            class="bg-white rounded-2xl
+                   shadow-sm p-4">
+
+            <div
+                class="text-xs
+                       text-slate-500
+                       font-bold">
+
+                💧 點滴品項
+
             </div>
-            <div id="totalItems" class="text-3xl font-black text-blue-600 mt-2"> 0
+
+            <div
+                id="totalItems"
+                class="text-3xl
+                       font-black
+                       text-blue-600
+                       mt-2">
+
+                0
+
             </div>
+
         </div>
+
+
         <!-- 需要補 -->
+
         <div
             class="bg-white rounded-2xl
                    shadow-sm p-4">
@@ -379,7 +525,8 @@ import {
     getDatabase,
     ref,
     set,
-    get
+    get,
+    onValue
 } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
  
 const firebaseConfig = {
@@ -415,6 +562,10 @@ let ivDrugList = [];
 
 let currentData = {};
 
+// ☁️ 即時同步控制
+let stopDraftSync = null;
+let isRemoteSyncing = false;
+
 
 
 /* ======================================================
@@ -432,7 +583,72 @@ const ivList =
         "ivList"
     );
 
+const syncStatus =
+    document.getElementById("syncStatus");
 
+function setSyncStatus(text, type = "normal") {
+    if (!syncStatus) return;
+    syncStatus.textContent = text;
+    syncStatus.className = "text-xs font-bold mt-1";
+    if (type === "ok") {
+        syncStatus.classList.add("text-emerald-100");
+    } else if (type === "error") {
+        syncStatus.classList.add("text-red-200");
+    } else {
+        syncStatus.classList.add("text-yellow-100");
+    }
+}
+
+
+
+/* ======================================================
+   ☁️ Firebase 連線狀態 + 點滴草稿即時同步
+====================================================== */
+
+onValue(
+    ref(db, ".info/connected"),
+    snapshot => {
+        if (snapshot.val() === true) {
+            setSyncStatus("🟢 雲端已連線", "ok");
+        } else {
+            setSyncStatus("🔴 雲端未連線", "error");
+        }
+    }
+);
+
+function startIVRealtimeSync() {
+
+    if (stopDraftSync) {
+        stopDraftSync();
+        stopDraftSync = null;
+    }
+
+    const date = dateInput.value;
+    if (!date) return;
+
+    const draftRef = ref(db, `ivReplenishmentDraft/${date}`);
+
+    stopDraftSync = onValue(
+        draftRef,
+        snapshot => {
+
+            const remoteData = snapshot.val() || {};
+
+            // 沒有雲端資料時，不覆蓋目前畫面
+            if (!snapshot.exists()) {
+                setSyncStatus("🟢 雲端已連線・尚無今日資料", "ok");
+                return;
+            }
+
+            isRemoteSyncing = true;
+            currentData = remoteData;
+            renderIVList();
+            isRemoteSyncing = false;
+
+            setSyncStatus("🟢 已同步最新資料", "ok");
+        }
+    );
+}
 
 /* ======================================================
    今天日期
@@ -686,17 +902,8 @@ document
                         .trim()
                         .toUpperCase();
 
-                    /* 排序：Excel 有「排序」欄就依排序欄；沒有就依 Excel 原本列次 */
-                    const sortText = String(row["排序"] ?? "").trim();
-                    const sortOrder = sortText === ""
-                        ? index
-                        : Number(sortText);
-
-                    if (Number.isNaN(sortOrder)) {
-                        throw new Error(
-                            `第 ${index + 2} 列排序欄位不正確`
-                        );
-                    }
+                    /* ⭐ 唯一排序規則：依 Excel 原始列順序 */
+                    const sortOrder = index;
 
 
                     /* 空白列 */
@@ -906,6 +1113,10 @@ document
                         enabled:
                             drug.enabled,
 
+                        // ⭐ 保存 Excel 匯入時的原始順序
+                        sortOrder:
+                            drug.sortOrder,
+
                         updatedAt:
                             new Date()
                             .toISOString()
@@ -1055,24 +1266,9 @@ async function loadIVMaster() {
                     drug.enabled !== false
             )
             .sort((a, b) => {
-                /* 新版：優先使用主檔中的 sortOrder。
-                   舊資料沒有 sortOrder 時，退回藥品碼排序。 */
-                const aOrder = Number(a.sortOrder);
-                const bOrder = Number(b.sortOrder);
-                const aHasOrder = Number.isFinite(aOrder);
-                const bHasOrder = Number.isFinite(bOrder);
-
-                if (aHasOrder && bHasOrder && aOrder !== bOrder) {
-                    return aOrder - bOrder;
-                }
-                if (aHasOrder && !bHasOrder) return -1;
-                if (!aHasOrder && bHasOrder) return 1;
-
-                return String(a.id).localeCompare(
-                    String(b.id),
-                    "zh-Hant-TW",
-                    { numeric: true, sensitivity: "base" }
-                );
+                // ⭐ 只使用 Excel 匯入時保存的 sortOrder
+                return Number(a.sortOrder ?? 999999) -
+                       Number(b.sortOrder ?? 999999);
             });
 
 
@@ -1498,6 +1694,34 @@ function renderIVList() {
                     };
 
 
+                    // ☁️ 每次輸入立即同步到 Firebase
+                    if (!isRemoteSyncing && dateInput.value) {
+
+                        setSyncStatus("🟡 儲存中...", "normal");
+
+                        set(
+                            ref(
+                                db,
+                                `ivReplenishmentDraft/${dateInput.value}/${drug.id}`
+                            ),
+                            {
+                                currentQty: qty,
+                                safetyStock: safetyStock,
+                                replenishQty: need,
+                                updatedAt: new Date().toISOString(),
+                                updatedBy: document.getElementById("pharmacistName")?.value || ""
+                            }
+                        )
+                        .then(() => {
+                            setSyncStatus("🟢 已同步", "ok");
+                        })
+                        .catch(error => {
+                            console.error("點滴即時同步失敗：", error);
+                            setSyncStatus("🔴 同步失敗", "error");
+                        });
+                    }
+
+
                     /* 更新應補 */
 
                     const replenishDisplay =
@@ -1645,6 +1869,17 @@ function updateSummary() {
 
 }
 
+
+
+/* ======================================================
+   📅 切換日期時切換 Firebase 即時資料
+====================================================== */
+
+dateInput.addEventListener("change", () => {
+    currentData = {};
+    renderIVList();
+    startIVRealtimeSync();
+});
 
 
 /* ======================================================
@@ -1923,7 +2158,9 @@ function escapeHtml(value) {
    🚀 啟動
 ====================================================== */
 
-loadIVMaster();
+loadIVMaster().then(() => {
+    startIVRealtimeSync();
+});
 
 
 </script>
