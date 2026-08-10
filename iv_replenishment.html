@@ -1140,21 +1140,14 @@ document
                更新畫面
             ------------------------------------------ */
 
-            ivDrugList =
-                enabledList;
-
-
+            ivDrugList = enabledList;
             currentData = {};
-
-
             renderIVList();
-
 
             alert(
                 "🎉 點滴主檔匯入成功！\n\n" +
                 `啟用中的點滴：${enabledList.length} 項`
             );
-
 
         } catch (error) {
 
@@ -1162,7 +1155,6 @@ document
                 "點滴主檔匯入錯誤：",
                 error
             );
-
 
             alert(
                 "❌ 匯入失敗\n\n" +
@@ -1173,12 +1165,9 @@ document
 
 
         /* 清空 input */
-
         event.target.value = "";
-
     }
 );
-
 
 
 /* ======================================================
@@ -1203,28 +1192,11 @@ async function loadIVMaster() {
         ) {
 
             ivDrugList = [];
-
             renderIVList();
-
             ivList.innerHTML = `
-
-                <div
-                    class="
-                        text-center
-                        py-12
-                        text-slate-400
-                    ">
-
-                    <div
-                        class="
-                            text-5xl
-                            mb-4
-                        ">
-
-                        💧
-
+                <div class=" text-center py-12 text-slate-400 ">
+                    <div class=" text-5xl mb-4 "> 💧
                     </div>
-
                     <div
                         class="
                             font-black
@@ -1626,171 +1598,226 @@ function renderIVList() {
             `;
 
 
-            /* ------------------------------------------
-               現有量輸入
-            ------------------------------------------ */
+/* ------------------------------------------
+   現有量輸入
+------------------------------------------ */
 
-            const input =
-                card.querySelector(
-                    ".current-qty"
-                );
+const input = card.querySelector(".current-qty");
 
+input.addEventListener(
+    "input",
+    () => {
 
-            input.addEventListener(
-                "input",
-                () => {
+        /*
+         * ⚠️ 重要：
+         * 輸入中的文字不要立刻重新指定 input.value
+         * 否則會造成游標跳動、輸入中斷。
+         */
 
-                    let qty =
-                        Number(
-                            input.value
-                        );
+        let rawValue = input.value;
 
+        // 只允許數字
+        rawValue = rawValue.replace(/[^0-9]/g, "");
 
-                    if (
-                        Number.isNaN(qty) ||
-                        qty < 0
-                    ) {
+        // 不要在空白時強制變成 0
+        // 讓使用者可以正常輸入
+        if (rawValue === "") {
 
-                        qty = 0;
+            currentData[drug.id] = {
+                currentQty: 0,
+                safetyStock: safetyStock,
+                replenishQty: safetyStock
+            };
 
-                    }
+            const replenishDisplay =
+                card.querySelector(".replenish-display");
 
+            replenishDisplay.textContent =
+                safetyStock;
 
-                    qty =
-                        Math.floor(qty);
+            card.querySelector(
+                ".after-display"
+            ).textContent = safetyStock;
 
+            updateSummary();
 
-                    input.value =
-                        qty;
-
-
-                    const need =
-                        Math.max(
-                            safetyStock -
-                            qty,
-                            0
-                        );
-
-
-                    const afterQty =
-                        qty + need;
+            return;
+        }
 
 
-                    /* 更新資料 */
-
-                    currentData[
-                        drug.id
-                    ] = {
-
-                        currentQty:
-                            qty,
-
-                        safetyStock:
-                            safetyStock,
-
-                        replenishQty:
-                            need
-
-                    };
+        const qty =
+            Math.floor(
+                Number(rawValue)
+            );
 
 
-                    // ☁️ 每次輸入立即同步到 Firebase
-                    if (!isRemoteSyncing && dateInput.value) {
-
-                        setSyncStatus("🟡 儲存中...", "normal");
-
-                        set(
-                            ref(
-                                db,
-                                `ivReplenishmentDraft/${dateInput.value}/${drug.id}`
-                            ),
-                            {
-                                currentQty: qty,
-                                safetyStock: safetyStock,
-                                replenishQty: need,
-                                updatedAt: new Date().toISOString(),
-                                updatedBy: document.getElementById("pharmacistName")?.value || ""
-                            }
-                        )
-                        .then(() => {
-                            setSyncStatus("🟢 已同步", "ok");
-                        })
-                        .catch(error => {
-                            console.error("點滴即時同步失敗：", error);
-                            setSyncStatus("🔴 同步失敗", "error");
-                        });
-                    }
+        const need =
+            Math.max(
+                safetyStock - qty,
+                0
+            );
 
 
-                    /* 更新應補 */
-
-                    const replenishDisplay =
-                        card.querySelector(
-                            ".replenish-display"
-                        );
+        const afterQty =
+            qty + need;
 
 
-                    replenishDisplay.textContent =
-                        need;
+        /* ------------------------------------------
+           更新本機資料
+        ------------------------------------------ */
+
+        currentData[drug.id] = {
+
+            currentQty:
+                qty,
+
+            safetyStock:
+                safetyStock,
+
+            replenishQty:
+                need
+
+        };
 
 
-                    replenishDisplay.className =
-                        `replenish-display
-                         rounded-xl
-                         py-3
-                         mt-1
-                         text-center
-                         font-black
-                         ${
-                            need > 0
-                            ? "bg-red-50 text-red-600"
-                            : "bg-emerald-50 text-emerald-600"
-                         }`;
+        /* ------------------------------------------
+           ☁️ Firebase 即時同步
+        ------------------------------------------ */
+
+        if (
+            !isRemoteSyncing &&
+            dateInput.value
+        ) {
+
+            setSyncStatus(
+                "🟡 儲存中...",
+                "normal"
+            );
 
 
-                    /* 更新補後 */
+            set(
+                ref(
+                    db,
+                    `ivReplenishmentDraft/${dateInput.value}/${drug.id}`
+                ),
+                {
 
-                    card.querySelector(
-                        ".after-display"
-                    ).textContent =
-                        afterQty;
+                    currentQty:
+                        qty,
 
+                    safetyStock:
+                        safetyStock,
 
-                    /* 更新卡片顏色 */
+                    replenishQty:
+                        need,
 
-                    card.classList.remove(
-                        "need",
-                        "ok"
-                    );
+                    updatedAt:
+                        new Date().toISOString(),
 
-
-                    card.classList.add(
-                        need > 0
-                        ? "need"
-                        : "ok"
-                    );
-
-
-                    updateSummary();
+                    updatedBy:
+                        document.getElementById(
+                            "pharmacistName"
+                        )?.value || ""
 
                 }
-            );
+            )
+            .then(() => {
 
+                setSyncStatus(
+                    "🟢 已同步",
+                    "ok"
+                );
 
-            ivList.appendChild(
-                card
-            );
+            })
+            .catch(error => {
+
+                console.error(
+                    "點滴即時同步失敗：",
+                    error
+                );
+
+                setSyncStatus(
+                    "🔴 同步失敗",
+                    "error"
+                );
+
+            });
 
         }
-    );
 
 
-    updateSummary();
+        /* ------------------------------------------
+           更新應補
+        ------------------------------------------ */
 
-}
+        const replenishDisplay =
+            card.querySelector(
+                ".replenish-display"
+            );
 
 
+        replenishDisplay.textContent =
+            need;
 
+
+        replenishDisplay.className =
+            `replenish-display
+             rounded-xl
+             py-3
+             mt-1
+             text-center
+             font-black
+             ${
+                need > 0
+                ? "bg-red-50 text-red-600"
+                : "bg-emerald-50 text-emerald-600"
+             }`;
+
+
+        /* ------------------------------------------
+           更新補後庫存
+        ------------------------------------------ */
+
+        const afterDisplay =
+            card.querySelector(
+                ".after-display"
+            );
+
+
+        if (afterDisplay) {
+
+            afterDisplay.textContent =
+                afterQty;
+
+        }
+
+
+        /* ------------------------------------------
+           更新卡片顏色
+        ------------------------------------------ */
+
+        card.classList.remove(
+            "need",
+            "ok"
+        );
+
+
+        card.classList.add(
+            need > 0
+            ? "need"
+            : "ok"
+        );
+
+
+        /* ------------------------------------------
+           更新總結
+        ------------------------------------------ */
+
+        updateSummary();
+
+    }
+);
+            
 /* ======================================================
    📊 統計
 ====================================================== */
