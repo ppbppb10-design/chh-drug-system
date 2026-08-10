@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+    <meta charset="UTF-8">
+
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
+
+    <title>每日點滴補充</title>
+
+    <!-- Tailwind -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
+
+    <style>
+
+        body {
+            background:#f1f5f9;
+            font-family:
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                "Noto Sans TC",
+                sans-serif;
+        }
+
+        .safe-card {
+            transition:0.2s;
+        }
+
+        .safe-card.need {
+            border-left:5px solid #ef4444;
+        }
+
+        .safe-card.ok {
+            border-left:5px solid #10b981;
+        }
+
+        .qty-input {
+            font-size:1.25rem;
+            font-weight:900;
+            text-align:center;
+        }
+
+    </style>
+
+</head>
+
+<body>
+
+<!-- =========================
+     Header
+========================= -->
+
+<header class="bg-red-700 text-white shadow-lg">
+
+    <div class="max-w-5xl mx-auto px-4 py-4">
+
+        <div class="flex items-center justify-between">
+
+            <div class="flex items-center gap-3">
+
+                <button
+                    id="btnHome"
+                    class="bg-white/20 hover:bg-white/30
+                           rounded-xl px-4 py-3">
+
+                    <i class="fa-solid fa-arrow-left"></i>
+
+                </button>
+
+                <div>
+
+                    <div class="text-xl md:text-2xl font-black">
+
+                        💧 每日點滴補充
+
+                    </div>
+
+                    <div class="text-xs opacity-80">
+
+                        彰化醫院藥劑科
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="text-xs text-right">
+
+                <div id="clock"></div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<!-- =========================
+     Main
+========================= -->
+
+<main class="max-w-5xl mx-auto p-4 space-y-4">
+
+
+    <!-- 日期 / 藥師 -->
+
+    <section
+        class="bg-white rounded-2xl shadow-sm p-4">
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+
+            <!-- 日期 -->
+
+            <div>
+
+                <label class="block text-sm font-black
+                              text-slate-600 mb-2">
+
+                    📅 補充日期
+
+                </label>
+
+                <input
+                    type="date"
+                    id="replenishDate"
+                    class="w-full border-2 border-slate-200
+                           rounded-xl px-4 py-3
+                           font-bold">
+
+            </div>
+
+
+            <!-- 藥師 -->
+
+            <div>
+
+                <label class="block text-sm font-black
+                              text-slate-600 mb-2">
+
+                    👤 補充藥師
+
+                </label>
+
+                <select
+                    id="pharmacistName"
+                    class="w-full border-2 border-slate-200
+                           rounded-xl px-4 py-3
+                           font-bold">
+
+                    <option value="">
+                        請選擇藥師
+                    </option>
+
+                    <!--
+                    之後放你目前系統的藥師名單
+                    -->
+
+                </select>
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         今日狀態
+    ========================= -->
+
+    <section
+        class="grid grid-cols-3 gap-3">
+
+
+        <div
+            class="bg-white rounded-2xl shadow-sm p-4">
+
+            <div class="text-xs text-slate-500 font-bold">
+
+                💧 點滴品項
+
+            </div>
+
+            <div
+                id="totalItems"
+                class="text-3xl font-black text-red-600 mt-1">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="bg-white rounded-2xl shadow-sm p-4">
+
+            <div class="text-xs text-slate-500 font-bold">
+
+                🔴 需要補充
+
+            </div>
+
+            <div
+                id="needItems"
+                class="text-3xl font-black text-red-500 mt-1">
+
+                0
+
+            </div>
+
+        </div>
+
+
+        <div
+            class="bg-white rounded-2xl shadow-sm p-4">
+
+            <div class="text-xs text-slate-500 font-bold">
+
+                🟢 已足夠
+
+            </div>
+
+            <div
+                id="okItems"
+                class="text-3xl font-black text-emerald-500 mt-1">
+
+                0
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+    <!-- =========================
+         點滴清單
+    ========================= -->
+
+    <section
+        class="bg-white rounded-2xl shadow-sm overflow-hidden">
+
+
+        <div
+            class="bg-slate-800 text-white px-4 py-4">
+
+            <div class="font-black text-lg">
+
+                💧 今日點滴補充清單
+
+            </div>
+
+            <div class="text-xs opacity-70 mt-1">
+
+                請盤點樓上藥局現有數量，系統會自動計算應補數量
+
+            </div>
+
+        </div>
+
+
+        <div
+            id="ivList"
+            class="p-3 space-y-3">
+
+            <!-- JS 產生 -->
+
+        </div>
+
+
+    </section>
+
+
+    <!-- =========================
+         完成
+    ========================= -->
+
+    <button
+        id="btnComplete"
+        class="w-full bg-emerald-600
+               hover:bg-emerald-700
+               text-white rounded-2xl
+               py-5 font-black text-lg
+               shadow-lg">
+
+        ✅ 完成今日點滴補充
+
+    </button>
+
+
+</main>
+
+
+<!-- =========================
+     Firebase
+========================= -->
+
+<script type="module">
+
+import {
+    initializeApp
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+
+import {
+    getDatabase,
+    ref,
+    set,
+    onValue
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-database.js";
+
+
+// ======================================================
+// Firebase
+// ======================================================
+
+const firebaseConfig = {
+
+    // ⚠️ 這裡請放你目前系統正在使用的 Firebase Config
+
+};
+
+
+// 初始化
+
+const app = initializeApp(firebaseConfig);
+
+const db = getDatabase(app);
+
+
+// ======================================================
+// 基本資料
+// ======================================================
+
+let ivDrugList = [];
+
+
+// ======================================================
+// 範例點滴主檔
+//
+// 之後會改成 Firebase / 你的既有資料
+// ======================================================
+
+ivDrugList = [
+
+    {
+        id:"IV001",
+        name:"N/S 0.9% 500mL",
+        spec:"500mL",
+        safetyStock:20
+    },
+
+    {
+        id:"IV002",
+        name:"D5W 500mL",
+        spec:"500mL",
+        safetyStock:20
+    },
+
+    {
+        id:"IV003",
+        name:"N/S 0.9% 1000mL",
+        spec:"1000mL",
+        safetyStock:10
+    },
+
+    {
+        id:"IV004",
+        name:"D5W 1000mL",
+        spec:"1000mL",
+        safetyStock:10
+    }
+
+];
+
+
+// ======================================================
+// 今日資料
+// ======================================================
+
+let currentData = {};
+
+
+// ======================================================
+// 初始化日期
+// ======================================================
+
+const dateInput =
+    document.getElementById("replenishDate");
+
+const today =
+    new Date();
+
+const todayStr =
+    today.toISOString().split("T")[0];
+
+dateInput.value = todayStr;
+
+
+// ======================================================
+// 顯示清單
+// ======================================================
+
+function renderIVList() {
+
+    const container =
+        document.getElementById("ivList");
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    let needCount = 0;
+    let okCount = 0;
+
+
+    ivDrugList.forEach(drug => {
+
+        const data =
+            currentData[drug.id] || {};
+
+        const currentQty =
+            Number(data.currentQty || 0);
+
+        const safetyStock =
+            Number(drug.safetyStock || 0);
+
+        const replenishQty =
+            Math.max(
+                safetyStock - currentQty,
+                0
+            );
+
+
+        if (replenishQty > 0) {
+
+            needCount++;
+
+        } else {
+
+            okCount++;
+
+        }
+
+
+        const card =
+            document.createElement("div");
+
+
+        card.className =
+            `safe-card ${
+                replenishQty > 0
+                ? "need"
+                : "ok"
+            }
+            bg-white
+            border border-slate-200
+            rounded-xl
+            p-4
+            shadow-sm`;
+
+
+        card.innerHTML = `
+
+            <div class="flex
+                        justify-between
+                        items-start
+                        gap-3">
+
+                <div class="flex-1">
+
+                    <div class="font-black
+                                text-slate-800">
+
+                        ${drug.name}
+
+                    </div>
+
+                    <div class="text-xs
+                                text-slate-400
+                                font-mono mt-1">
+
+                        ${drug.id}
+                        ·
+                        ${drug.spec}
+
+                    </div>
+
+                </div>
+
+
+                <div class="text-right">
+
+                    <div class="text-xs
+                                text-slate-400">
+
+                        安全庫存
+
+                    </div>
+
+                    <div class="font-black
+                                text-blue-600">
+
+                        ${safetyStock}
+
+                    </div>
+
+                </div>
+
+            </div>
+
+
+            <div class="grid
+                        grid-cols-3
+                        gap-2
+                        mt-4">
+
+
+                <div>
+
+                    <div class="text-xs
+                                text-slate-400
+                                text-center">
+
+                        現有量
+
+                    </div>
+
+                    <input
+                        type="number"
+                        min="0"
+                        value="${currentQty}"
+                        data-id="${drug.id}"
+                        class="qty-input current-qty
+                               w-full
+                               border-2
+                               border-slate-200
+                               rounded-xl
+                               py-2
+                               mt-1">
+
+
+                </div>
+
+
+                <div>
+
+                    <div class="text-xs
+                                text-slate-400
+                                text-center">
+
+                        應補
+
+                    </div>
+
+                    <div
+                        class="replenish-display
+                               bg-red-50
+                               text-red-600
+                               rounded-xl
+                               py-3
+                               mt-1
+                               text-center
+                               font-black">
+
+                        ${replenishQty}
+
+                    </div>
+
+                </div>
+
+
+                <div>
+
+                    <div class="text-xs
+                                text-slate-400
+                                text-center">
+
+                        補後
+
+                    </div>
+
+                    <div
+                        class="bg-emerald-50
+                               text-emerald-600
+                               rounded-xl
+                               py-3
+                               mt-1
+                               text-center
+                               font-black">
+
+                        ${currentQty + replenishQty}
+
+                    </div>
+
+                </div>
+
+
+            </div>
+
+        `;
+
+
+        const input =
+            card.querySelector(".current-qty");
+
+
+        input.addEventListener(
+            "input",
+            () => {
+
+                const qty =
+                    Math.max(
+                        Number(input.value || 0),
+                        0
+                    );
+
+
+                const need =
+                    Math.max(
+                        safetyStock - qty,
+                        0
+                    );
+
+
+                card.querySelector(
+                    ".replenish-display"
+                ).textContent = need;
+
+
+                card.querySelector(
+                    ".replenish-display"
+                ).className =
+                    `replenish-display
+                     ${
+                        need > 0
+                        ? "bg-red-50 text-red-600"
+                        : "bg-emerald-50 text-emerald-600"
+                     }
+                     rounded-xl
+                     py-3
+                     mt-1
+                     text-center
+                     font-black`;
+
+
+                currentData[drug.id] = {
+
+                    currentQty: qty,
+
+                    replenishQty: need,
+
+                    safetyStock
+
+                };
+
+
+                updateSummary();
+
+            });
+
+
+        container.appendChild(card);
+
+    });
+
+
+    document.getElementById(
+        "totalItems"
+    ).textContent =
+        ivDrugList.length;
+
+
+    document.getElementById(
+        "needItems"
+    ).textContent =
+        needCount;
+
+
+    document.getElementById(
+        "okItems"
+    ).textContent =
+        okCount;
+
+}
+
+
+// ======================================================
+// 更新統計
+// ======================================================
+
+function updateSummary() {
+
+    let need = 0;
+    let ok = 0;
+
+
+    ivDrugList.forEach(drug => {
+
+        const data =
+            currentData[drug.id] || {};
+
+        const qty =
+            Number(data.currentQty || 0);
+
+        const replenish =
+            Math.max(
+                Number(drug.safetyStock) - qty,
+                0
+            );
+
+
+        if (replenish > 0) {
+
+            need++;
+
+        } else {
+
+            ok++;
+
+        }
+
+    });
+
+
+    document.getElementById(
+        "needItems"
+    ).textContent = need;
+
+
+    document.getElementById(
+        "okItems"
+    ).textContent = ok;
+
+}
+
+
+// ======================================================
+// 完成今日補充
+// ======================================================
+
+document
+.getElementById("btnComplete")
+.addEventListener(
+    "click",
+    async () => {
+
+
+        const pharmacist =
+            document.getElementById(
+                "pharmacistName"
+            ).value;
+
+
+        if (!pharmacist) {
+
+            alert("⚠️ 請先選擇補充藥師");
+
+            return;
+
+        }
+
+
+        const date =
+            dateInput.value;
+
+
+        if (!date) {
+
+            alert("⚠️ 請選擇日期");
+
+            return;
+
+        }
+
+
+        if (!confirm(
+            "確認已完成今日點滴補充？"
+        )) {
+
+            return;
+
+        }
+
+
+        const uploadData = {
+
+            date,
+
+            pharmacist,
+
+            completedAt:
+                new Date().toISOString(),
+
+            completed:true,
+
+            items:currentData
+
+        };
+
+
+        try {
+
+            await set(
+                ref(
+                    db,
+                    `ivReplenishment/${date}`
+                ),
+                uploadData
+            );
+
+
+            alert(
+                "🎉 今日點滴補充已完成並儲存！"
+            );
+
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert(
+                "❌ 儲存失敗，請檢查網路或 Firebase 設定"
+            );
+
+        }
+
+    }
+);
+
+
+// ======================================================
+// 回首頁
+// ======================================================
+
+document
+.getElementById("btnHome")
+.addEventListener(
+    "click",
+    () => {
+
+        location.href =
+            "index.html";
+
+    }
+);
+
+
+// ======================================================
+// 時鐘
+// ======================================================
+
+function updateClock() {
+
+    const now =
+        new Date();
+
+    document.getElementById(
+        "clock"
+    ).textContent =
+        now.toLocaleTimeString(
+            "zh-TW",
+            {
+                hour:"2-digit",
+                minute:"2-digit"
+            }
+        );
+
+}
+
+setInterval(
+    updateClock,
+    1000
+);
+
+updateClock();
+
+
+// ======================================================
+// 初始畫面
+// ======================================================
+
+renderIVList();
+
+</script>
+
+</body>
+
+</html>
