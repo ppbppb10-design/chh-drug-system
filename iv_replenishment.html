@@ -2229,6 +2229,23 @@ loadIVMaster();
 
 /* ☁️ 啟動點滴即時同步 */
 startIVRealtimeSync();
+
+    /* ======================================================
+   📅 日期切換
+====================================================== */
+
+dateInput.addEventListener(
+    "change",
+    () => {
+
+        currentData = {};
+
+        syncedDraftDate = "";
+
+        renderIVList();
+
+    }
+);
     
 </script>
 
