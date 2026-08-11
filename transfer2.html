@@ -27,7 +27,7 @@
             </div>
             <div class="flex gap-2 items-center">
                 <button id="voiceBtn" onclick="enableVoice()" class="text-[10px] bg-blue-50 text-blue-600 px-3 py-1 rounded-full border border-blue-200 font-bold active:bg-blue-600 active:text-white">📢 開啟提示音</button>
-                <button onclick="resetToIdle()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold">🔄 重設</button>
+                <button onclick="resetToToday()" class="text-[10px] bg-red-50 text-red-500 px-3 py-1 rounded-full border border-red-200 font-bold">🔄 清空今日清單</button>
             </div>
         </div>
 
@@ -101,7 +101,7 @@
                     </div>
                 </div>
 
-                <!-- 叫貨統計查詢面板 (按下去另開彈跳視窗，絕不覆蓋原始監控) -->
+                <!-- 叫貨統計查詢面板 -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm">
                     <h3 class="font-black text-slate-800 text-sm mb-2">📊 叫貨統計查詢</h3>
                     <div class="flex gap-2 items-center text-xs flex-wrap">
@@ -113,9 +113,9 @@
                     </div>
                 </div>
 
-                <!-- 原始藥庫監控清單 (完整保留) -->
+                <!-- 藥庫監控清單 (畫面僅呈現當日) -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm flex-grow flex flex-col">
-                    <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 藥庫管理監測中</div>
+                    <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 藥庫管理監測中 (僅顯示今日)</div>
                     
                     <div class="flex-grow border rounded-2xl bg-white min-h-[300px] max-h-[400px] overflow-y-auto shadow-inner mb-4">
                         <table class="w-full text-sm">
@@ -135,7 +135,7 @@
         </div>
     </div>
 
-    <!-- 📊 獨立彈跳視窗 (Modal) 用於顯示統計結果，絕不覆蓋原本畫面 -->
+    <!-- 📊 獨立彈跳視窗 (Modal) -->
     <div id="statsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
             <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
@@ -152,9 +152,7 @@
                             <th class="p-3 text-center border w-24">藥品總量</th>
                         </tr>
                     </thead>
-                    <tbody id="statsModalBody" class="divide-y">
-                        <!-- 統計結果動態填入 -->
-                    </tbody>
+                    <tbody id="statsModalBody" class="divide-y"></tbody>
                 </table>
             </div>
             <div class="bg-slate-50 p-4 border-t flex justify-end gap-2">
@@ -199,6 +197,8 @@
             window.history.replaceState({}, '', window.location.pathname + '?role=' + role);
         }
 
+        const todayStr = new Date().toISOString().split('T')[0];
+
         if (role === 'pharmacy') {
             document.getElementById('warehouseSection').classList.add('role-hidden');
             document.getElementById('pharmacySection').classList.replace('lg:col-span-5', 'lg:col-span-12');
@@ -207,7 +207,6 @@
             document.getElementById('pharmacySection').classList.add('role-hidden');
             document.getElementById('pageTitle').innerText = "🏥 藥庫端 - 撥補管理系統";
             
-            const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('startRange').value = todayStr;
             document.getElementById('endRange').value = todayStr;
         }
@@ -319,6 +318,7 @@
                     };
                     suggestList.appendChild(li);
                 });
+                suggestList.classList.add('hidden'); // Fix typo or match behavior
                 suggestList.classList.remove('hidden');
             });
         }
@@ -361,7 +361,6 @@
         window.submitTransfer = () => {
             const user = document.getElementById('userSelect').value;
             if (!user) return alert("⚠️ 請選擇簽名");
-            const today = new Date().toISOString().split('T')[0];
             tempCart.forEach(item => {
                 push(listRef, {
                     user: user,
@@ -370,7 +369,7 @@
                     qty: item.qty,
                     cold: item.cold,
                     status: 'pending',
-                    date: today,
+                    date: todayStr,
                     time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
                 });
             });
@@ -380,7 +379,6 @@
             alert("✅ 通知已傳送");
         };
 
-        // 獨立彈跳視窗統計查詢邏輯
         window.openStatsModal = async () => {
             const start = document.getElementById('startRange').value;
             const end = document.getElementById('endRange').value;
@@ -400,13 +398,8 @@
             const stats = {};
 
             Object.values(data).forEach(i => {
-                // 自動相容沒有 date 欄位或有 date 欄位的歷史資料
-                let itemDate = i.date;
-                if (!itemDate && i.time) {
-                    itemDate = new Date().toISOString().split('T')[0]; // 若無則預設今天或略過
-                }
-                
-                if (itemDate && itemDate >= start && itemDate <= end) {
+                const itemDate = i.date || todayStr;
+                if (itemDate >= start && itemDate <= end) {
                     const key = i.id || i.name;
                     if(!stats[key]) {
                         stats[key] = { name: i.name, count: 0, totalQty: 0 };
@@ -447,7 +440,7 @@
             const data = snap.val();
             const stats = {};
             Object.values(data).forEach(i => {
-                const itemDate = i.date || '';
+                const itemDate = i.date || todayStr;
                 if (itemDate >= start && itemDate <= end) {
                     const key = i.id || i.name;
                     if(!stats[key]) stats[key] = { 藥品名稱: i.name, 叫貨次數: 0, 藥品總量: 0 };
@@ -513,20 +506,34 @@
             lastStatus = state;
         });
 
+        // ⭐ 關鍵修正：即時監控畫面「只呈現當日」的叫藥情形，不刪除歷史資料
         onValue(listRef, (snap) => {
             const data = snap.val();
             const cartBody = document.getElementById('cartBody');
             const phBody = document.getElementById('pharmacyHistoryBody');
-            if (!data) { if(cartBody) cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">目前無待處理申請</td></tr>`; if(phBody) phBody.innerHTML = ""; lastCount = 0; return; }
+            if (!data) { if(cartBody) cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">今日尚無申請紀錄</td></tr>`; if(phBody) phBody.innerHTML = ""; lastCount = 0; return; }
             
-            const items = Object.values(data);
+            const entries = Object.entries(data).reverse();
+            
+            // 過濾：只保留「今天 (`todayStr`)」或是沒有 date 欄位但屬於今天的資料在畫面上顯示
+            const todayEntries = entries.filter(([key, i]) => {
+                const itemDate = i.date || todayStr;
+                return itemDate === todayStr;
+            });
+
+            const items = todayEntries.map(e => e[1]);
             if (role === 'warehouse' && items.length > lastCount && lastCount !== 0) {
-                speak(`收到來自${items[items.length-1].user}的申請`);
+                speak(`收到來自${items[0].user}的申請`);
             }
             lastCount = items.length;
 
-            const entries = Object.entries(data).reverse();
-            const html = entries.map(([key, i]) => `
+            if (todayEntries.length === 0) {
+                if(cartBody) cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">今日尚無申請紀錄</td></tr>`;
+                if(phBody) phBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">今日尚無申請紀錄</td></tr>`;
+                return;
+            }
+
+            const html = todayEntries.map(([key, i]) => `
                 <tr class="${i.status === 'pending' ? 'pending-row' : ''}">
                     <td class="p-3 text-left">
                         <b>【${i.user}】</b><br>${i.name}
@@ -554,8 +561,12 @@
                 const data = snap.val();
                 if (!data) return;
                 const entries = Object.entries(data);
-                const pending = entries.filter(e => e[1].status === 'pending');
-                if (pending.length === 0) return alert("無新申請可下載");
+                // 下載時也只抓取今日且未下載的項目
+                const pending = entries.filter(e => {
+                    const itemDate = e[1].date || todayStr;
+                    return itemDate === todayStr && e[1].status === 'pending';
+                });
+                if (pending.length === 0) return alert("今日無新申請可下載");
 
                 const ws = XLSX.utils.json_to_sheet(pending.map(e => e[1]));
                 const wb = XLSX.utils.book_new();
@@ -587,10 +598,20 @@
             document.getElementById("coldBanner").classList.add("hidden");
         };
 
-        window.resetToIdle = () => { 
-            if(confirm("確定重設今日清單？")) { 
-                remove(listRef); 
-                set(statusRef, { state: 'idle' }); 
+        // 按鈕改為「清空今日清單」，只清除今天畫面的資料，歷史資料依然保留在資料庫供報表統計
+        window.resetToToday = () => { 
+            if(confirm("確定要清空今日的叫藥清單嗎？（歷史統計資料仍會保留）")) {
+                onValue(listRef, (snap) => {
+                    const data = snap.val();
+                    if (!data) return;
+                    Object.entries(data).forEach(([key, i]) => {
+                        const itemDate = i.date || todayStr;
+                        if (itemDate === todayStr) {
+                            remove(ref(db, `dailyTransferList/${key}`));
+                        }
+                    });
+                    set(statusRef, { state: 'idle' });
+                }, { onlyOnce: true });
             }
         };
     </script>
