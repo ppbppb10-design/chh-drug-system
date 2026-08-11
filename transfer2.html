@@ -101,7 +101,6 @@
                     </div>
                 </div>
 
-                <!-- 叫貨統計查詢面板 -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm">
                     <h3 class="font-black text-slate-800 text-sm mb-2">📊 叫貨統計查詢</h3>
                     <div class="flex gap-2 items-center text-xs flex-wrap">
@@ -113,7 +112,6 @@
                     </div>
                 </div>
 
-                <!-- 藥庫監控清單 (畫面僅呈現當日) -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm flex-grow flex flex-col">
                     <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 藥庫管理監測中 (僅顯示今日)</div>
                     
@@ -318,7 +316,6 @@
                     };
                     suggestList.appendChild(li);
                 });
-                suggestList.classList.add('hidden'); // Fix typo or match behavior
                 suggestList.classList.remove('hidden');
             });
         }
@@ -506,7 +503,6 @@
             lastStatus = state;
         });
 
-        // ⭐ 關鍵修正：即時監控畫面「只呈現當日」的叫藥情形，不刪除歷史資料
         onValue(listRef, (snap) => {
             const data = snap.val();
             const cartBody = document.getElementById('cartBody');
@@ -514,8 +510,6 @@
             if (!data) { if(cartBody) cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">今日尚無申請紀錄</td></tr>`; if(phBody) phBody.innerHTML = ""; lastCount = 0; return; }
             
             const entries = Object.entries(data).reverse();
-            
-            // 過濾：只保留「今天 (`todayStr`)」或是沒有 date 欄位但屬於今天的資料在畫面上顯示
             const todayEntries = entries.filter(([key, i]) => {
                 const itemDate = i.date || todayStr;
                 return itemDate === todayStr;
@@ -561,7 +555,6 @@
                 const data = snap.val();
                 if (!data) return;
                 const entries = Object.entries(data);
-                // 下載時也只抓取今日且未下載的項目
                 const pending = entries.filter(e => {
                     const itemDate = e[1].date || todayStr;
                     return itemDate === todayStr && e[1].status === 'pending';
@@ -589,16 +582,19 @@
         window.pickupComplete = () => {
             if (!confirm("確認已完成取藥？")) return; 
             stopColdVoice();
+            
+            // ⭐ 修正：點擊取藥完成時，同時清除狀態並關閉畫面上的冰藥橫幅與藍色背景
+            document.getElementById("pharmacySection").classList.remove("bg-blue-100");
+            document.getElementById("pharmacySection").classList.add("bg-white");
+            document.getElementById("coldBanner").classList.remove("flex");
+            document.getElementById("coldBanner").classList.add("hidden");
+
             Object.keys(currentTransferData).forEach(key => {
                 update(ref(db, `dailyTransferList/${key}`), { status: "completed" });
             });
             set(statusRef, { state: "idle" });
-            document.getElementById("pharmacySection").classList.remove("bg-blue-100");
-            document.getElementById("pharmacySection").classList.add("bg-white");
-            document.getElementById("coldBanner").classList.add("hidden");
         };
 
-        // 按鈕改為「清空今日清單」，只清除今天畫面的資料，歷史資料依然保留在資料庫供報表統計
         window.resetToToday = () => { 
             if(confirm("確定要清空今日的叫藥清單嗎？（歷史統計資料仍會保留）")) {
                 onValue(listRef, (snap) => {
