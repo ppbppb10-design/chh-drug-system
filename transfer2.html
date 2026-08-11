@@ -14,9 +14,6 @@
         @keyframes flashYellow { 0%, 100% { background: #fff3cd; } 50% { background: #ffeeba; } }
         .role-hidden { display: none !important; }
         .pending-row { background-color: #fffbeb; }
-        .mode-cold { background: #dbeafe !important; }
-        #coldBanner { display: none; }
-        .mode-cold #coldBanner { display: flex; }
     </style>
 </head>
 <body id="bodyTag" class="bg-slate-100 min-h-screen transition-colors duration-500">
@@ -59,56 +56,78 @@
                         <option value="邱麒文">邱麒文</option><option value="陳宜君">陳宜君</option><option value="陳舒婷">陳舒婷</option>
                     </select>
                 </div>
+
                 <div class="grid grid-cols-3 gap-2">
                     <button onclick="setForm('口服', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">口服</button>
                     <button onclick="setForm('針劑', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">針劑</button>
                     <button onclick="setForm('外用', this)" class="form-btn border bg-white py-2 rounded-lg text-xs font-bold shadow-sm">外用</button>
                 </div>
+
                 <div class="relative">
-                    <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋匯入的藥名..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500 bg-white shadow-inner">
+                    <input type="text" id="searchInput" autocomplete="off" placeholder="搜尋匯入的藥名或藥碼..." class="w-full p-4 border-2 rounded-xl outline-none focus:border-blue-500 bg-white shadow-inner">
                     <ul id="suggestList" class="absolute z-50 w-full bg-white border rounded-xl mt-1 shadow-2xl hidden max-h-48 overflow-y-auto"></ul>
                 </div>
+
                 <div class="bg-blue-50 p-3 rounded-xl border border-blue-100">
                     <div class="text-[10px] font-black text-blue-400 mb-2">🛒 待送出清單</div>
                     <ul id="tempList" class="space-y-2"></ul>
                     <button onclick="submitTransfer()" id="submitBtn" disabled class="w-full mt-3 bg-blue-600 text-white py-4 rounded-xl font-black text-lg opacity-20 shadow-lg">一次送出通知</button>
                 </div>
-                <button id="pickupBtn" onclick="pickupComplete()" class="hidden w-full bg-green-600 text-white py-4 rounded-xl font-black text-xl shadow-lg">✅ 取藥完成</button>
+
+                <div class="mt-3">
+                    <button id="pickupBtn" onclick="pickupComplete()" class="hidden w-full bg-green-600 text-white py-4 rounded-xl font-black text-xl shadow-lg">✅ 取藥完成</button>
+                </div>
+
+                <div class="border-t pt-4">
+                    <div class="text-[10px] font-black text-slate-400 mb-2 italic">📜 今日已申請紀錄 (同步藥庫)</div>
+                    <div class="max-h-64 overflow-y-auto border rounded-xl bg-white">
+                        <table class="w-full text-xs">
+                            <tbody id="pharmacyHistoryBody" class="divide-y"></tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
 
             <!-- 藥庫端 -->
             <div id="warehouseSection" class="lg:col-span-7 flex flex-col space-y-4">
-                <!-- 管理與匯入區 -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm flex items-center justify-between">
                     <div>
                         <div class="text-sm font-black text-slate-800">⚙️ 主檔管理</div>
+                        <div class="text-xs text-slate-400">匯入品項供藥局端搜尋</div>
+                    </div>
+                    <div>
                         <input type="file" id="transferMasterExcel" accept=".xlsx,.xls" class="hidden">
                         <button onclick="document.getElementById('transferMasterExcel').click()" class="bg-rose-600 text-white rounded-xl px-4 py-2 font-black text-xs">📥 匯入藥品 Excel</button>
                     </div>
                 </div>
 
-                <!-- 統計區 -->
+                <!-- 叫貨統計查詢面板 -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm">
                     <h3 class="font-black text-slate-800 text-sm mb-2">📊 叫貨統計查詢</h3>
-                    <div class="flex gap-2 items-center text-xs">
-                        <input type="date" id="startRange" class="border p-1 rounded">至<input type="date" id="endRange" class="border p-1 rounded">
-                        <button onclick="runStats()" class="bg-blue-600 text-white px-3 py-1 rounded">統計</button>
-                        <button onclick="exportStats()" class="bg-emerald-600 text-white px-3 py-1 rounded">匯出</button>
+                    <div class="flex gap-2 items-center text-xs flex-wrap">
+                        <input type="date" id="startRange" class="border p-2 rounded bg-white font-bold">
+                        <span>至</span>
+                        <input type="date" id="endRange" class="border p-2 rounded bg-white font-bold">
+                        <button onclick="runStats()" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">統計</button>
+                        <button onclick="exportStats()" class="bg-emerald-600 text-white px-4 py-2 rounded font-bold hover:bg-emerald-700">匯出報表</button>
                     </div>
                 </div>
 
-                <div class="bg-white p-4 rounded-2xl border shadow-sm flex-grow">
-                    <div class="border rounded-2xl h-80 overflow-y-auto shadow-inner mb-4">
+                <div class="bg-white p-4 rounded-2xl border shadow-sm flex-grow flex flex-col">
+                    <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 藥庫管理監測中</div>
+                    
+                    <div class="flex-grow border rounded-2xl bg-white min-h-[300px] max-h-[400px] overflow-y-auto shadow-inner mb-4">
                         <table class="w-full text-sm">
                             <thead class="bg-slate-800 text-white sticky top-0">
-                                <tr><th class="p-2">藥名</th><th class="p-2 text-center">次數</th><th class="p-2 text-center">總量</th></tr>
+                                <tr><th class="p-3 text-left">藥名 / 人員</th><th class="p-3 text-center w-16">量</th><th class="p-3 text-right w-24">狀態</th></tr>
                             </thead>
-                            <tbody id="cartBody" class="divide-y divide-slate-100 text-center"></tbody>
+                            <tbody id="cartBody" class="divide-y divide-slate-100"></tbody>
                         </table>
                     </div>
+
                     <div id="actionArea" class="space-y-3">
-                        <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-4 rounded-2xl font-black text-xl">📥 下載新申請</button>
-                        <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-xl">📦 藥品已入電梯</button>
+                        <button id="downloadNewBtn" onclick="downloadAndProcess()" class="hidden w-full bg-red-600 text-white py-4 rounded-2xl font-black text-xl shadow-xl hover:bg-red-700">📥 下載「新申請」Excel</button>
+                        <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-xl shadow-xl hover:bg-emerald-700">📦 藥品已入電梯</button>
                     </div>
                 </div>
             </div>
@@ -121,8 +140,10 @@
 
         const firebaseConfig = {
             apiKey: "AIzaSyAodw0pIkfOUKcWb8hVHLie_QvG0blRN48",
+            authDomain: "drug--arrive.firebaseapp.com",
             databaseURL: "https://drug--arrive-default-rtdb.firebaseio.com",
-            projectId: "drug--arrive"
+            projectId: "drug--arrive",
+            appId: "1:215426668369:web:eaa94e83974fcec391a570"
         };
 
         const db = getDatabase(initializeApp(firebaseConfig));
@@ -130,58 +151,408 @@
         const statusRef = ref(db, 'systemStatus');
         const masterRef = ref(db, 'transferDrugMaster');
 
-        let drugDb = [], tempCart = [];
+        let drugDb = [];
+        let tempCart = [];
+        let selectedForm = '';
+        let voiceEnabled = false;
+        let lastCount = 0;
+        let lastStatus = 'idle';
+        let coldVoiceTimer = null;
+        let currentTransferData = {};
+
         const urlParams = new URLSearchParams(window.location.search);
         let role = urlParams.get('role');
 
         if (!role) {
-            role = confirm("【確定】➔ 藥局端\n【取消】➔ 藥庫端") ? 'pharmacy' : 'warehouse';
+            const isPharmacy = confirm("請選擇進入視窗：\n\n【確定】進入 ➔ 藥局端 (手機點藥)\n【取消】進入 ➔ 藥庫端 (電腦收單)");
+            role = isPharmacy ? 'pharmacy' : 'warehouse';
             window.history.replaceState({}, '', window.location.pathname + '?role=' + role);
         }
 
         if (role === 'pharmacy') {
             document.getElementById('warehouseSection').classList.add('role-hidden');
             document.getElementById('pharmacySection').classList.replace('lg:col-span-5', 'lg:col-span-12');
-        } else {
+            document.getElementById('pageTitle').innerText = "🚑 藥局端 - 撥補/急領申請";
+        } else if (role === 'warehouse') {
             document.getElementById('pharmacySection').classList.add('role-hidden');
             document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
+            document.getElementById('pageTitle').innerText = "🏥 藥庫端 - 撥補管理系統";
+            
+            // 預設統計查詢區間為當天
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('startRange').value = todayStr;
+            document.getElementById('endRange').value = todayStr;
         }
 
-        // --- 功能實作 ---
-        window.runStats = async () => {
-            const start = document.getElementById('startRange').value;
-            const end = document.getElementById('endRange').value;
-            if(!start || !end) return alert("請選擇區間");
-            
-            const snap = await get(listRef);
-            const data = snap.val() || {};
-            const stats = {};
-
-            Object.values(data).forEach(i => {
-                if(i.date >= start && i.date <= end) {
-                    if(!stats[i.id]) stats[i.id] = { name: i.name, count: 0, totalQty: 0 };
-                    stats[i.id].count += 1;
-                    stats[i.id].totalQty += Number(i.qty);
-                }
-            });
-
-            document.getElementById('cartBody').innerHTML = Object.values(stats).map(s => 
-                `<tr><td class="p-2 text-left">${s.name}</td><td class="p-2">${s.count}</td><td class="p-2">${s.totalQty}</td></tr>`
-            ).join('');
+        window.enableVoice = () => { 
+            voiceEnabled = true; 
+            document.getElementById('voiceBtn').innerText = "🔊 語音通知中";
+            speak("語音功能已啟動");
         };
+        
+        function speak(text) {
+            if (!voiceEnabled) return;
+            window.speechSynthesis.cancel();
+            const msg = new SpeechSynthesisUtterance(text);
+            msg.lang = "zh-TW";
+            msg.rate = 1;
+            msg.pitch = 1;
+            window.speechSynthesis.speak(msg);
+        }
+
+        function stopColdVoice() {
+            if (coldVoiceTimer) {
+                clearInterval(coldVoiceTimer);
+                coldVoiceTimer = null;
+            }
+            window.speechSynthesis.cancel();
+        }
+
+        async function loadDrugMaster() {
+            try {
+                const snap = await get(masterRef);
+                if (snap.exists()) {
+                    const data = snap.val();
+                    drugDb = Object.values(data).filter(d => d.enabled !== false);
+                } else {
+                    drugDb = [];
+                }
+            } catch (err) {
+                console.error("載入主檔失敗", err);
+            }
+        }
+        loadDrugMaster();
+
+        document.getElementById('transferMasterExcel').addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            try {
+                const data = await file.arrayBuffer();
+                const workbook = XLSX.read(data, { type: "array" });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+
+                if (!rows.length) return alert("❌ Excel 沒有資料");
+
+                const excelData = {};
+                rows.forEach((row) => {
+                    const keys = Object.keys(row);
+                    const idKey = keys.find(k => k.includes("藥品碼") || k.toLowerCase().includes("id")) || keys[0];
+                    const nameKey = keys.find(k => k.includes("藥品名稱") || k.toLowerCase().includes("name")) || keys[1];
+                    const formKey = keys.find(k => k.includes("規格") || k.includes("劑型") || k.toLowerCase().includes("form")) || keys[2];
+                    const enabledKey = keys.find(k => k.includes("啟用") || k.toLowerCase().includes("enabled")) || keys[3];
+
+                    const id = String(row[idKey] || "").trim();
+                    const name = String(row[nameKey] || "").trim();
+                    const form = String(row[formKey] || "口服").trim();
+                    const enabledText = String(row[enabledKey] || "Y").trim().toUpperCase();
+                    const enabled = !["N", "NO", "0", "FALSE", "停用"].includes(enabledText);
+
+                    if (id && name) {
+                        excelData[id] = { id, name, form, enabled };
+                    }
+                });
+
+                const isUpdate = confirm("請選擇匯入模式：\n\n【確定】合併更新 (將 Excel 資料加入舊清單)\n【取消】整份替換 (只保留 Excel 內的藥品)");
+                if (isUpdate) {
+                    const snap = await get(masterRef);
+                    const oldData = snap.exists() ? snap.val() : {};
+                    await set(masterRef, { ...oldData, ...excelData });
+                    alert("🎉 合併更新成功！");
+                } else {
+                    await set(masterRef, excelData);
+                    alert("🎉 整份替換成功！");
+                }
+                await loadDrugMaster();
+            } catch (error) {
+                alert("❌ 匯入失敗: " + error.message);
+            }
+            e.target.value = "";
+        });
+
+        const searchInput = document.getElementById('searchInput');
+        const suggestList = document.getElementById('suggestList');
+
+        if(searchInput) {
+            searchInput.addEventListener('input', () => {
+                const val = searchInput.value.trim().toUpperCase();
+                suggestList.innerHTML = '';
+                if (!val) return suggestList.classList.add('hidden');
+                const matches = drugDb.filter(d => (String(d.id).includes(val) || String(d.name).toUpperCase().includes(val)) && (selectedForm ? d.form === selectedForm : true)).slice(0, 10);
+                matches.forEach(drug => {
+                    const li = document.createElement('li');
+                    li.className = "p-4 border-b hover:bg-blue-50 cursor-pointer flex justify-between";
+                    li.innerHTML = `<b>${drug.name}</b><small class="text-slate-400">${drug.id} [${drug.form}]</small>`;
+                    li.onclick = () => {
+                        tempCart.push({ ...drug, qty: 1, cold: false });
+                        renderTempList();
+                        searchInput.value = ''; 
+                        suggestList.classList.add('hidden');
+                    };
+                    suggestList.appendChild(li);
+                });
+                suggestList.classList.remove('hidden');
+            });
+        }
+
+        window.setForm = (form, btn) => {
+            selectedForm = (selectedForm === form) ? '' : form;
+            document.querySelectorAll('.form-btn').forEach(b => b.classList.remove('active-form'));
+            if(selectedForm) btn.classList.add('active-form');
+            searchInput.dispatchEvent(new Event('input'));
+        };
+
+        function renderTempList() {
+            const list = document.getElementById('tempList');
+            const btn = document.getElementById('submitBtn');
+            list.innerHTML = tempCart.map((item, idx) => `
+                <li class="bg-white p-3 rounded border border-blue-100 text-xs space-y-2">
+                    <div class="flex items-center justify-between">
+                        <span>
+                            <b>${item.name}</b><br>
+                            <small class="text-slate-400">${item.id}</small>
+                        </span>
+                        <div class="flex items-center gap-2">
+                            <input type="number" value="${item.qty}" onchange="updateQty(${idx}, this.value)" class="w-12 p-1 text-center border rounded">
+                            <button onclick="removeFromTemp(${idx})" class="text-red-500 font-bold">✕</button>
+                        </div>
+                    </div>
+                    <label class="flex items-center gap-2 text-blue-700 font-bold">
+                        <input type="checkbox" ${item.cold ? "checked" : ""} onchange="updateCold(${idx}, this.checked)"> ❄️ 冰藥
+                    </label>
+                </li>
+            `).join('');
+            btn.disabled = tempCart.length === 0;
+            btn.classList.toggle('opacity-20', tempCart.length === 0);
+        }
+
+        window.updateQty = (idx, val) => { tempCart[idx].qty = val; };
+        window.updateCold = (idx, checked) => { tempCart[idx].cold = checked; };
+        window.removeFromTemp = (idx) => { tempCart.splice(idx, 1); renderTempList(); };
 
         window.submitTransfer = () => {
             const user = document.getElementById('userSelect').value;
-            if (!user) return alert("請簽名");
+            if (!user) return alert("⚠️ 請選擇簽名");
             const today = new Date().toISOString().split('T')[0];
             tempCart.forEach(item => {
-                push(listRef, { ...item, user, status: 'pending', date: today, time: new Date().toLocaleTimeString() });
+                push(listRef, {
+                    user: user,
+                    name: item.name,
+                    id: item.id,
+                    qty: item.qty,
+                    cold: item.cold,
+                    status: 'pending',
+                    date: today,
+                    time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+                });
             });
-            tempCart = []; renderTempList(); set(statusRef, { state: 'arriving' });
+            set(statusRef, { state: 'arriving' });
+            tempCart = []; 
+            renderTempList();
+            alert("✅ 通知已傳送");
         };
-        
-        // 其他邏輯(loadDrugMaster, render, Firebase監聽...) 請延續使用上一版的函數，這裡簡化結構以確保您能成功執行。
-        // 若有遺失邏輯，建議您可以直接參照上一版的監聽與渲染部分填入。
+
+        // 叫貨統計查詢邏輯
+        window.runStats = async () => {
+            const start = document.getElementById('startRange').value;
+            const end = document.getElementById('endRange').value;
+            if(!start || !end) return alert("請選擇完整的起訖日期");
+
+            const snap = await get(listRef);
+            const cartBody = document.getElementById('cartBody');
+            if(!snap.exists()) {
+                cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">查無叫貨紀錄</td></tr>`;
+                return;
+            }
+
+            const data = snap.val();
+            const stats = {};
+
+            Object.values(data).forEach(i => {
+                const itemDate = i.date || (i.time ? i.time.split(' ')[0] : '');
+                if (itemDate >= start && itemDate <= end) {
+                    const key = i.id || i.name;
+                    if(!stats[key]) {
+                        stats[key] = { name: i.name, count: 0, totalQty: 0 };
+                    }
+                    stats[key].count += 1;
+                    stats[key].totalQty += Number(i.qty || 1);
+                }
+            });
+
+            const results = Object.values(stats);
+            if (results.length === 0) {
+                cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">此區間內無叫貨資料</td></tr>`;
+                return;
+            }
+
+            cartBody.innerHTML = results.map(s => `
+                <tr>
+                    <td class="p-3 text-left font-bold">${s.name}</td>
+                    <td class="p-3 text-center text-blue-600 font-black">${s.count} 次</td>
+                    <td class="p-3 text-right text-red-500 font-black">${s.totalQty}</td>
+                </tr>
+            `).join('');
+        };
+
+        window.exportStats = async () => {
+            const start = document.getElementById('startRange').value;
+            const end = document.getElementById('endRange').value;
+            if(!start || !end) return alert("請選擇完整的起訖日期");
+
+            const snap = await get(listRef);
+            if(!snap.exists()) return alert("無資料可匯出");
+
+            const data = snap.val();
+            const stats = {};
+            Object.values(data).forEach(i => {
+                const itemDate = i.date || '';
+                if (itemDate >= start && itemDate <= end) {
+                    const key = i.id || i.name;
+                    if(!stats[key]) stats[key] = { 藥品名稱: i.name, 叫貨次數: 0, 藥品總量: 0 };
+                    stats[key].叫貨次數 += 1;
+                    stats[key].藥品總量 += Number(i.qty || 1);
+                }
+            });
+
+            const exportList = Object.values(stats);
+            if(exportList.length === 0) return alert("此區間無資料可匯出");
+
+            const ws = XLSX.utils.json_to_sheet(exportList);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "叫貨統計報表");
+            XLSX.writeFile(wb, `叫貨統計_${start}_至_${end}.xlsx`);
+        };
+
+        onValue(statusRef, (snap) => {
+            const state = snap.val()?.state || 'idle';
+            const body = document.getElementById('bodyTag');
+            const btns = [
+                document.getElementById('downloadNewBtn'),
+                document.getElementById('elevatorBtn')
+            ];
+            const pickupBtn = document.getElementById('pickupBtn');
+
+            btns.forEach(b => b.classList.add('hidden'));
+            if (pickupBtn) pickupBtn.classList.add('hidden');
+            body.className = "bg-slate-100 min-h-screen transition-colors duration-500";
+
+            if (state === 'arriving') {
+                body.classList.add('mode-arriving');
+                btns[0].classList.remove('hidden');
+            } else if (state === 'preparing') {
+                btns[1].classList.remove('hidden');
+            } else if (state === 'in_elevator') {
+                body.classList.add('mode-elevator');
+                if (role === 'pharmacy') {
+                    if (pickupBtn) pickupBtn.classList.remove('hidden');
+                    if (lastStatus !== 'in_elevator') {
+                        stopColdVoice();
+                        onValue(listRef, (snap) => {
+                            currentTransferData = snap.val() || {};
+                            const hasCold = Object.values(currentTransferData).some(item => item.cold === true);
+                            const pharmacySection = document.getElementById("pharmacySection");
+                            const coldBanner = document.getElementById("coldBanner");
+                            if (hasCold) {
+                                pharmacySection.classList.remove("bg-white");
+                                pharmacySection.classList.add("bg-blue-100");
+                                coldBanner.classList.remove("hidden");
+                                speak("冰藥已放入電梯，請立即領取");
+                                coldVoiceTimer = setInterval(() => { speak("冰藥已放入電梯，請立即領取"); }, 15000);
+                            } else {
+                                pharmacySection.classList.remove("bg-blue-100");
+                                pharmacySection.classList.add("bg-white");
+                                coldBanner.classList.add("hidden");
+                                speak("藥品已放入電梯，請前往領取");
+                            }
+                        }, { onlyOnce: true });
+                    }
+                }
+            }
+            lastStatus = state;
+        });
+
+        onValue(listRef, (snap) => {
+            const data = snap.val();
+            const cartBody = document.getElementById('cartBody');
+            const phBody = document.getElementById('pharmacyHistoryBody');
+            if (!data) { if(cartBody) cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">目前無待處理申請</td></tr>`; if(phBody) phBody.innerHTML = ""; lastCount = 0; return; }
+            
+            const items = Object.values(data);
+            if (role === 'warehouse' && items.length > lastCount && lastCount !== 0) {
+                speak(`收到來自${items[items.length-1].user}的申請`);
+            }
+            lastCount = items.length;
+
+            // 藥庫即時監控只顯示未完成或最新的，或可保留原本清單
+            const entries = Object.entries(data).reverse();
+            const html = entries.map(([key, i]) => `
+                <tr class="${i.status === 'pending' ? 'pending-row' : ''}">
+                    <td class="p-3 text-left">
+                        <b>【${i.user}】</b><br>${i.name}
+                        ${role === 'warehouse' ? `
+                            <div class="mt-1">
+                                <label class="text-blue-600 text-xs font-bold">
+                                    <input type="checkbox" ${i.cold ? "checked" : ""} onchange="toggleCold('${key}', this.checked)"> ❄️ 冰藥
+                                </label>
+                            </div>
+                        ` : ""}
+                    </td>
+                    <td class="p-3 text-center font-bold text-red-500 text-lg">${i.qty}</td>
+                    <td class="p-3 text-right text-[10px] font-bold text-slate-400">
+                        ${i.status === 'pending' ? '🔴 新申請' : i.status === 'completed' ? '✅ 已取藥' : '📥 已下載'}
+                    </td>
+                </tr>
+            `).join('');
+            
+            if(role === 'warehouse' && cartBody) cartBody.innerHTML = html;
+            if(phBody) phBody.innerHTML = html;
+        });
+
+        window.downloadAndProcess = () => {
+            onValue(listRef, (snap) => {
+                const data = snap.val();
+                if (!data) return;
+                const entries = Object.entries(data);
+                const pending = entries.filter(e => e[1].status === 'pending');
+                if (pending.length === 0) return alert("無新申請可下載");
+
+                const ws = XLSX.utils.json_to_sheet(pending.map(e => e[1]));
+                const wb = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(wb, ws, "調撥清單");
+                XLSX.writeFile(wb, `彰醫調撥_${new Date().getTime()}.xlsx`);
+
+                pending.forEach(e => update(ref(db, `dailyTransferList/${e[0]}`), { status: 'processed' }));
+                set(statusRef, { state: 'preparing' });
+            }, { onlyOnce: true });
+        };
+
+        window.toggleCold = (key, checked) => {
+            update(ref(db, `dailyTransferList/${key}`), { cold: checked });
+        };
+
+        window.updateStatus = (s) => {
+            set(statusRef, { state: s });
+        };
+
+        window.pickupComplete = () => {
+            if (!confirm("確認已完成取藥？")) return; 
+            stopColdVoice();
+            Object.keys(currentTransferData).forEach(key => {
+                update(ref(db, `dailyTransferList/${key}`), { status: "completed" });
+            });
+            set(statusRef, { state: "idle" });
+            document.getElementById("pharmacySection").classList.remove("bg-blue-100");
+            document.getElementById("pharmacySection").classList.add("bg-white");
+            document.getElementById("coldBanner").classList.add("hidden");
+        };
+
+        window.resetToIdle = () => { 
+            if(confirm("確定重設今日清單？")) { 
+                remove(listRef); 
+                set(statusRef, { state: 'idle' }); 
+            }
+        };
     </script>
 </body>
 </html>
