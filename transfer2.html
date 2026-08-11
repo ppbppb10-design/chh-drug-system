@@ -499,6 +499,21 @@
                         }, { onlyOnce: true });
                     }
                 }
+            } else if (state === 'idle') {
+                // ⭐ 新增：當系統狀態恢復為 idle 時，自動確保藥局端的橫幅與背景關閉
+                if (role === 'pharmacy') {
+                    stopColdVoice();
+                    const pharmacySection = document.getElementById("pharmacySection");
+                    const coldBanner = document.getElementById("coldBanner");
+                    if (pharmacySection) {
+                        pharmacySection.classList.remove("bg-blue-100");
+                        pharmacySection.classList.add("bg-white");
+                    }
+                    if (coldBanner) {
+                        coldBanner.classList.remove("flex");
+                        coldBanner.classList.add("hidden");
+                    }
+                }
             }
             lastStatus = state;
         });
@@ -583,7 +598,7 @@
             if (!confirm("確認已完成取藥？")) return; 
             stopColdVoice();
             
-            // ⭐ 修正：點擊取藥完成時，同時清除狀態並關閉畫面上的冰藥橫幅與藍色背景
+            // 立即移除畫面上的冰藥橫幅與藍色背景
             document.getElementById("pharmacySection").classList.remove("bg-blue-100");
             document.getElementById("pharmacySection").classList.add("bg-white");
             document.getElementById("coldBanner").classList.remove("flex");
