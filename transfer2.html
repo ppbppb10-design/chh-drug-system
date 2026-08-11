@@ -214,44 +214,63 @@
         }
         loadDrugMaster();
 
-        document.getElementById('transferMasterExcel').addEventListener('change', async (e) => {
-            const file = e.target.files[0];
-            if (!file) return;
-            try {
-                const data = await file.arrayBuffer();
-                const workbook = XLSX.read(data, { type: "array" });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
+       document.getElementById('transferMasterExcel').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+        const data = await file.arrayBuffer();
+        const workbook = XLSX.read(data, { type: "array" });
+        const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { defval: "" });
 
-                if (!rows.length) return alert("❌ Excel 沒有資料");
+        if (!rows.length) return alert("❌ Excel 沒有資料");
 
-                const masterData = {};
-                rows.forEach((row) => {
-                    const keys = Object.keys(row);
-                    const idKey = keys.find(k => k.includes("藥品碼") || k.toLowerCase().includes("id")) || keys[0];
-                    const nameKey = keys.find(k => k.includes("藥品名稱") || k.toLowerCase().includes("name")) || keys[1];
-                    const formKey = keys.find(k => k.includes("規格") || k.includes("劑型") || k.toLowerCase().includes("form")) || keys[2];
-                    const enabledKey = keys.find(k => k.includes("啟用") || k.toLowerCase().includes("enabled")) || keys[3];
+        // 整理 Excel 資料
+        const excelData = {};
+        rows.forEach((row) => {
+            const keys = Object.keys(row);
+            const idKey = keys.find(k => k.includes("藥品碼") || k.toLowerCase().includes("id")) || keys[0];
+            const nameKey = keys.find(k => k.includes("藥品名稱") || k.toLowerCase().includes("name")) || keys[1];
+            const formKey = keys.find(k => k.includes("規格") || k.includes("劑型") || k.toLowerCase().includes("form")) || keys[2];
+            const enabledKey = keys.find(k => k.includes("啟用") || k.toLowerCase().includes("enabled")) || keys[3];
 
-                    const id = String(row[idKey] || "").trim();
-                    const name = String(row[nameKey] || "").trim();
-                    const form = String(row[formKey] || "口服").trim();
-                    const enabledText = String(row[enabledKey] || "Y").trim().toUpperCase();
-                    const enabled = !["N", "NO", "0", "FALSE", "停用"].includes(enabledText);
+            const id = String(row[idKey] || "").trim();
+            const name = String(row[nameKey] || "").trim();
+            const form = String(row[formKey] || "口服").trim();
+            const enabledText = String(row[enabledKey] || "Y").trim().toUpperCase();
+            const enabled = !["N", "NO", "0", "FALSE", "停用"].includes(enabledText);
 
-                    if (id && name) {
-                        masterData[id] = { id, name, form, enabled };
-                    }
-                });
-
-                await set(masterRef, masterData);
-                await loadDrugMaster();
-                alert("🎉 缺藥調撥主檔匯入成功！共 " + drugDb.length + " 項");
-            } catch (error) {
-                alert("❌ 匯入失敗: " + error.message);
+            if (id && name) {
+                excelData[id] = { id, name, form, enabled };
             }
-            e.target.value = "";
         });
+
+        // 詢問更新模式
+        const isUpdate = confirm(
+            "請選擇匯入模式：\n\n" +
+            "【確定】合併更新 (將 Excel 資料加入舊清單，相同藥碼會覆蓋)\n" +
+            "【取消】整份替換 (刪除舊資料，只保留 Excel 內的藥品)"
+        );
+
+        if (isUpdate) {
+            // 合併更新：先抓舊的，再用新的覆蓋局部
+            const snap = await get(masterRef);
+            const oldData = snap.exists() ? snap.val() : {};
+            const mergedData = { ...oldData, ...excelData };
+            await set(masterRef, mergedData);
+            alert("🎉 合併更新成功！");
+        } else {
+            // 整份替換
+            await set(masterRef, excelData);
+            alert("🎉 整份替換成功！");
+        }
+
+        await loadDrugMaster();
+    } catch (error) {
+        alert("❌ 匯入失敗: " + error.message);
+    }
+    e.target.value = "";
+});               
 
         const searchInput = document.getElementById('searchInput');
         const suggestList = document.getElementById('suggestList');
