@@ -89,7 +89,7 @@
             </div>
 
             <!-- 藥庫端 -->
-            <div id="warehouseSection" class="lg:col-span-7 flex flex-col space-y-4">
+            <div id="warehouseSection" class="lg:col-span-12 flex flex-col space-y-4">
                 <div class="bg-white p-4 rounded-2xl border shadow-sm flex items-center justify-between">
                     <div>
                         <div class="text-sm font-black text-slate-800">⚙️ 主檔管理</div>
@@ -101,18 +101,19 @@
                     </div>
                 </div>
 
-                <!-- 叫貨統計查詢面板 -->
+                <!-- 叫貨統計查詢面板 (按下去另開彈跳視窗，絕不覆蓋原始監控) -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm">
                     <h3 class="font-black text-slate-800 text-sm mb-2">📊 叫貨統計查詢</h3>
                     <div class="flex gap-2 items-center text-xs flex-wrap">
                         <input type="date" id="startRange" class="border p-2 rounded bg-white font-bold">
                         <span>至</span>
                         <input type="date" id="endRange" class="border p-2 rounded bg-white font-bold">
-                        <button onclick="runStats()" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">統計</button>
-                        <button onclick="exportStats()" class="bg-emerald-600 text-white px-4 py-2 rounded font-bold hover:bg-emerald-700">匯出報表</button>
+                        <button onclick="openStatsModal()" class="bg-blue-600 text-white px-4 py-2 rounded font-bold hover:bg-blue-700">統計查詢</button>
+                        <button onclick="exportStats()" class="bg-emerald-600 text-white px-4 py-2 rounded font-bold hover:bg-emerald-700">直接匯出 Excel</button>
                     </div>
                 </div>
 
+                <!-- 原始藥庫監控清單 (完整保留) -->
                 <div class="bg-white p-4 rounded-2xl border shadow-sm flex-grow flex flex-col">
                     <div id="statusLabel" class="text-center font-bold p-3 mb-2 rounded-xl bg-slate-100 text-slate-500 text-sm">🟢 藥庫管理監測中</div>
                     
@@ -130,6 +131,35 @@
                         <button id="elevatorBtn" onclick="updateStatus('in_elevator')" class="hidden w-full bg-emerald-600 text-white py-4 rounded-2xl font-black text-xl shadow-xl hover:bg-emerald-700">📦 藥品已入電梯</button>
                     </div>
                 </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 📊 獨立彈跳視窗 (Modal) 用於顯示統計結果，絕不覆蓋原本畫面 -->
+    <div id="statsModal" class="fixed inset-0 bg-black/50 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl rounded-3xl shadow-2xl overflow-hidden flex flex-col max-h-[80vh]">
+            <div class="bg-slate-800 text-white p-4 flex justify-between items-center">
+                <h3 class="font-black text-lg">📊 叫貨統計結果</h3>
+                <button onclick="closeStatsModal()" class="text-slate-300 hover:text-white font-bold text-xl">✕</button>
+            </div>
+            <div class="p-4 flex-grow overflow-y-auto">
+                <div id="statsModalDateRange" class="text-xs text-slate-400 mb-2 font-bold"></div>
+                <table class="w-full text-sm border">
+                    <thead class="bg-slate-100">
+                        <tr>
+                            <th class="p-3 text-left border">藥品名稱</th>
+                            <th class="p-3 text-center border w-24">叫貨次數</th>
+                            <th class="p-3 text-center border w-24">藥品總量</th>
+                        </tr>
+                    </thead>
+                    <tbody id="statsModalBody" class="divide-y">
+                        <!-- 統計結果動態填入 -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="bg-slate-50 p-4 border-t flex justify-end gap-2">
+                <button onclick="exportStats()" class="bg-emerald-600 text-white px-5 py-2 rounded-xl font-bold">匯出此統計 Excel</button>
+                <button onclick="closeStatsModal()" class="bg-slate-300 text-slate-700 px-5 py-2 rounded-xl font-bold">關閉</button>
             </div>
         </div>
     </div>
@@ -175,10 +205,8 @@
             document.getElementById('pageTitle').innerText = "🚑 藥局端 - 撥補/急領申請";
         } else if (role === 'warehouse') {
             document.getElementById('pharmacySection').classList.add('role-hidden');
-            document.getElementById('warehouseSection').classList.replace('lg:col-span-7', 'lg:col-span-12');
             document.getElementById('pageTitle').innerText = "🏥 藥庫端 - 撥補管理系統";
             
-            // 預設統計查詢區間為當天
             const todayStr = new Date().toISOString().split('T')[0];
             document.getElementById('startRange').value = todayStr;
             document.getElementById('endRange').value = todayStr;
@@ -352,16 +380,19 @@
             alert("✅ 通知已傳送");
         };
 
-        // 叫貨統計查詢邏輯
-        window.runStats = async () => {
+        // 獨立彈跳視窗統計查詢邏輯
+        window.openStatsModal = async () => {
             const start = document.getElementById('startRange').value;
             const end = document.getElementById('endRange').value;
             if(!start || !end) return alert("請選擇完整的起訖日期");
 
             const snap = await get(listRef);
-            const cartBody = document.getElementById('cartBody');
+            const modalBody = document.getElementById('statsModalBody');
+            document.getElementById('statsModalDateRange').innerText = `統計區間：${start} 至 ${end}`;
+
             if(!snap.exists()) {
-                cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">查無叫貨紀錄</td></tr>`;
+                modalBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">查無叫貨紀錄</td></tr>`;
+                document.getElementById('statsModal').classList.remove('hidden');
                 return;
             }
 
@@ -369,8 +400,13 @@
             const stats = {};
 
             Object.values(data).forEach(i => {
-                const itemDate = i.date || (i.time ? i.time.split(' ')[0] : '');
-                if (itemDate >= start && itemDate <= end) {
+                // 自動相容沒有 date 欄位或有 date 欄位的歷史資料
+                let itemDate = i.date;
+                if (!itemDate && i.time) {
+                    itemDate = new Date().toISOString().split('T')[0]; // 若無則預設今天或略過
+                }
+                
+                if (itemDate && itemDate >= start && itemDate <= end) {
                     const key = i.id || i.name;
                     if(!stats[key]) {
                         stats[key] = { name: i.name, count: 0, totalQty: 0 };
@@ -382,17 +418,22 @@
 
             const results = Object.values(stats);
             if (results.length === 0) {
-                cartBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">此區間內無叫貨資料</td></tr>`;
-                return;
+                modalBody.innerHTML = `<tr><td colspan="3" class="p-4 text-slate-400 text-center">此區間內無叫貨資料</td></tr>`;
+            } else {
+                modalBody.innerHTML = results.map(s => `
+                    <tr>
+                        <td class="p-3 text-left font-bold border">${s.name}</td>
+                        <td class="p-3 text-center text-blue-600 font-black border">${s.count} 次</td>
+                        <td class="p-3 text-center text-red-500 font-black border">${s.totalQty}</td>
+                    </tr>
+                `).join('');
             }
 
-            cartBody.innerHTML = results.map(s => `
-                <tr>
-                    <td class="p-3 text-left font-bold">${s.name}</td>
-                    <td class="p-3 text-center text-blue-600 font-black">${s.count} 次</td>
-                    <td class="p-3 text-right text-red-500 font-black">${s.totalQty}</td>
-                </tr>
-            `).join('');
+            document.getElementById('statsModal').classList.remove('hidden');
+        };
+
+        window.closeStatsModal = () => {
+            document.getElementById('statsModal').classList.add('hidden');
         };
 
         window.exportStats = async () => {
@@ -484,7 +525,6 @@
             }
             lastCount = items.length;
 
-            // 藥庫即時監控只顯示未完成或最新的，或可保留原本清單
             const entries = Object.entries(data).reverse();
             const html = entries.map(([key, i]) => `
                 <tr class="${i.status === 'pending' ? 'pending-row' : ''}">
