@@ -376,6 +376,7 @@
             alert("✅ 通知已傳送");
         };
 
+        // ⭐ 修正統計查詢：強制將 qty 轉成數字 (Number) 以正確累加總量與次數
         window.openStatsModal = async () => {
             const start = document.getElementById('startRange').value;
             const end = document.getElementById('endRange').value;
@@ -395,6 +396,7 @@
             const stats = {};
 
             Object.values(data).forEach(i => {
+                // 如果舊資料沒有 date 欄位，自動 fallback 成 todayStr 避免漏掉舊資料
                 const itemDate = i.date || todayStr;
                 if (itemDate >= start && itemDate <= end) {
                     const key = i.id || i.name;
@@ -402,7 +404,7 @@
                         stats[key] = { name: i.name, count: 0, totalQty: 0 };
                     }
                     stats[key].count += 1;
-                    stats[key].totalQty += Number(i.qty || 1);
+                    stats[key].totalQty += Number(i.qty || 0); // ⭐ 轉換為數字累加
                 }
             });
 
@@ -442,7 +444,7 @@
                     const key = i.id || i.name;
                     if(!stats[key]) stats[key] = { 藥品名稱: i.name, 叫貨次數: 0, 藥品總量: 0 };
                     stats[key].叫貨次數 += 1;
-                    stats[key].藥品總量 += Number(i.qty || 1);
+                    stats[key].藥品總量 += Number(i.qty || 0); // ⭐ 轉換為數字累加
                 }
             });
 
@@ -500,7 +502,6 @@
                     }
                 }
             } else if (state === 'idle') {
-                // ⭐ 新增：當系統狀態恢復為 idle 時，自動確保藥局端的橫幅與背景關閉
                 if (role === 'pharmacy') {
                     stopColdVoice();
                     const pharmacySection = document.getElementById("pharmacySection");
@@ -598,7 +599,6 @@
             if (!confirm("確認已完成取藥？")) return; 
             stopColdVoice();
             
-            // 立即移除畫面上的冰藥橫幅與藍色背景
             document.getElementById("pharmacySection").classList.remove("bg-blue-100");
             document.getElementById("pharmacySection").classList.add("bg-white");
             document.getElementById("coldBanner").classList.remove("flex");
